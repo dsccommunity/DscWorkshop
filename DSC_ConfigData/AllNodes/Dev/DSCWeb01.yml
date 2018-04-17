@@ -1,0 +1,15 @@
+NodeName: DSCWeb01
+Role: WebServer
+Description: 'Web Server in Dev'
+
+PSDscAllowPlainTextPassword: True
+PSDscAllowDomainUser: True
+
+WindowsFeatures:
+  Name:
+  - BITS
+
+LCM_config:
+  Settings:
+    ConfigurationModeFrequencyMins: 15
+    ConfigurationMode: ApplyAndAutoCorrect

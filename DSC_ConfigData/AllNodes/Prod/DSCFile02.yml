@@ -1,0 +1,6 @@
+NodeName: DSCFile02
+Role: FileServer
+Description: File Server in Prod
+
+PSDscAllowPlainTextPassword: True
+PSDscAllowDomainUser: True

@@ -1,0 +1,31 @@
+
+ResolutionPrecedence:
+  - 'AllNodes\$($Node.Environment)\$($Node.Name)'
+  - 'Roles\$($Node.Role)' #if Node has unique role, otherwise use <%= $CurrentNode.PSObject.Properties.where{$_.Name -in $Node.Role}.Value %>
+  - 'Roles\LCM'
+  - 'Roles\Baseline'
+
+default_lookup_options: MostSpecific
+
+lookup_options:
+  Configurations:
+    merge_basetype_array: Unique
+
+  Baseline:
+    merge_hash: deep
+
+  WindowsFeatures:
+    merge_hash: deep
+
+  WindowsFeatures\Name:
+    merge_basetype_array: Unique
+
+  LCM_config:
+    merge_hash: hash
+  LCM_config\ConfigurationRepositoryShare: deep
+  LCM_config\ConfigurationRepositoryWeb: deep
+  LCM_config\PartialConfiguration: deep
+  LCM_config\ReportServerWeb: deep
+  LCM_config\ResourceRepositoryShare: deep
+  LCM_config\ResourceRepositoryWeb: deep
+  LCM_config\Settings: deep
