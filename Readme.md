@@ -1,10 +1,11 @@
 # DSC Workshop Overview
 
+Remember to **charge your Laptop** before the Workshop!
+
 ## Goal:
   - Introduction to the [Release Pipeline Model](https://aka.ms/TRPM) and one possible implementation using DSC
-  - Takeaway code to setup a lab environment at work/home, to learn how to roll your own DSC Pipeline
-  - Share our experience of rolling out DSC at scale in Production environment, in highly regulated industries 
-
+  - Takeaway the code to setup a lab environment at work/home, to learn how to roll your own DSC Pipeline
+  - Share our experiences of rolling out DSC at scale in production environments, in highly regulated industries 
 
 
 ## Overview:
@@ -56,17 +57,27 @@ Install-ChocolateyPackage VisualStudioCode
 [Environment]::SetEnvironmentVariable('Path',($Env:Path + ';' + 'C:\Program Files\Git\bin'),'Process')
 ```
 
-Should you want to work [AutomatedLab part, pull their dependencies listed here](./1.AutomatedLab.md#prerequisites).
+Should you want to work with the [AutomatedLab part, pull their dependencies listed here](./1.AutomatedLab.md#prerequisites).
 
-For Building DSC Artefacts, you should be all set.
+For Building DSC Artefacts and composing your configurations, you should be all set.
+
 ------
 
 ## How to code along with this Lab
 
-You can do the following:
+You can one, some, or all of the following:
+
 - Follow with the full Lab, setting up your lab VMs with AutomatedLab. Deploying required services (AD, SQL, TFS...), and allow you to experiment with a typical infrastructure
 
-- Only Play with the DSC Side locally on your machine, creating roles, Nodes, and compiling artefacts
+- Only Play with the DSC Pipeline locally on your machine, creating roles, Nodes, and compiling artefacts.
+
+- Browse the code and ask questions
+
+
+There will be a few slides to introduce the concepts and share our tips and tricks, loads of Q&A, and you can team up to progress faster!
+
+Make it your own.
+
 
 ## Next Steps
 
