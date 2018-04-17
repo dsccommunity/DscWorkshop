@@ -252,6 +252,8 @@ $buildSteps = @(
 )
 
 # Which will make use of TFS, clone the stuff, add the necessary build step, publish the test results and so on
+Write-ScreenInfo 'Creating TFS project and cloning from GitHub...' -NoNewLine
 New-LabReleasePipeline -ProjectName 'PSConfEU2018' -SourceRepository https://github.com/AutomatedLab/DscWorkshop -BuildSteps $buildSteps
+Write-ScreenInfo done
 
 Show-LabDeploymentSummary -Detailed
