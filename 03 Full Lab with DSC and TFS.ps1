@@ -154,19 +154,16 @@ Invoke-LabCommand -ActivityName 'Create link to TFS' -ComputerName $tfsServer -S
     $shortcut.Save()
 }
 
-<# Does not work for now as PSDepend does not support a custom repository
 Invoke-LabCommand -ActivityName 'Getting required modules and publishing them to ProGet' -ComputerName $tfsServer -ScriptBlock {
     $requiredModules = 'BuildHelpers', 'datum', 'DscBuildHelpers', 'InvokeBuild', 'PackageManagement', 'Pester', 'powershell-yaml', 'PowerShellGet', 'ProtectedData', 'PSDepend', 'PSDeploy', 'PSScriptAnalyzer', 'xDSCResourceDesigner', 'xPSDesiredStateConfiguration'
 
     Install-PackageProvider -Name NuGet -Force
     mkdir -Path C:\ProgramData\Microsoft\Windows\PowerShell\PowerShellGet -Force
     Invoke-WebRequest -Uri 'https://nuget.org/nuget.exe' -OutFile C:\ProgramData\Microsoft\Windows\PowerShell\PowerShellGet\nuget.exe
-    Install-Module -Name PowerShellGet -Force
     Install-Module -Name $requiredModules -Repository PSGallery -Force -AllowClobber -SkipPublisherCheck -WarningAction SilentlyContinue
     
     $path = "http://DSCPull01.contoso.com:8624/nuget/Internal"
-    if (-not (Get-PSRepository -Name Internal))
-    {
+    if (-not (Get-PSRepository -Name Internal)) {
         Register-PSRepository -Name Internal -SourceLocation $path -PublishLocation $path -InstallationPolicy Trusted
     }
     foreach ($requiredModule in $requiredModules) {
@@ -190,13 +187,19 @@ Invoke-LabCommand -ActivityName 'Getting required modules and publishing them to
     foreach ($requiredModule in $requiredModules) {
         Uninstall-Module -Name $requiredModule -ErrorAction SilentlyContinue
     }
-}#>
 
+    if (Get-PSRepository -Name Internal) {
+        Unregister-PSRepository -Name Internal
+    }
+}
+
+<# The Default PSGallery is not removed as the build process does not support an internal repository yet.
 Invoke-LabCommand -ActivityName 'Register ProGet Gallery' -ComputerName (Get-LabVM) -ScriptBlock {
     Unregister-PSRepository -Name PSGallery
     $path = "http://DSCPull01.contoso.com:8624/nuget/Internal"
     Register-PSRepository -Name Internal -SourceLocation $path -PublishLocation $path -InstallationPolicy Trusted
 }
+#>
 
 Invoke-LabCommand -ActivityName 'Disable Git SSL Certificate Check' -ComputerName $tfsServer, $tfsWorker -ScriptBlock {
     [System.Environment]::SetEnvironmentVariable('GIT_SSL_NO_VERIFY', '1', 'Machine')
@@ -233,19 +236,27 @@ $buildSteps = @(
             versionSpec = '*'
         }
         inputs          = @{
-            testRunner = 'NUnit' # Type: pickList, Default: JUnit, Mandatory: True
+            testRunner       = 'NUnit' # Type: pickList, Default: JUnit, Mandatory: True
             testResultsFiles = '**/testresults.xml' # Type: filePath, Default: **/TEST-*.xml, Mandatory: True
 
         }
     }
 )
 
+Invoke-LabCommand -ActivityName 'Setting the worker service account to local system to be able to write to deployment path' -ComputerName $tfsServer -ScriptBlock {
+    $services = Get-CimInstance -ClassName Win32_Service -Filter 'Name like "vsts%"'
+    foreach ($service in $services)
+    {    
+        $service | Invoke-CimMethod -MethodName Change -Arguments @{ StartName = 'LocalSystem' } | Out-Null
+    }
+}
+
 # Which will make use of TFS, clone the stuff, add the necessary build step, publish the test results and so on
 # You will see two remotes, Origin (Our code on GitHub) and TFS (Our code pushed to your lab)
 New-LabReleasePipeline -ProjectName 'PSConfEU2018' -SourceRepository https://github.com/AutomatedLab/DscWorkshop -BuildSteps $buildSteps
 
 # in case you screw something up
-#Checkpoint-LabVM -All -SnapshotName AfterCustomizations
+Checkpoint-LabVM -All -SnapshotName AfterCustomizations
 #endregion
 
 Show-LabDeploymentSummary -Detailed

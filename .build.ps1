@@ -152,7 +152,9 @@ Process {
             $BuildOutput = Join-Path $PSScriptRoot $BuildOutput
         }
         #Write-Host (Get-Module Datum,DscBuildHelpers,Pester,PSSscriptAnalyser,PSDeploy -ListAvailable | FT -a | Out-String) 
-        $TestResults = Invoke-Pester -Script (Join-Path $BuildRoot $TestFolder) -PassThru -EnableExit -OutputFile ([io.path]::combine($BuildOutput,'testresults.xml')) -OutputFormat NUnitXml
+        $TestResults = Invoke-Pester -Script (Join-Path $BuildRoot $TestFolder) -PassThru -OutputFile ([io.path]::combine($BuildOutput,'testresults.xml')) -OutputFormat NUnitXml
+
+        assert ($TestResults.FailedCount -eq 0)
     }
 }
 
