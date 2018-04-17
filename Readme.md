@@ -23,3 +23,7 @@ You can do the following:
 
 - Only Play with the DSC Side locally on your machine, creating roles, Nodes, and compiling artefacts
 
+## Next Steps
+
+1. [AutomatedLab's DscWorkshop Lab](./1.AutomatedLab.md)
+2. [Building DSC Artefacts](./2.Building_DSC_Artefacts.md)
