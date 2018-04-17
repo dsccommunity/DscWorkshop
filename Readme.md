@@ -16,6 +16,51 @@
 5. Bringing Existing Infrastructure under DSC Control, with [Datum](https://gaelcolas.files.wordpress.com/2018/04/datum_quick.mp4)
 
 
+
+## Before you start
+
+The best way (but not mandatory), to follow along, is to get your git and github setup.
+
+### 1. Fork the [AutomatedLab/DscWorkshop](https://github.com/AutomatedLab/DscWorkshop) project 
+
+Once logged in to github, create a fork of the following repository: https://github.com/AutomatedLab/DscWorkshop by clicking on the `FORK` button on the right of the page.
+
+This will create a fork under your name: 
+i.e. `https://github.com/<your github handle>/DscWorkshop`
+
+Where you will be able to push your changes.
+
+### 2. Git clone your fork locally
+
+Now that you have it under your name, you can clone **your** fork on your laptop.
+
+In your github page you will have the green button 'Clone or Download' providing the page `https://github.com/<your github handle>/DscWorkshop.git`
+```
+git clone https://github.com/<your github handle>/DscWorkshop.git
+```
+
+### 3. Set up your laptop
+
+You need Git in your Path (You probably guessed already from above), also have a permissive `ExecutionPolicy` set so you can run scripts, and an Internet Access so you can pull from the Gallery.
+
+As an Administrator run the following:
+```PowerShell
+Set-ExecutionPolicy -ExecutionPolicy Bypass
+Install-Module Chocolatey
+Install-ChocolateySoftware
+Install-ChocolateyPackage git
+Install-ChocolateyPackage VisualStudioCode
+# Setting up Machine level Path environment variable (for persistence)
+[Environment]::SetEnvironmentVariable('Path',($Env:Path + ';' + 'C:\Program Files\Git\bin'),'Machine')
+# Setting up Process level variable
+[Environment]::SetEnvironmentVariable('Path',($Env:Path + ';' + 'C:\Program Files\Git\bin'),'Process')
+```
+
+Should you want to work [AutomatedLab part, pull their dependencies listed here](./1.AutomatedLab.md#prerequisites).
+
+For Building DSC Artefacts, you should be all set.
+------
+
 ## How to code along with this Lab
 
 You can do the following:
