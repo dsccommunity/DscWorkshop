@@ -242,7 +242,7 @@ $buildSteps = @(
 
 # Which will make use of TFS, clone the stuff, add the necessary build step, publish the test results and so on
 # You will see two remotes, Origin (Our code on GitHub) and TFS (Our code pushed to your lab)
-New-LabReleasePipeline -ProjectName 'PSConfEU2018' -SourceRepository https://raandree.visualstudio.com/_git/DscWorkshop -BuildSteps $buildSteps
+New-LabReleasePipeline -ProjectName 'PSConfEU2018' -SourceRepository https://github.com/AutomatedLab/DscWorkshop -BuildSteps $buildSteps
 
 # in case you screw something up
 #Checkpoint-LabVM -All -SnapshotName AfterCustomizations
