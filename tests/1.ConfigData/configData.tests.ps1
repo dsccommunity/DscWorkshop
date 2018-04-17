@@ -5,6 +5,8 @@ $NodeDefinitions = Get-ChildItem $here\..\..\DSC_ConfigData\AllNodes -Recurse -I
 $Environments = (Get-ChildItem $here\..\..\DSC_ConfigData\AllNodes -Directory).BaseName
 $RoleDefinitions = Get-ChildItem $here\..\..\DSC_ConfigData\Roles -Recurse -Include *.yml
 $Datum = New-DatumStructure -DefinitionFile $DatumDefinitionFile
+$ConfigurationData = Get-FilteredConfigurationData -Environment $Environment -Datum $Datum
+
 $NodeNames = [System.Collections.ArrayList]::new()
 
 Describe 'Datum Tree Definition' {
@@ -59,14 +61,12 @@ Describe 'Roles Definition Files' {
 Describe 'Role Composition' {
     Foreach($Environment in $Environments) {
         Context "Nodes for environment $Environment" {
-            $ConfigurationData = Get-FilteredConfigurationData -Environment $Environment -Datum $Datum
             
             Foreach ($Node in $ConfigurationData.AllNodes) {
                 It "$($Node.Name) has a valid Configurations Setting (!`$null)" {
-                    {Lookup Configurations } | Should -Not -Throw
+                    {Lookup Configurations -Node $Node -DatumTree $Datum } | Should -Not -Throw
                 }
             }
-            
         }
     }
 } 
