@@ -207,6 +207,15 @@ Invoke-LabCommand -ActivityName 'Disable Git SSL Certificate Check' -ComputerNam
 
 Restart-LabVM -ComputerName $tfsServer, $tfsWorker -Wait
 
+Invoke-LabCommand -ActivityName 'Setting the worker service account to local system to be able to write to deployment path' -ComputerName $tfsWorker -ScriptBlock {
+    $services = Get-CimInstance -ClassName Win32_Service -Filter 'Name like "vsts%"'
+    foreach ($service in $services)
+    {    
+        $service | Invoke-CimMethod -MethodName Change -Arguments @{ StartName = 'LocalSystem' } | Out-Null
+        $service | Restart-Service
+    }
+}
+
 # Create a new release pipeline
 $buildSteps = @(
     @{
