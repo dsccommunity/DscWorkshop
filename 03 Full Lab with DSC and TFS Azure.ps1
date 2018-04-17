@@ -1,3 +1,4 @@
+#the lab name is not static here as it has to be globally unique 
 $labName = "psconf$((1..6 | ForEach-Object { [char[]](97..122) | Get-Random }) -join '')"
 $azureContext = 'YOUR Azure JSON context here - Use Save-AzureRmContext after having selected your subscription!'
 $azureLocation = 'West Europe' # Please use West Europe for the conference
@@ -23,7 +24,7 @@ Add-LabDomainDefinition -Name contoso.com -AdminUser Install -AdminPassword Some
 Set-LabInstallationCredential -Username Install -Password Somepass1
 
 # Add the reference to our necessary ISO files
-Add-LabIsoImageDefinition -Name Tfs2018 -Path $labsources\ISOs\mu_team_foundation_server_2018_update_2_rc1_x64_dvd_11928464.iso
+Add-LabIsoImageDefinition -Name Tfs2018 -Path $labsources\ISOs\tfsserver2018.2_rc1.iso
 
 #defining default parameter values, as these ones are the same for all the machines
 $PSDefaultParameterValues = @{
