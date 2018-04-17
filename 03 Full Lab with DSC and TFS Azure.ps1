@@ -32,7 +32,7 @@ $PSDefaultParameterValues = @{
     'Add-LabMachineDefinition:DomainName'      = 'contoso.com'
     'Add-LabMachineDefinition:DnsServer1'      = '192.168.111.10'
     'Add-LabMachineDefinition:OperatingSystem' = 'Windows Server 2016 Datacenter (Desktop Experience)'
-    'Add-LabMachineDefinition:AzureProperties' =  @{RoleSize = 'Standard_A2_V2'}'
+    'Add-LabMachineDefinition:AzureProperties' =  @{RoleSize = 'Standard_A2_V2'}
 }
 
 #The PostInstallationActivity is just creating some users
@@ -62,11 +62,16 @@ Add-LabMachineDefinition -Name DSCTFS01 -Memory 1GB -Roles Tfs2018
 
 # DSC target nodes - our legacy VMs with an existing configuration
 
-# Your run-of-the-mill file server
-Add-LabMachineDefinition -Name "DSCSRV01" -Memory 1GB -OperatingSystem 'Windows Server 2016 Datacenter' -Roles FileServer
+# Your run-of-the-mill file server in Dev
+Add-LabMachineDefinition -Name "DSCFile01" -Memory 1GB -OperatingSystem 'Windows Server 2016 Datacenter Evaluation' -Roles FileServer
+# and Prod
+Add-LabMachineDefinition -Name "DSCFile02" -Memory 1GB -OperatingSystem 'Windows Server 2016 Datacenter Evaluation' -Roles FileServer
 
-# The ubiquitous web server
-Add-LabMachineDefinition -Name "DSCSRV02" -Memory 1GB -OperatingSystem 'Windows Server 2016 Datacenter' -Roles WebServer
+# The ubiquitous web server in Dev
+Add-LabMachineDefinition -Name "DSCWeb01" -Memory 1GB -OperatingSystem 'Windows Server 2016 Datacenter Evaluation' -Roles WebServer
+# and Prod
+Add-LabMachineDefinition -Name "DSCWeb02" -Memory 1GB -OperatingSystem 'Windows Server 2016 Datacenter Evaluation' -Roles WebServer
+
 
 Install-Lab
 
@@ -120,10 +125,16 @@ Invoke-LabCommand -ComputerName (Get-LabVm -Role FileServer) -ScriptBlock {
 $tfsServer = Get-LabVM -Role Tfs2018
 $tfsWorker = Get-LabVM -Role TfsBuildWorker
 
+Get-LabInternetFile -Uri https://go.microsoft.com/fwlink/?Linkid=852157 -Path $labSources\SoftwarePackages\VSCodeSetup.exe
+Get-LabInternetFile -Uri https://github.com/git-for-windows/git/releases/download/v2.16.2.windows.1/Git-2.16.2-64-bit.exe -Path $labSources\SoftwarePackages\Git.exe
+New-Item -ItemType Directory -Path $labSources\SoftwarePackages\VSCodeExtensions -ErrorAction SilentlyContinue | Out-Null
+Get-LabInternetFile -Uri https://marketplace.visualstudio.com/_apis/public/gallery/publishers/ms-vscode/vsextensions/PowerShell/1.6.0/vspackage -Path $labSources\SoftwarePackages\VSCodeExtensions\ps.vsix
+
 Install-LabSoftwarePackage -Path $labSources\SoftwarePackages\VSCodeSetup.exe -CommandLine /SILENT -ComputerName $tfsServer
 Install-LabSoftwarePackage -Path $labSources\SoftwarePackages\Git.exe -CommandLine /SILENT -ComputerName $tfsServer
-Get-LabPSSession -ComputerName $tfsServer | Remove-PSSession
-Copy-LabFileItem -Path E:\LabSources\SoftwarePackages\VSCodeExtensions -ComputerName $tfsServer
+Restart-LabVM -ComputerName $tfsServer #somehow required to finish all parts of the VSCode installation
+
+Copy-LabFileItem -Path $labSources\SoftwarePackages\VSCodeExtensions -ComputerName $tfsServer
 Invoke-LabCommand -ActivityName 'Install VSCode Extensions' -ComputerName $tfsServer -ScriptBlock {
     dir -Path C:\VSCodeExtensions | ForEach-Object {
         code --install-extension $_.FullName
@@ -136,7 +147,58 @@ Invoke-LabCommand -ActivityName 'Create link to TFS' -ComputerName $tfsServer -S
     $shortcut = $shell.CreateShortcut("$desktopPath\TFS.url")
     $shortcut.TargetPath = 'https://DSCTFS01:8080/AutomatedLab/PSConfEU2018'
     $shortcut.Save()
+    
+    $shortcut = $shell.CreateShortcut("$desktopPath\ProGet.url")
+    $shortcut.TargetPath = 'http://dscpull01:8624/'
+    $shortcut.Save()
 }
+
+Invoke-LabCommand -ActivityName 'Getting required modules and publishing them to ProGet' -ComputerName $tfsServer -ScriptBlock {
+    $requiredModules = 'BuildHelpers', 'datum', 'DscBuildHelpers', 'InvokeBuild', 'PackageManagement', 'Pester', 'powershell-yaml', 'PowerShellGet', 'ProtectedData', 'PSDepend', 'PSDeploy', 'PSScriptAnalyzer', 'xDSCResourceDesigner', 'xPSDesiredStateConfiguration'
+
+    Install-PackageProvider -Name NuGet -Force
+    mkdir -Path C:\ProgramData\Microsoft\Windows\PowerShell\PowerShellGet -Force
+    Invoke-WebRequest -Uri 'https://nuget.org/nuget.exe' -OutFile C:\ProgramData\Microsoft\Windows\PowerShell\PowerShellGet\nuget.exe
+    Install-Module -Name $requiredModules -Repository PSGallery -Force -AllowClobber -SkipPublisherCheck -WarningAction SilentlyContinue
+    
+    $path = "http://DSCPull01.contoso.com:8624/nuget/Internal"
+    if (-not (Get-PSRepository -Name Internal)) {
+        Register-PSRepository -Name Internal -SourceLocation $path -PublishLocation $path -InstallationPolicy Trusted
+    }
+    foreach ($requiredModule in $requiredModules) {
+        $module = Get-Module $requiredModule -ListAvailable | Sort-Object -Property Version -Descending | Select-Object -First 1
+        if (-not (Find-Module -Name $requiredModule -Repository Internal -ErrorAction SilentlyContinue)) {
+            Publish-Module -Name $requiredModule -RequiredVersion $module.Version -Repository Internal -NuGetApiKey 'Install@Contoso.com:Somepass1' -Force -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
+        }
+    }
+    
+    foreach ($requiredModule in $requiredModules) {
+        Write-Host "Publishing module '$requiredModule'"
+        $module = Get-Module $requiredModule -ListAvailable | Sort-Object -Property Version -Descending | Select-Object -First 1
+        if (-not (Find-Module -Name $requiredModule -Repository Internal -ErrorAction SilentlyContinue)) {
+            Publish-Module -Name $requiredModule -RequiredVersion $module.Version -Repository Internal -NuGetApiKey 'Install@Contoso.com:Somepass1' -Force #-ErrorAction SilentlyContinue -WarningAction SilentlyContinue
+        }
+    }
+    
+    foreach ($requiredModule in $requiredModules) {
+        Uninstall-Module -Name $requiredModule -ErrorAction SilentlyContinue
+    }
+    foreach ($requiredModule in $requiredModules) {
+        Uninstall-Module -Name $requiredModule -ErrorAction SilentlyContinue
+    }
+
+    if (Get-PSRepository -Name Internal) {
+        Unregister-PSRepository -Name Internal
+    }
+}
+
+<# The Default PSGallery is not removed as the build process does not support an internal repository yet.
+Invoke-LabCommand -ActivityName 'Register ProGet Gallery' -ComputerName (Get-LabVM) -ScriptBlock {
+    Unregister-PSRepository -Name PSGallery
+    $path = "http://DSCPull01.contoso.com:8624/nuget/Internal"
+    Register-PSRepository -Name Internal -SourceLocation $path -PublishLocation $path -InstallationPolicy Trusted
+}
+#>
 
 Invoke-LabCommand -ActivityName 'Disable Git SSL Certificate Check' -ComputerName $tfsServer, $tfsWorker -ScriptBlock {
     [System.Environment]::SetEnvironmentVariable('GIT_SSL_NO_VERIFY', '1', 'Machine')
@@ -160,6 +222,21 @@ $buildSteps = @(
             scriptName          = ".Build.ps1"
             arguments           = "-resolveDependency"
             failOnStandardError = $false
+        }
+    }
+    @{
+        enabled         = $True
+        continueOnError = $False
+        alwaysRun       = $False
+        displayName     = 'Publish test results' # e.g. Publish Test Results $(testResultsFiles) or Publish Test Results
+        task            = @{
+            id          = '0b0f01ed-7dde-43ff-9cbb-e48954daf9b1'
+            versionSpec = '*'
+        }
+        inputs          = @{
+            testRunner       = 'NUnit' # Type: pickList, Default: JUnit, Mandatory: True
+            testResultsFiles = '**/testresults.xml' # Type: filePath, Default: **/TEST-*.xml, Mandatory: True
+
         }
     }
 )
