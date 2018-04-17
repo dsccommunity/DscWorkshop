@@ -163,7 +163,7 @@ Invoke-LabCommand -ActivityName 'Getting required modules and publishing them to
     Install-Module -Name $requiredModules -Repository PSGallery -Force -AllowClobber -SkipPublisherCheck -WarningAction SilentlyContinue
     
     $path = "http://DSCPull01.contoso.com:8624/nuget/Internal"
-    if (-not (Get-PSRepository -Name Internal)) {
+    if (-not (Get-PSRepository -Name Internal -ErrorAction SilentlyContinue)) {
         Register-PSRepository -Name Internal -SourceLocation $path -PublishLocation $path -InstallationPolicy Trusted
     }
     foreach ($requiredModule in $requiredModules) {
