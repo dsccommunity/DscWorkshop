@@ -243,6 +243,14 @@ $buildSteps = @(
     }
 )
 
+Invoke-LabCommand -ActivityName 'Setting the worker service account to local system to be able to write to deployment path' -ComputerName $tfsServer -ScriptBlock {
+    $services = Get-CimInstance -ClassName Win32_Service -Filter 'Name like "vsts%"'
+    foreach ($service in $services)
+    {    
+        $service | Invoke-CimMethod -MethodName Change -Arguments @{ StartName = 'LocalSystem' } | Out-Null
+    }
+}
+
 # Which will make use of TFS, clone the stuff, add the necessary build step, publish the test results and so on
 # You will see two remotes, Origin (Our code on GitHub) and TFS (Our code pushed to your lab)
 New-LabReleasePipeline -ProjectName 'PSConfEU2018' -SourceRepository https://github.com/AutomatedLab/DscWorkshop -BuildSteps $buildSteps
