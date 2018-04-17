@@ -1,6 +1,11 @@
 # PSConf EU 2018 - Lab Deployment Guide
 
-The following guide explains how to setup the full lab environment containing a DSC Pull Server, SQL server as well as Team Foundation Server.
+The following guide explains how to setup the full lab environment containing a DSC Pull Server, SQL server as well as Team Foundation Server. 
+You have two options to follow along:
+- Use Hyper-V locally or Azure  
+Best experience if you want to follow along with the entire lab
+- ```git clone https://github.com/AutomatedLab/DscWorkshop```  
+If you cannot use Azure and don't have the power to run the entire lab
 
 ## DSC with TFS
 
@@ -31,7 +36,7 @@ Follow these simple steps to create your own lab infrastructure for the workshop
 
 1. Open Windows PowerShell, the ISE or VSCode as administrator
 1. Create a new directory to contain the code and move there
-1. Call ```git clone https://raandree.visualstudio.com/_git/DscWorkshop``` inside the folder from step 2
+1. Call ```git clone https://github.com/AutomatedLab/DscWorkshop``` inside the folder from step 2
 1. ```Install-Module AutomatedLab -AllowClobber -Force```
   1. Azure only: ```Install-Module AzureRM -Force```
 1. ```New-LabSourcesFolder``` to download and create the proper folder structure
