@@ -9,3 +9,6 @@ LCM_config:
   Settings:
     ConfigurationModeFrequencyMins: 15
     ConfigurationMode: ApplyAndAutoCorrect
+  ConfigurationRepositoryWeb:
+    Server:
+      ConfigurationNames: DSCFile01
