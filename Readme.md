@@ -2,6 +2,8 @@
 
 Remember to **charge your Laptop** before the Workshop!
 
+**If the build fails, please donwload the latest version of AutomatedLab and pull the repository again**
+
 ## Goal:
   - Introduction to the [Release Pipeline Model](https://aka.ms/TRPM) and one possible implementation using DSC
   - Takeaway the code to setup a lab environment at work/home, to learn how to roll your own DSC Pipeline

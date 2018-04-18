@@ -12,7 +12,7 @@ Param (
     $ConfigurationsFolder = "DSC_Configurations",
 
     $Environment = $(
-        $branch = (&git @('rev-parse', '--abbrev-ref', 'HEAD'))
+        $branch = (git branch | where { $_.StartsWith('*') } | ForEach-Object { $_.Substring(2) })
         $branch = if ($branch -eq 'master') { 'Prod' } else { 'Dev' }
         if (Test-Path -Path ".\$ConfigDataFolder\AllNodes\$branch") {
             $branch
