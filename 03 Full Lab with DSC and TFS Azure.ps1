@@ -33,7 +33,7 @@ $PSDefaultParameterValues = @{
     'Add-LabMachineDefinition:DomainName'      = 'contoso.com'
     'Add-LabMachineDefinition:DnsServer1'      = '192.168.111.10'
     'Add-LabMachineDefinition:OperatingSystem' = 'Windows Server 2016 Datacenter (Desktop Experience)'
-    'Add-LabMachineDefinition:AzureProperties' =  @{RoleSize = 'Standard_A2_V2'}
+    'Add-LabMachineDefinition:AzureProperties' =  @{RoleSize = 'Standard_A2_v2'}
 }
 
 #The PostInstallationActivity is just creating some users
@@ -64,14 +64,14 @@ Add-LabMachineDefinition -Name DSCTFS01 -Memory 1GB -Roles Tfs2018
 # DSC target nodes - our legacy VMs with an existing configuration
 
 # Your run-of-the-mill file server in Dev
-Add-LabMachineDefinition -Name "DSCFile01" -Memory 1GB -OperatingSystem 'Windows Server 2016 Datacenter Evaluation' -Roles FileServer
+Add-LabMachineDefinition -Name "DSCFile01" -Memory 1GB -OperatingSystem 'Windows Server 2016 Datacenter' -Roles FileServer
 # and Prod
-Add-LabMachineDefinition -Name "DSCFile02" -Memory 1GB -OperatingSystem 'Windows Server 2016 Datacenter Evaluation' -Roles FileServer
+Add-LabMachineDefinition -Name "DSCFile02" -Memory 1GB -OperatingSystem 'Windows Server 2016 Datacenter' -Roles FileServer
 
 # The ubiquitous web server in Dev
-Add-LabMachineDefinition -Name "DSCWeb01" -Memory 1GB -OperatingSystem 'Windows Server 2016 Datacenter Evaluation' -Roles WebServer
+Add-LabMachineDefinition -Name "DSCWeb01" -Memory 1GB -OperatingSystem 'Windows Server 2016 Datacenter' -Roles WebServer
 # and Prod
-Add-LabMachineDefinition -Name "DSCWeb02" -Memory 1GB -OperatingSystem 'Windows Server 2016 Datacenter Evaluation' -Roles WebServer
+Add-LabMachineDefinition -Name "DSCWeb02" -Memory 1GB -OperatingSystem 'Windows Server 2016 Datacenter' -Roles WebServer
 
 
 Install-Lab
