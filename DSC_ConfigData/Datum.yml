@@ -21,9 +21,10 @@ lookup_options:
 
   LCM_config:
     merge_hash: hash
-  LCM_config\PartialConfiguration: deep
+  LCM_Config\Settings:
+    merge_hash: deep
   LCM_config\ReportServerWeb: deep
   LCM_Config\ConfigurationRepositoryWeb:
-    merge_hash: deep  
-  LCM_Config\Settings:
+    merge_hash: deep
+  LCM_Config\ConfigurationRepositoryWeb\Server:
     merge_hash: deep
