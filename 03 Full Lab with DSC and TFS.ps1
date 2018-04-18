@@ -194,11 +194,11 @@ Invoke-LabCommand -ActivityName 'Getting required modules and publishing them to
 }
 
 <# The Default PSGallery is not removed as the build process does not support an internal repository yet.
-Invoke-LabCommand -ActivityName 'Register ProGet Gallery' -ComputerName (Get-LabVM) -ScriptBlock {
-    Unregister-PSRepository -Name PSGallery
-    $path = "http://DSCPull01.contoso.com:8624/nuget/Internal"
-    Register-PSRepository -Name Internal -SourceLocation $path -PublishLocation $path -InstallationPolicy Trusted
-}
+        Invoke-LabCommand -ActivityName 'Register ProGet Gallery' -ComputerName (Get-LabVM) -ScriptBlock {
+        Unregister-PSRepository -Name PSGallery
+        $path = "http://DSCPull01.contoso.com:8624/nuget/Internal"
+        Register-PSRepository -Name Internal -SourceLocation $path -PublishLocation $path -InstallationPolicy Trusted
+        }
 #>
 
 Invoke-LabCommand -ActivityName 'Disable Git SSL Certificate Check' -ComputerName $tfsServer, $tfsWorker -ScriptBlock {
@@ -215,6 +215,8 @@ Invoke-LabCommand -ActivityName 'Setting the worker service account to local sys
         $service | Restart-Service
     }
 }
+
+Checkpoint-LabVM -All -SnapshotName AfterCustomizations
 
 # Create a new release pipeline
 # Get those build steps from Get-LabBuildStep
@@ -259,7 +261,7 @@ New-LabReleasePipeline -ProjectName 'PSConfEU2018' -SourceRepository https://git
 Write-ScreenInfo done
 
 # in case you screw something up
-Checkpoint-LabVM -All -SnapshotName AfterCustomizations
+Checkpoint-LabVM -All -SnapshotName AfterPipeline
 #endregion
 
 Show-LabDeploymentSummary -Detailed

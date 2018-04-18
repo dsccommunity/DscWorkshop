@@ -4,3 +4,8 @@ Description: Web Server in Prod
 
 PSDscAllowPlainTextPassword: True
 PSDscAllowDomainUser: True
+
+LCM_config:
+  ConfigurationRepositoryWeb:
+    Server:
+      ConfigurationNames: DSCWeb02

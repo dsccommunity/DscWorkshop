@@ -5,12 +5,6 @@ Configuration FilesAndFolders {
     )
     
     Import-DscResource -ModuleName PSDesiredStateConfiguration
-    
-    #File 'TestFile_FilesAndFolders' {
-    #    Ensure          = 'Present'
-    #    DestinationPath = 'C:\TestFile_FilesAndFolders.txt'
-    #    Contents        = ''
-    #}
 
     foreach ($item in $Items) {
         
