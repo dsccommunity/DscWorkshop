@@ -4,3 +4,8 @@ Description: File Server in Prod
 
 PSDscAllowPlainTextPassword: True
 PSDscAllowDomainUser: True
+
+LCM_config:
+  ConfigurationRepositoryWeb:
+    Server:
+      ConfigurationNames: DSCFile02
