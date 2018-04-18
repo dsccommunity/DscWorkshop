@@ -259,9 +259,9 @@ $buildSteps = @(
 Write-ScreenInfo 'Creating TFS project and cloning from GitHub...' -NoNewLine
 New-LabReleasePipeline -ProjectName PSConfEU2018 -SourceRepository https://github.com/AutomatedLab/DscWorkshop -BuildSteps $buildSteps
 cd "$labSources\GitRepositories\DscWorkshop"
-git checkout master
-git pull origin master
-git -c http.sslverify=false push tfs 
+git checkout master 2>&1 | Out-Null
+git pull origin master 2>&1 | Out-Null
+git -c http.sslverify=false push tfs 2>&1 | Out-Null
 Write-ScreenInfo done
 
 # in case you screw something up
