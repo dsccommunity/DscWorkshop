@@ -1,5 +1,6 @@
 function Set-PSModulePath {
-    Param(
+    param(
+        [String[]]
         $ModuleToLeaveLoaded,
 
         [String[]]
@@ -10,12 +11,12 @@ function Set-PSModulePath {
         Remove-Module -Force PSDesiredStateConfiguration
     }
 
-    $Env:PSModulePath = Join-Path $PShome 'modules'
-    Get-Module | Where-Object {$_.Name -notin $ModuleToLeaveLoaded} | Remove-Module -Force
+    $Env:PSModulePath = Join-Path -Path $PShome -ChildPath Modules
+    Get-Module | Where-Object { $_.Name -notin $ModuleToLeaveLoaded } | Remove-Module -Force
 
     $PathsToSet.Foreach{
-        if($_ -notin ($Env:PSModulePath -split ';')) {
-            $Env:PSModulePath = $_ + ';' + $Env:PSModulePath
+        if ($_ -notin ($env:PSModulePath -split ';')) {
+            $env:PSModulePath = "$_;$($Env:PSModulePath)"
         }
     }
 }
