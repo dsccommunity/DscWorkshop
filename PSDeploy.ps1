@@ -1,23 +1,20 @@
-Write-Verbose -Message "Using build system $env:BuildSystem"
-
-if ($env:BuildSystem -ne 'unknown')
+if ($Env:BuildSystems -eq 'AppVeyor' -and $Env:BranchName -in @('DEV', 'PROD'))
 {
-    Deploy DeployMetaMofs {
+    Write-Warning "This where I'd deploy from AppVeyor"
+}
+elseif ($Env:USERDOMAIN -eq 'CONTOSO' -and $Env:BranchName -in @('DEV', 'PROD'))
+{
+    # How you can move MOFs and Zipped modules for DSC PULL to a file share
+    Deploy DeployMofs {
         By FileSystem {
-            FromSource 'BuildOutput\MetaMOF'
-            To 'C:\Program Files\WindowsPowerShell\DscService\MetaConfiguration'
+            FromSource 'BuildOutput\MOF'
+            To '\\contoso\dfs\DSC\MOF'
         }
     }
     Deploy DeployMofs {
         By FileSystem {
-            FromSource 'BuildOutput\MOF'
-            To 'C:\Program Files\WindowsPowerShell\DscService\Configuration'
-        }
-    }
-    Deploy DeployModules {
-        By FileSystem {
             FromSource 'BuildOutput\DscModules'
-            To 'C:\Program Files\WindowsPowerShell\DscService\Modules'
+            To '\\contoso\dfs\DSC\DscModules'
         }
     }
 }

@@ -1,116 +1,142 @@
-Param (
-    [io.DirectoryInfo]
-    $ProjectPath = (property ProjectPath $BuildRoot),
+param (
+    [System.IO.DirectoryInfo]
+    $ProjectPath = (property ProjectPath $ProjectPath),
     
     [String]
-    $BuildOutput = (property BuildOutput "BuildOutput"),
+    $BuildOutput = (property BuildOutput 'BuildOutput'),
     
     [String]
-    $ResourcesFolder = (property ResourcesFolder "DSC_Resources"),
+    $ResourcesFolder = (property ResourcesFolder 'DSC_Resources'),
     
     [String]
-    $ConfigurationsFolder =  (property ConfigurationsFolder "DSC_Configurations"),
+    $ConfigurationsFolder = (property ConfigurationsFolder 'DSC_Configurations'),
 
+    [ScriptBlock]
+    $Filter = (property Filter {}),
+
+    [switch]
+    $RandomWait = (property RandomWait $false),
+
+    [String]
     $Environment = (property Environment 'DEV'),
 
+    [String]
     $ConfigDataFolder = (property ConfigDataFolder 'DSC_ConfigData'),
 
+    [String]
     $BuildVersion = (property BuildVersion '0.0.0'),
 
+    [String]
     $RsopFolder = (property RsopFolder 'RSOP'),
 
-    $FilterNode = (property FilterNode $false),
-
-    $ModuleToLeaveLoaded = (property ModuleToLeaveLoaded @('InvokeBuild','PSReadline','PackageManagement') )
-
+    [String[]]
+    $ModuleToLeaveLoaded = (property ModuleToLeaveLoaded @('InvokeBuild', 'PSReadline', 'PackageManagement', 'ISESteroids') )
 )
-    task PSModulePath_BuildModules {
-        if(!([io.path]::isPathRooted($BuildOutput))) {
-            $BuildOutput = Join-Path $ProjectPath $BuildOutput
-        }
 
-        $ConfigurationPath = Join-Path $ProjectPath $ConfigurationsFolder
-        $ResourcePath = Join-Path $ProjectPath $ResourcesFolder
-        $BuildModulesPath = Join-Path $BuildOutput 'modules'
-        
-        Set-PSModulePath -ModuleToLeaveLoaded $ModuleToLeaveLoaded -PathsToSet @($ConfigurationPath, $ResourcePath, $BuildModulesPath)
+task PSModulePath_BuildModules {
+    Write-Build Green "RandomWait: $($RandomWait.ToString())"
+    if ($RandomWait)
+    {
+        $rnd = Get-Random -Minimum 0 -Maximum 10
+        Write-Build Green "Waiting $rnd seconds to start the compilation job"
+        Start-Sleep -Seconds $rnd
+    }
+    else
+    {
+        Write-Build Green "Not waiting, starting compilation job"
     }
 
-    Task Compile_Datum_DSC Load_Datum_ConfigData, Compile_Root_Configuration, compile_root_meta_mof, create_MOF_checksums
+    if (!([System.IO.Path]::IsPathRooted($BuildOutput)))
+    {
+        $BuildOutput = Join-Path -Path $ProjectPath -ChildPath $BuildOutput
+    }
 
-    Task Load_Datum_ConfigData {
-        if ( ![io.path]::IsPathRooted($BuildOutput) ) {
-            $BuildOutput = Join-Path $ProjectPath -ChildPath $BuildOutput
-        }
-        $ConfigDataPath    = Join-Path $ProjectPath $ConfigDataFolder
-        $ConfigurationPath = Join-Path $ProjectPath $ConfigurationsFolder
-        $ResourcePath      = Join-Path $ProjectPath $ResourcesFolder
-        $BuildModulesPath  = Join-Path $BuildOutput 'modules'
+    $configurationPath = Join-Path -Path $ProjectPath -ChildPath $ConfigurationsFolder
+    $resourcePath = Join-Path -Path $ProjectPath -ChildPath $ResourcesFolder
+    $buildModulesPath = Join-Path -Path $BuildOutput -ChildPath Modules
         
-        Set-PSModulePath -ModuleToLeaveLoaded $ModuleToLeaveLoaded -PathsToSet @($ConfigurationPath,$ResourcePath,$BuildModulesPath)
+    Set-PSModulePath -ModuleToLeaveLoaded $ModuleToLeaveLoaded -PathsToSet @($configurationPath, $resourcePath, $buildModulesPath)
+}
 
-        Import-Module PowerShell-Yaml -scope Global
-        Import-Module Datum -Force -Scope Global
-
-        $DatumDefinitionFile = Join-Path -Resolve $ConfigDataPath 'Datum.yml'
-        Write-Build Green "Loading Datum Definition from $DatumDefinitionFile"
-        $Global:Datum = New-DatumStructure -DefinitionFile $DatumDefinitionFile
+task Load_Datum_ConfigData {
+    if (![System.IO.Path]::IsPathRooted($BuildOutput))
+    {
+        $BuildOutput = Join-Path -Path $ProjectPath -ChildPath $BuildOutput
+    }
+    $configDataPath = Join-Path -Path $ProjectPath -ChildPath $ConfigDataFolder
+    $configurationPath = Join-Path -Path $ProjectPath -ChildPath $ConfigurationsFolder
+    $resourcePath = Join-Path -Path $ProjectPath -ChildPath $ResourcesFolder
+    $buildModulesPath = Join-Path -Path $BuildOutput -ChildPath Modules
         
+    Set-PSModulePath -ModuleToLeaveLoaded $ModuleToLeaveLoaded -PathsToSet @($configurationPath, $resourcePath, $buildModulesPath)
 
-        $Global:ConfigurationData = Get-FilteredConfigurationData -Environment $Environment -FilteredNode $FilteredNode -Datum $Datum
+    Import-Module -Name ProtectedData -Scope Global
+    Import-Module -Name PowerShell-Yaml -Scope Global
+    Import-Module -Name Datum -Scope Global
+
+    $datumDefinitionFile = Join-Path -Resolve -Path $configDataPath -ChildPath 'Datum.yml'
+    Write-Build Green "Loading Datum Definition from '$datumDefinitionFile'"
+    $global:datum = New-DatumStructure -DefinitionFile $datumDefinitionFile
+    if (-not ($datum.AllNodes.$Environment))
+    {
+        Write-Error "No nodes found in the environment '$Environment'"
+    }
+    Write-Build Green "Node count: $(($datum.AllNodes.$Environment | Get-Member -MemberType ScriptProperty | Measure-Object).Count)"
+    
+    Write-Build Green "Filter: $($Filter.ToString())"
+    $global:configurationData = Get-FilteredConfigurationData -Environment $Environment -Filter $Filter -Datum $datum
+    Write-Build Green "Node count after applying filter: $($configurationData.AllNodes.Count)"
 }
 
 task Compile_Root_Configuration {
-    '-----------------------'
-    "FilteredNode: $($FilteredNode -Join ', ')"
-    '-----------------------'
+    try 
+    {
+        $mofs = . (Join-Path -Path $ProjectPath -ChildPath 'RootConfiguration.ps1')
+        Write-Build Green "Successfully compiled $($mofs.Count) MOF files"
+    }
+    catch 
+    {
+        Write-Build Red "ERROR OCCURED DURING COMPILATION: $($_.Exception.Message)"
+        $relevantErrors = $Error | Where-Object {
+            $_.Exception -isnot [System.Management.Automation.ItemNotFoundException]
+        }
+        Write-Build Red ($relevantErrors[0..2] | Out-String)
+    }
+}
 
-    if($ConfigDataCopy) {
-        $Global:ConfigurationData = $ConfigDataCopy.Clone()
-        $Global:ConfigurationData.AllNodes = @($ConfigurationData.AllNodes.Where{$_.Name -in $FilteredNode})
+task Compile_Root_Meta_Mof {
+    . (Join-Path -Path $ProjectPath -ChildPath 'RootMetaMof.ps1')
+    $metaMofs = RootMetaMOF -ConfigurationData $configurationData -OutputPath (Join-Path -Path $BuildOutput -ChildPath 'MetaMof')
+    Write-Build Green "Successfully compiled $($metaMofs.Count) MOF files"
+}
 
-        $Global:Datum = $ConfigDataCopy.Datum
+task Create_Mof_Checksums {
+    Import-Module -Name DscBuildHelpers -Scope Global
+    New-DscChecksum -Path (Join-Path -Path $BuildOutput -ChildPath MOF) -Verbose:$false
+}
+
+task Compile_Datum_Rsop {
+    if(![System.IO.Path]::IsPathRooted($rsopFolder)) {
+        $rsopOutputPath = Join-Path -Path $BuildOutput -ChildPath $rsopFolder
     }
     else {
-        $Configurationdata = Get-FilteredConfigurationData -Environment $Environment -FilteredNode $FilteredNode
-    }
-    try {
-        . (Join-path $ProjectPath 'RootConfiguration.ps1')
-    }
-    catch {
-        Write-Build Red "ERROR OCCURED DURING COMPILATION"
-    }
-}
-
-task compile_root_meta_mof {
-    . (Join-path $ProjectPath 'RootMetaMof.ps1')
-    RootMetaMOF -ConfigurationData $ConfigurationData -outputPath (Join-Path $BuildOutput 'MetaMof')
-}
-
-task create_MOF_checksums {
-    Import-Module DscBuildHelpers -Scope Global
-    New-DscChecksum -Path (Join-Path $BuildOutput MOF) -verbose:$false
-}
-
-task Compile_Datum_RSOP {
-    if(![io.Path]::IsPathRooted($RsopFolder)) {
-        $RsopOutputPath = (Join-Path $BuildOutput $RsopFolder)
-    }
-    else {
-        $RsopOutputPath = $RsopFolder
+        $RsopOutputPath = $rsopFolder
     }
 
-    if(!(Test-Path $RsopOutputPath)) {
-        mkdir -Force $RsopOutputPath
+    if(!(Test-Path -Path $rsopOutputPath)) {
+        mkdir -Path $rsopOutputPath -Force | Out-Null
     }
 
-    $RsopOutputPathVersion = Join-Path $RsopOutputPath $BuildVersion
-    if(!(Test-Path $RsopOutputPathVersion)) {
-        mkdir -Force $RsopOutputPathVersion
+    $rsopOutputPathVersion = Join-Path -Path $RsopOutputPath -ChildPath $BuildVersion
+    if(!(Test-Path -Path $rsopOutputPathVersion)) {
+        mkdir -Path $rsopOutputPathVersion -Force | Out-Null
     }
 
-    $ConfigurationData.AllNodes.Foreach{
-        $NodeRSOP = Get-DatumRsop -Datum $Datum -AllNodes ([ordered]@{} + $_)
-        $NodeRSOP | Convertto-Yaml -OutFile (Join-Path $RsopOutputPathVersion "$($_.Name).yml") -Force
+    Write-Build Green "Generating RSOP output for $($configurationData.AllNodes.Count) nodes"
+    $configurationData.AllNodes |
+    Where-Object Name -ne * |
+    ForEach-Object {
+        $nodeRSOP = Get-DatumRsop -Datum $datum -AllNodes ([ordered]@{} + $_)
+        $nodeRSOP | Convertto-Yaml -OutFile (Join-Path -Path $rsopOutputPathVersion -ChildPath "$($_.Name).yml") -Force
     }
 }

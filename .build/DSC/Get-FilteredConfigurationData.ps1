@@ -1,28 +1,22 @@
 function Get-FilteredConfigurationData {
-    Param(
+    param(
+        [String]
         $Environment = 'DEV',
 
-        [AllowNull()]
-        $FilterNode,
+        [ScriptBlock]
+        $Filter = {},
 
-        $Datum = (Get-variable Datum -ValueOnly -ErrorAction Stop)
+        $Datum = $(Get-variable Datum -ValueOnly -ErrorAction Stop)
     )
 
-    $AllNodes = @($Datum.AllNodes.($Environment).PSObject.Properties.Foreach{
-        $Node = $Datum.AllNodes.($Environment).($_.Name)
-        $Node['Environment'] = $Environment
-        if(!$Node.contains('Name')) {
-            $Null = $Node.Add('Name',$_.Name)
-        }
-        (@{} + $Node)
-    })
-
-    if($FilterNode) {
-        $AllNodes = $AllNodes.Where{$_.Name -in $FilterNode}
+    $allNodes = @(Get-DatumNodesRecursive -Nodes $Datum.AllNodes.$Environment -Depth 20)
+    
+    if($Filter.ToString() -ne ([System.Management.Automation.ScriptBlock]::Create({})).ToString()) {
+        $allNodes = [System.Collections.Hashtable[]]$allNodes.Where($Filter)
     }
 
     return @{
-        AllNodes = $AllNodes
+        AllNodes = $allNodes
         Datum = $Datum
     }
 }
