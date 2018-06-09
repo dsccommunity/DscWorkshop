@@ -107,6 +107,11 @@ Invoke-LabCommand -Activity 'Setup Web Site' -ComputerName (Get-LabVm  -Role Web
     New-Website -name "PSConfSite" -PhysicalPath C:\PsConfSite -ApplicationPool "PSConfSite"  
 } -Variable (Get-Variable deployUserName, deployUserPassword)
 
+$vm = Get-LabVM -ComputerName DSCPull01
+Invoke-LabCommand -ActivityName 'Add ProGet DNS A record' -ScriptBlock -ComputerName (Get-LabVM -Role RootDC) {
+    Add-DnsServerResourceRecord -ZoneName $vm.DomainName -IPv4Address $vm.IpV4Address -Name ProGet -A
+} -Variable (Get-Variable -Name vm)
+
 # File server
 Invoke-LabCommand -Activity 'Creating folders and shares' -ComputerName (Get-LabVM -Role FileServer) -ScriptBlock {
     New-Item -ItemType Directory -Path C:\UserHome
