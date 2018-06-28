@@ -1,4 +1,5 @@
 NodeName: DSCFile02
+Environment: Prod
 Role: FileServer
 Description: File Server in Prod
 

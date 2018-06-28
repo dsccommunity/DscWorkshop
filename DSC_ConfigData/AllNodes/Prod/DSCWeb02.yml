@@ -1,4 +1,5 @@
 NodeName: DSCWeb02
+Environment: Prod
 Role: WebServer
 Description: Web Server in Prod
 

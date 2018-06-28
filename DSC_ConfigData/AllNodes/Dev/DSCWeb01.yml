@@ -1,4 +1,5 @@
 NodeName: DSCWeb01
+Environment: Dev
 Role: WebServer
 Description: 'Web Server in Dev'
 

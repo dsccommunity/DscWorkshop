@@ -1,4 +1,5 @@
 NodeName: DSCFile01
+Environment: Dev
 Role: FileServer
 Description: 'File Server in Dev'
 
