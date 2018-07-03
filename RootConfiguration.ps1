@@ -19,6 +19,10 @@ configuration "RootConfiguration"
             $configurationName = $_
             $(Write-Debug "`tLooking up params for $configurationName")
             $properties = $(lookup $configurationName -DefaultValue @{})
+            #if ($properties.Gettype().BaseType.Name -eq 'DatumProvider')
+            #{
+            #    $properties = $properties.ToHashTable()
+            #}
             $dscError = [System.Collections.ArrayList]::new()
             Get-DscSplattedResource -ResourceName $configurationName -ExecutionName $configurationName -Properties $properties
             if($Error[0] -and $lastError -ne $Error[0]) {
