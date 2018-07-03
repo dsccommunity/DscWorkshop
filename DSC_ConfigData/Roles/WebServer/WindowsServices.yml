@@ -1,0 +1,5 @@
+Services:
+  - Name: FileDummy
+    DisplayName: Dummy Service on Web Servers
+    StartupType: Automatic
+    Path: C:\DummyService.exe

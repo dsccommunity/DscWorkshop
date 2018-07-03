@@ -1,8 +1,8 @@
 ResolutionPrecedence:
-  - 'AllNodes\$($Node.Environment)\$($Node.Name)'
-  - 'Roles\$($Node.Role)' #if Node has unique role, otherwise use <%= $CurrentNode.PSObject.Properties.where{$_.Name -in $Node.Role}.Value %>
-  - 'Roles\LCM'
-  - 'Roles\Baseline'
+  - AllNodes\$($Node.Environment)\$($Node.NodeName)
+  - Roles\$($Node.Role)
+  - Roles\LCM
+  - Roles\Baseline
 
 default_lookup_options: MostSpecific
 
