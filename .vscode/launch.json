@@ -8,9 +8,9 @@
             "type": "PowerShell",
             "request": "launch",
             "name": "PowerShell Launch Build",
-            "script": "${workspaceRoot}/.build.ps1",
+            "script": "${workspaceRoot}/DscSample/.build.ps1",
             "args": [],
-            "cwd": "${workspaceRoot}/.build.ps1"
+            "cwd": "${workspaceRoot}/DscSample/.build.ps1"
         },
         {
             "type": "PowerShell",
