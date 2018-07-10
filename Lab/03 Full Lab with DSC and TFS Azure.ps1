@@ -1,5 +1,5 @@
 #the lab name is not static here as it has to be globally unique 
-$labName = "psconf$((1..6 | ForEach-Object { [char[]](97..122) | Get-Random }) -join '')"
+$labName = "psconf_$((1..6 | ForEach-Object { [char[]](97..122) | Get-Random }) -join '')"
 $azureContext = 'YOUR Azure JSON context here - Use Save-AzureRmContext after having selected your subscription!'
 $azureLocation = 'West Europe' # Please use West Europe for the conference
 
@@ -24,7 +24,7 @@ Add-LabDomainDefinition -Name contoso.com -AdminUser Install -AdminPassword Some
 Set-LabInstallationCredential -Username Install -Password Somepass1
 
 # Add the reference to our necessary ISO files
-Add-LabIsoImageDefinition -Name Tfs2018 -Path $labsources\ISOs\tfsserver2018.2_rc1.iso
+Add-LabIsoImageDefinition -Name Tfs2018 -Path $labsources\ISOs\tfsserver2018.2.iso
 
 #defining default parameter values, as these ones are the same for all the machines
 $PSDefaultParameterValues = @{
@@ -150,7 +150,7 @@ Invoke-LabCommand -ActivityName 'Create link to TFS' -ComputerName $tfsServer -S
     $shortcut.Save()
     
     $shortcut = $shell.CreateShortcut("$desktopPath\ProGet.url")
-    $shortcut.TargetPath = 'http://dscpull01:8624/'
+    $shortcut.TargetPath = 'http://DSCPull01.contoso.com:80/'
     $shortcut.Save()
 }
 
@@ -162,7 +162,7 @@ Invoke-LabCommand -ActivityName 'Getting required modules and publishing them to
     Invoke-WebRequest -Uri 'https://nuget.org/nuget.exe' -OutFile C:\ProgramData\Microsoft\Windows\PowerShell\PowerShellGet\nuget.exe
     Install-Module -Name $requiredModules -Repository PSGallery -Force -AllowClobber -SkipPublisherCheck -WarningAction SilentlyContinue
     
-    $path = "http://DSCPull01.contoso.com:8624/nuget/Internal"
+    $path = "http://DSCPull01.contoso.com:80/nuget/PowerShell"
     if (-not (Get-PSRepository -Name Internal -ErrorAction SilentlyContinue)) {
         Register-PSRepository -Name Internal -SourceLocation $path -PublishLocation $path -InstallationPolicy Trusted
     }
@@ -196,7 +196,7 @@ Invoke-LabCommand -ActivityName 'Getting required modules and publishing them to
 <# The Default PSGallery is not removed as the build process does not support an internal repository yet.
 Invoke-LabCommand -ActivityName 'Register ProGet Gallery' -ComputerName (Get-LabVM) -ScriptBlock {
     Unregister-PSRepository -Name PSGallery
-    $path = "http://DSCPull01.contoso.com:8624/nuget/Internal"
+    $path = "http://DSCPull01.contoso.com:80/nuget/PowerShell"
     Register-PSRepository -Name Internal -SourceLocation $path -PublishLocation $path -InstallationPolicy Trusted
 }
 #>
