@@ -113,7 +113,7 @@ Invoke-LabCommand -ActivityName 'Getting required modules and publishing them to
 <# The Default PSGallery is not removed as the build process does not support an internal repository yet.
         Invoke-LabCommand -ActivityName 'Register ProGet Gallery' -ComputerName (Get-LabVM) -ScriptBlock {
         Unregister-PSRepository -Name PSGallery
-        $path = "http://DSCPull01.contoso.com:8624/nuget/Internal"
+        $path = "http://DSCPull01.contoso.com/nuget/PowerShell"
         Register-PSRepository -Name Internal -SourceLocation $path -PublishLocation $path -InstallationPolicy Trusted
         }
 #>
