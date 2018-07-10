@@ -7,10 +7,18 @@
         {
             "type": "PowerShell",
             "request": "launch",
-            "name": "PowerShell Launch Build",
-            "script": "${workspaceRoot}/DscSample/.build.ps1",
+            "name": "Launch DSC Build",
+            "script": "${workspaceRoot}/DscSample/Build.ps1",
             "args": [],
-            "cwd": "${workspaceRoot}/DscSample/.build.ps1"
+            "cwd": "${workspaceRoot}/DscSample/"
+        },
+        {
+            "type": "PowerShell",
+            "request": "launch",
+            "name": "Launch DSC Build -ResolveDependency",
+            "script": "${workspaceRoot}/DscSample/Build.ps1",
+            "args": ["-ResolveDependency"],
+            "cwd": "${workspaceRoot}/DscSample/"
         },
         {
             "type": "PowerShell",
