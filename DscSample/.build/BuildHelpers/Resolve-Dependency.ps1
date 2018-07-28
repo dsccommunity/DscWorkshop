@@ -4,11 +4,11 @@ function Resolve-Dependency
     param()
 
     Write-Host "Downloading dependencies, this may take a while" -ForegroundColor Green
-    if (!(Get-PackageProvider -Name NuGet -ForceBootstrap))
+    if (-not (Get-PackageProvider -Name NuGet -ForceBootstrap))
     {
         $providerBootstrapParams = @{
             Name           = 'nuget'
-            force          = $true
+            Force          = $true
             ForceBootstrap = $true
         }
         if ($PSBoundParameters.ContainsKey('Verbose'))
