@@ -1,6 +1,7 @@
 Configurations:
   - SecurityBase
   - WindowsFeatures
+  - FilesAndFolders
 
 SecurityBase:
   SecurityLevel: 1
@@ -8,3 +9,9 @@ SecurityBase:
 WindowsFeatures:
   Name:
     - -XPS-Viewer
+
+FilesAndFolders:
+  - Items:
+      - DestinationPath: C:\Test1.txt
+        Type: File
+        Contents: Some File for all server

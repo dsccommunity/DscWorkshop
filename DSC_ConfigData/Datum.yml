@@ -19,6 +19,16 @@ lookup_options:
   WindowsFeatures\Name:
     merge_basetype_array: Unique
 
+FilesAndFolders: hash
+
+FilesAndFolders\Items:
+  merge_hash_array: DeepTuple
+  merge_options:
+    tuple_keys:
+      - DestinationPath
+      - Type
+      - Contents
+
   LCM_config:
     merge_hash: hash
   LCM_Config\Settings:
