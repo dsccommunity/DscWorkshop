@@ -1,0 +1,63 @@
+﻿<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<test-results xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="nunit_schema_2.5.xsd" name="Pester" total="26" errors="0" failures="0" not-run="0" inconclusive="0" ignored="0" skipped="0" invalid="0" date="2018-08-25" time="10:32:51">
+  <environment user="randr" machine-name="RAANDREE1" cwd="C:\Git\DscWorkshop\DscSample" user-domain="RAANDREE1" platform="Microsoft Windows 10 Pro|C:\WINDOWS|\Device\Harddisk1\Partition4" nunit-version="2.5.8.0" os-version="10.0.17134" clr-version="4.0.30319.42000" />
+  <culture-info current-culture="de-DE" current-uiculture="en-US" />
+  <test-suite type="TestFixture" name="Pester" executed="True" result="Success" success="True" time="1.0191" asserts="0" description="Pester">
+    <results>
+      <test-suite type="TestFixture" name="C:\Git\DscWorkshop\DscSample\Tests\01 ConfigData\ConfigData.Tests.ps1" executed="True" result="Success" success="True" time="1.0191" asserts="0" description="C:\Git\DscWorkshop\DscSample\Tests\01 ConfigData\ConfigData.Tests.ps1">
+        <results>
+          <test-suite type="TestFixture" name="Datum Tree Definition" executed="True" result="Success" success="True" time="0.25" asserts="0" description="Datum Tree Definition">
+            <results>
+              <test-case description="Exists in DSC_ConfigData Folder" name="Datum Tree Definition.Exists in DSC_ConfigData Folder" time="0.224" asserts="0" success="True" result="Success" executed="True" />
+              <test-case description="is Valid Yaml" name="Datum Tree Definition.is Valid Yaml" time="0.026" asserts="0" success="True" result="Success" executed="True" />
+            </results>
+          </test-suite>
+          <test-suite type="TestFixture" name="Node Definition Files" executed="True" result="Success" success="True" time="0.2905" asserts="0" description="Node Definition Files">
+            <results>
+              <test-case description="DSCFile01 Should not be duplicated" name="Node Definition Files.DSCFile01 Should not be duplicated" time="0.038" asserts="0" success="True" result="Success" executed="True" />
+              <test-case description="DSCFile01 is not Empty" name="Node Definition Files.DSCFile01 is not Empty" time="0.0124" asserts="0" success="True" result="Success" executed="True" />
+              <test-case description="DSCFile01.yml has valid yaml" name="Node Definition Files.DSCFile01.yml has valid yaml" time="0.0175" asserts="0" success="True" result="Success" executed="True" />
+              <test-case description="DSCWeb01 Should not be duplicated" name="Node Definition Files.DSCWeb01 Should not be duplicated" time="0.011" asserts="0" success="True" result="Success" executed="True" />
+              <test-case description="DSCWeb01 is not Empty" name="Node Definition Files.DSCWeb01 is not Empty" time="0.0141" asserts="0" success="True" result="Success" executed="True" />
+              <test-case description="DSCWeb01.yml has valid yaml" name="Node Definition Files.DSCWeb01.yml has valid yaml" time="0.1072" asserts="0" success="True" result="Success" executed="True" />
+              <test-case description="DSCFile02 Should not be duplicated" name="Node Definition Files.DSCFile02 Should not be duplicated" time="0.0125" asserts="0" success="True" result="Success" executed="True" />
+              <test-case description="DSCFile02 is not Empty" name="Node Definition Files.DSCFile02 is not Empty" time="0.0213" asserts="0" success="True" result="Success" executed="True" />
+              <test-case description="DSCFile02.yml has valid yaml" name="Node Definition Files.DSCFile02.yml has valid yaml" time="0.0217" asserts="0" success="True" result="Success" executed="True" />
+              <test-case description="DSCWeb02 Should not be duplicated" name="Node Definition Files.DSCWeb02 Should not be duplicated" time="0.0107" asserts="0" success="True" result="Success" executed="True" />
+              <test-case description="DSCWeb02 is not Empty" name="Node Definition Files.DSCWeb02 is not Empty" time="0.0109" asserts="0" success="True" result="Success" executed="True" />
+              <test-case description="DSCWeb02.yml has valid yaml" name="Node Definition Files.DSCWeb02.yml has valid yaml" time="0.0131" asserts="0" success="True" result="Success" executed="True" />
+            </results>
+          </test-suite>
+          <test-suite type="TestFixture" name="Roles Definition Files" executed="True" result="Success" success="True" time="0.1185" asserts="0" description="Roles Definition Files">
+            <results>
+              <test-case description="Items has valid yaml" name="Roles Definition Files.Items has valid yaml" time="0.035" asserts="0" success="True" result="Success" executed="True" />
+              <test-case description="Configurations has valid yaml" name="Roles Definition Files.Configurations has valid yaml" time="0.0088" asserts="0" success="True" result="Success" executed="True" />
+              <test-case description="Configurations has valid yaml" name="Roles Definition Files.Configurations has valid yaml" time="0.0098" asserts="0" success="True" result="Success" executed="True" />
+              <test-case description="SecurityBase has valid yaml" name="Roles Definition Files.SecurityBase has valid yaml" time="0.0097" asserts="0" success="True" result="Success" executed="True" />
+              <test-case description="WindowsFeatures has valid yaml" name="Roles Definition Files.WindowsFeatures has valid yaml" time="0.0118" asserts="0" success="True" result="Success" executed="True" />
+              <test-case description="WindowsServices has valid yaml" name="Roles Definition Files.WindowsServices has valid yaml" time="0.0141" asserts="0" success="True" result="Success" executed="True" />
+              <test-case description="Baseline has valid yaml" name="Roles Definition Files.Baseline has valid yaml" time="0.0113" asserts="0" success="True" result="Success" executed="True" />
+              <test-case description="LCM has valid yaml" name="Roles Definition Files.LCM has valid yaml" time="0.0181" asserts="0" success="True" result="Success" executed="True" />
+            </results>
+          </test-suite>
+          <test-suite type="TestFixture" name="Role Composition" executed="True" result="Success" success="True" time="0.3601" asserts="0" description="Role Composition">
+            <results>
+              <test-suite type="TestFixture" name="Nodes for environment Dev" executed="True" result="Success" success="True" time="0.1946" asserts="0" description="Nodes for environment Dev">
+                <results>
+                  <test-case description="DSCFile01 has a valid Configurations Setting (!$null)" name="Role Composition.Nodes for environment Dev.DSCFile01 has a valid Configurations Setting (!$null)" time="0.1285" asserts="0" success="True" result="Success" executed="True" />
+                  <test-case description="DSCWeb01 has a valid Configurations Setting (!$null)" name="Role Composition.Nodes for environment Dev.DSCWeb01 has a valid Configurations Setting (!$null)" time="0.066" asserts="0" success="True" result="Success" executed="True" />
+                </results>
+              </test-suite>
+              <test-suite type="TestFixture" name="Nodes for environment Prod" executed="True" result="Success" success="True" time="0.1656" asserts="0" description="Nodes for environment Prod">
+                <results>
+                  <test-case description="DSCFile01 has a valid Configurations Setting (!$null)" name="Role Composition.Nodes for environment Prod.DSCFile01 has a valid Configurations Setting (!$null)" time="0.0878" asserts="0" success="True" result="Success" executed="True" />
+                  <test-case description="DSCWeb01 has a valid Configurations Setting (!$null)" name="Role Composition.Nodes for environment Prod.DSCWeb01 has a valid Configurations Setting (!$null)" time="0.0778" asserts="0" success="True" result="Success" executed="True" />
+                </results>
+              </test-suite>
+            </results>
+          </test-suite>
+        </results>
+      </test-suite>
+    </results>
+  </test-suite>
+</test-results>

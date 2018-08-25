@@ -1,0 +1,111 @@
+TOPIC
+    about_PSDeploy
+
+SHORT DESCRIPTION
+    PSDeploy is a module to simplify deployments
+
+LONG DESCRIPTION
+    PSDeploy is a module to simplify deployments, targeted at
+    continuous integration and delivery scenarios.
+
+DETAILED DESCRIPTION
+    PSDeploy is a module to simplify deployments, targeted at
+    continuous integration and delivery scenarios.
+
+    Terminology and concepts
+    ========================
+    There are three primary concepts:
+
+        *.PSDeploy.ps1 Script:  Scripts that tell PSDeploy what you want to deploy
+                                These are an alternative to Deployment yaml files.
+
+        Deployment Type:        These define how to actually deploy something.
+                                Each type is associated with a script.
+                                The default types are FileSystem and FileSystemRemote. This is extensible.
+
+        Deployment Script:      These are scripts associated to a particular deployment type.
+                                They tell PSDeploy how to deploy a DeploymentType.
+                                All should accept a 'Deployment' parameter.
+                                For example, the FileSystem script uses robocopy or copy-item to deploy folders and files, respectively.
+
+    Conventions
+    ===========
+
+    These could change.
+
+    The current path is assumed to be relative to source files. For example:
+        If the current path is C:\Whatever,
+        and a source points to 'Modules\MyModules',
+        this would mean C:\Whatever\Modules\MyModules.
+        You can override this with the DeploymentRoot parameter
+        on Invoke-PSDeploy and Get-PSDeployment
+
+    Example use (*.PSDeploy.ps1)
+    ===========
+
+    I want to deploy C:\Git\MyModuleRepo\MyModule to \\Server\Modules\MyModule
+
+        C:\Git\MyModuleRepo\My.PSDeploy.ps1 looks like this:
+
+            Deploy MyDeploymentName {
+
+                By FileSystem 'OptionalName' {
+
+                    FromSource 'MyModule'
+                    To '\\Server\Modules\MyModule'
+                    Tagged Prod, Module
+                    WithOptions @{
+                        Mirror = $True
+                    }
+                }
+            }
+
+        # Invoke a deployment:
+        cd C:\Git\MyModuleRepo
+        Invoke-PSDeploy
+
+        # Alternatively:
+        Invoke-PSDeploy -Path C:\Git\MyModuleRepo
+
+    See about_PSDeploy_Definitions for more information
+
+    Extending PSDeploy
+    ==================
+    PSDeploy is somewhat extensible. To add a new deployment type:
+
+        Update PSDeploy.yml in the PSDeploy root.
+
+            The deployment name is the root node.
+            The script node defines what script to run for these deployment types
+            The description is... not really used. But feel free to write one!
+
+            For example, I might add support for SCP:
+              SCP:
+                Script: SCP.ps1
+                Description: Deploys artifacts using SCP. Requires Posh-SSH
+
+        Create the associated script in PSDeploy\PSDeployScripts
+
+            For example, I would create \\Path\To\PSDeploy\PSDeployScripts\SCP.ps1
+
+        Include a 'Deployment' parameter.
+
+            See \\Path\To\PSDeploy\PSDeployScripts\FilesystemRemote.ps1 for an example
+
+            Here's how I implement this:
+                [ValidateScript({ $_.PSObject.TypeNames[0] -eq 'PSDeploy.Deployment' })]
+                [psobject[]]$Deployment
+
+                # Further down, I remove deployment From PSBoundParameters, and splat that as needed.
+                # $Deployment would still be available, just not listed in bound params.
+                $PSBoundParameters.Remove('Deployment')
+
+        Update yml schema as needed.
+
+            Get-PSDeployment converts the YAML and processes it into a number of 'Deployment' objects.
+            If you need other data included, you can extend the YML and reference the
+            'Raw' property on the deployment objects: this contains the raw converted YAML.
+
+SEE ALSO
+    about_PSDeploy_Definitions
+    https://github.com/RamblingCookieMonster/PSDeploy

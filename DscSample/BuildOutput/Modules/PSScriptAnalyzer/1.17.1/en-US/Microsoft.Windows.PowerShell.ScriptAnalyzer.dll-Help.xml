@@ -1,0 +1,1135 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<helpItems schema="maml" xmlns="http://msh">
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10" xmlns:MSHelp="http://msdn.microsoft.com/mshelp">
+    <command:details>
+      <command:name>Get-ScriptAnalyzerRule</command:name>
+      <command:verb>Get</command:verb>
+      <command:noun>ScriptAnalyzerRule</command:noun>
+      <maml:description>
+        <maml:para>Gets the script analyzer rules on the local computer.</maml:para>
+      </maml:description>
+    </command:details>
+    <maml:description>
+      <maml:para>Gets the script analyzer rules on the local computer. You can select rules by Name, Severity, Source, or SourceType, or even particular words in the rule description.</maml:para>
+      <maml:para>Use this cmdlet to create collections of rules to include and exclude when running the Invoke-ScriptAnalyzer cmdlet.</maml:para>
+      <maml:para>To get information about the rules, see the value of the Description property of each rule.</maml:para>
+      <maml:para>The PSScriptAnalyzer module tests the Windows PowerShell code in a script, module, or DSC resource to determine whether, and to what extent, it fulfils best practice standards.</maml:para>
+      <maml:para>PSScriptAnalyzer is an open-source project. For more information about PSScriptAnalyzer, to contribute or file an issue, see GitHub.com\PowerShell\PSScriptAnalyzer.</maml:para>
+    </maml:description>
+    <command:syntax>
+      <command:syntaxItem>
+        <maml:name>Get-ScriptAnalyzerRule</maml:name>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="CustomizedRulePath">
+          <maml:name>CustomRulePath</maml:name>
+          <maml:Description>
+            <maml:para>Gets the Script Analyzer rules in the specified path in addition to the standard Script Analyzer rules. By default, PSScriptAnalyzer gets only the standard rules specified in the Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules.dll file in the module.</maml:para>
+            <maml:para>Enter the path to a .NET assembly or module that contains Script Analyzer rules. You can enter only one value, but wildcards are supported. To get rules in subdirectories of the path, use the RecurseCustomRulePath parameter.</maml:para>
+            <maml:para>You can create custom rules by using a custom .NET assembly or a Windows PowerShell module, such as the Community Analyzer Rules in https://github.com/PowerShell/PSScriptAnalyzer/blob/development/Tests/Engine/CommunityAnalyzerRules/CommunityAnalyzerRules.psm1.</maml:para>
+          </maml:Description>
+          <command:parameterValue required="true" variableLength="false">String[]</command:parameterValue>
+          <dev:type>
+            <maml:name>String[]</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>The rules in Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules.dll.</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>RecurseCustomRulePath</maml:name>
+          <maml:Description>
+            <maml:para>Searches the CustomRulePath location recursively to add rules defined in files in subdirectories of the path. By default, Get-ScriptAnalyzerRule adds only the custom rules in the specified path.</maml:para>
+          </maml:Description>
+          <dev:type>
+            <maml:name>SwitchParameter</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>False</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="true" pipelineInput="False" position="named" aliases="none">
+          <maml:name>Name</maml:name>
+          <maml:Description>
+            <maml:para>Gets only rules with the specified names or name patterns. Wildcards are supported. If you list multiple names or patterns, it gets rules that match any of the name patterns, as though the name patterns were joined by an OR.</maml:para>
+            <maml:para>By default, Get-ScriptAnalyzerRule gets all rules.</maml:para>
+          </maml:Description>
+          <command:parameterValue required="true" variableLength="false">String[]</command:parameterValue>
+          <dev:type>
+            <maml:name>String[]</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>All rules</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>Severity</maml:name>
+          <maml:Description>
+            <maml:para>Gets only rules with the specified severity values. Valid values are Information, Warning, and Error. By default, Get-ScriptAnalyzerRule gets all rules.</maml:para>
+          </maml:Description>
+          <command:parameterValue required="true" variableLength="false">String[]</command:parameterValue>
+          <dev:type>
+            <maml:name>String[]</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>All rules</dev:defaultValue>
+        </command:parameter>
+      </command:syntaxItem>
+    </command:syntax>
+    <command:parameters>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="CustomizedRulePath">
+        <maml:name>CustomRulePath</maml:name>
+        <maml:Description>
+          <maml:para>Gets the Script Analyzer rules in the specified path in addition to the standard Script Analyzer rules. By default, PSScriptAnalyzer gets only the standard rules specified in the Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules.dll file in the module.</maml:para>
+          <maml:para>Enter the path to a .NET assembly or module that contains Script Analyzer rules. You can enter only one value, but wildcards are supported. To get rules in subdirectories of the path, use the RecurseCustomRulePath parameter.</maml:para>
+          <maml:para>You can create custom rules by using a custom .NET assembly or a Windows PowerShell module, such as the Community Analyzer Rules in https://github.com/PowerShell/PSScriptAnalyzer/blob/development/Tests/Engine/CommunityAnalyzerRules/CommunityAnalyzerRules.psm1.</maml:para>
+        </maml:Description>
+        <command:parameterValue required="true" variableLength="false">String[]</command:parameterValue>
+        <dev:type>
+          <maml:name>String[]</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>The rules in Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules.dll.</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+        <maml:name>RecurseCustomRulePath</maml:name>
+        <maml:Description>
+          <maml:para>Searches the CustomRulePath location recursively to add rules defined in files in subdirectories of the path. By default, Get-ScriptAnalyzerRule adds only the custom rules in the specified path.</maml:para>
+        </maml:Description>
+        <command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
+        <dev:type>
+          <maml:name>SwitchParameter</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>False</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="true" pipelineInput="False" position="named" aliases="none">
+        <maml:name>Name</maml:name>
+        <maml:Description>
+          <maml:para>Gets only rules with the specified names or name patterns. Wildcards are supported. If you list multiple names or patterns, it gets rules that match any of the name patterns, as though the name patterns were joined by an OR.</maml:para>
+          <maml:para>By default, Get-ScriptAnalyzerRule gets all rules.</maml:para>
+        </maml:Description>
+        <command:parameterValue required="true" variableLength="false">String[]</command:parameterValue>
+        <dev:type>
+          <maml:name>String[]</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>All rules</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+        <maml:name>Severity</maml:name>
+        <maml:Description>
+          <maml:para>Gets only rules with the specified severity values. Valid values are Information, Warning, and Error. By default, Get-ScriptAnalyzerRule gets all rules.</maml:para>
+        </maml:Description>
+        <command:parameterValue required="true" variableLength="false">String[]</command:parameterValue>
+        <dev:type>
+          <maml:name>String[]</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>All rules</dev:defaultValue>
+      </command:parameter>
+    </command:parameters>
+    <command:inputTypes>
+      <command:inputType>
+        <dev:type>
+          <maml:name>None</maml:name>
+        </dev:type>
+        <maml:description>
+          <maml:para>You cannot pipe input to this cmdlet.</maml:para>
+        </maml:description>
+      </command:inputType>
+    </command:inputTypes>
+    <command:returnValues>
+      <command:returnValue>
+        <dev:type>
+          <maml:name>Microsoft.Windows.PowerShell.ScriptAnalyzer.Generic.RuleInfo</maml:name>
+        </dev:type>
+        <maml:description>
+          <maml:para>The RuleInfo object is a custom object created especially for Script Analyzer. It is not documented on MSDN.</maml:para>
+        </maml:description>
+      </command:returnValue>
+    </command:returnValues>
+    <maml:alertSet>
+      <maml:alert>
+        <maml:para></maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
+        <dev:code>Get-ScriptAnalyzerRule</dev:code>
+        <dev:remarks>
+          <maml:para>This command gets all Script Analyzer rules on the local computer.</maml:para>
+        </dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>-------------------------- EXAMPLE 2 --------------------------</maml:title>
+        <dev:code>Get-ScriptAnalyzerRule -Severity Error</dev:code>
+        <dev:remarks>
+          <maml:para>This command gets only rules with the Error severity.</maml:para>
+        </dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>-------------------------- EXAMPLE 3 --------------------------</maml:title>
+        <dev:code>$DSCError = Get-ScriptAnalyzerRule -Severity Error | Where SourceName -eq PSDSC
+
+PS C:\&gt;$Path = "$home\Documents\WindowsPowerShell\Modules\MyDSCModule\*"
+
+PS C:\&gt; Invoke-ScriptAnalyzerRule -Path $Path -IncludeRule $DSCError -Recurse</dev:code>
+        <dev:remarks>
+          <maml:para>This example runs only the DSC rules with the Error severity on the files in the MyDSCModule module.</maml:para>
+          <maml:para>Using the IncludeRule parameter of Invoke-ScriptAnalyzerRule is much more efficient than using its Severity parameter, which is applied only after using all rules to analyze all module files.</maml:para>
+        </dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>-------------------------- EXAMPLE 4 --------------------------</maml:title>
+        <dev:code>$TestParameters = Get-ScriptAnalyzerRule -Severity Error, Warning -Name *Parameter*, *Alias*</dev:code>
+        <dev:remarks>
+          <maml:para>This command gets rules with "Parameter" or "Alias" in the name that generate an Error or Warning. Use this set of rules to test the parameters of your script or module.</maml:para>
+        </dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>-------------------------- EXAMPLE 5 --------------------------</maml:title>
+        <dev:code>Get-ScriptAnalyzerRule -CustomRulePath $home\Documents\WindowsPowerShell\Modules\*StrictRules -RecurseCustomRulePath</dev:code>
+        <dev:remarks>
+          <maml:para>This command gets the standard rules and the rules in the VeryStrictRules and ExtremelyStrictRules modules. The command uses the RecurseCustomRulePath parameter to get rules defined in subdirectories of the matching paths.</maml:para>
+        </dev:remarks>
+      </command:example>
+    </command:examples>
+    <command:relatedLinks>
+      <maml:navigationLink>
+        <maml:linkText>Invoke-ScriptAnalyzer</maml:linkText>
+        <maml:uri></maml:uri>
+      </maml:navigationLink>
+      <maml:navigationLink>
+        <maml:linkText>PSScriptAnalyzer on GitHub</maml:linkText>
+        <maml:uri>https://github.com/PowerShell/PSScriptAnalyzer</maml:uri>
+      </maml:navigationLink>
+    </command:relatedLinks>
+  </command:command>
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10" xmlns:MSHelp="http://msdn.microsoft.com/mshelp">
+    <command:details>
+      <command:name>Invoke-Formatter</command:name>
+      <command:verb>Invoke</command:verb>
+      <command:noun>Formatter</command:noun>
+      <maml:description>
+        <maml:para>Formats a script text based on the input settings or default settings.</maml:para>
+      </maml:description>
+    </command:details>
+    <maml:description>
+      <maml:para>The Invoke-Formatter cmdlet takes a string parameter named ScriptDefinition and formats it according to the input settings parameter Settings. If no Settings parameter is provided, the cmdlet assumes the default code formatting settings as defined in Settings/CodeFormatting.psd1.</maml:para>
+    </maml:description>
+    <command:syntax>
+      <command:syntaxItem>
+        <maml:name>Invoke-Formatter</maml:name>
+        <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="1" aliases="none">
+          <maml:name>ScriptDefinition</maml:name>
+          <maml:Description>
+            <maml:para>The script text to be formated. NOTE : Unlike ScriptBlock parameter, the ScriptDefinition parameter require a string value.</maml:para>
+          </maml:Description>
+          <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+          <dev:type>
+            <maml:name>String</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="2" aliases="none">
+          <maml:name>Settings</maml:name>
+          <maml:Description>
+            <maml:para>A settings hashtable or a path to a PowerShell data file (.psd1) file that contains the settings.</maml:para>
+          </maml:Description>
+          <command:parameterValue required="true" variableLength="false">Object</command:parameterValue>
+          <dev:type>
+            <maml:name>Object</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>CodeFormatting</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="3" aliases="none">
+          <maml:name>Range</maml:name>
+          <maml:Description>
+            <maml:para>The range within which formatting should take place. The parameter is an array of integers of length 4 such that the first, second, third and last elements correspond to the start line number, start column number, end line number and end column number. These numbers must be greater than 0.</maml:para>
+          </maml:Description>
+          <command:parameterValue required="true" variableLength="false">Int32[]</command:parameterValue>
+          <dev:type>
+            <maml:name>Int32[]</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+      </command:syntaxItem>
+    </command:syntax>
+    <command:parameters>
+      <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="1" aliases="none">
+        <maml:name>ScriptDefinition</maml:name>
+        <maml:Description>
+          <maml:para>The script text to be formated. NOTE : Unlike ScriptBlock parameter, the ScriptDefinition parameter require a string value.</maml:para>
+        </maml:Description>
+        <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+        <dev:type>
+          <maml:name>String</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>None</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="2" aliases="none">
+        <maml:name>Settings</maml:name>
+        <maml:Description>
+          <maml:para>A settings hashtable or a path to a PowerShell data file (.psd1) file that contains the settings.</maml:para>
+        </maml:Description>
+        <command:parameterValue required="true" variableLength="false">Object</command:parameterValue>
+        <dev:type>
+          <maml:name>Object</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>CodeFormatting</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="3" aliases="none">
+        <maml:name>Range</maml:name>
+        <maml:Description>
+          <maml:para>The range within which formatting should take place. The parameter is an array of integers of length 4 such that the first, second, third and last elements correspond to the start line number, start column number, end line number and end column number. These numbers must be greater than 0.</maml:para>
+        </maml:Description>
+        <command:parameterValue required="true" variableLength="false">Int32[]</command:parameterValue>
+        <dev:type>
+          <maml:name>Int32[]</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>None</dev:defaultValue>
+      </command:parameter>
+    </command:parameters>
+    <command:inputTypes />
+    <command:returnValues />
+    <maml:alertSet>
+      <maml:alert />
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
+        <dev:code>$scriptDefinition = @'
+function foo {
+"hello"
+  }
+'@
+
+Invoke-Formatter -ScriptDefinition $scriptDefinition</dev:code>
+        <dev:remarks>
+          <maml:para>This command formats the input script text using the default settings.</maml:para>
+        </dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>-------------------------- EXAMPLE 2 --------------------------</maml:title>
+        <dev:code>$scriptDefinition = @'
+function foo {
+"hello"
+}
+'@
+
+$settings = @{
+    IncludeRules = @("PSPlaceOpenBrace", "PSUseConsistentIndentation")
+    Rules = @{
+        PSPlaceOpenBrace = @{
+            Enable = $true
+            OnSameLine = $false
+        }
+        PSUseConsistentIndentation = @{
+            Enable = $true
+        }
+    }
+}
+
+Invoke-Formatter -ScriptDefinition $scriptDefinition -Settings $settings</dev:code>
+        <dev:remarks>
+          <maml:para>This command formats the input script text using the settings defined in the $settings hashtable.</maml:para>
+        </dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>-------------------------- EXAMPLE 3 --------------------------</maml:title>
+        <dev:code>Invoke-Formatter -ScriptDefinition $scriptDefinition -Settings /path/to/settings.psd1</dev:code>
+        <dev:remarks>
+          <maml:para>This command formats the input script text using the settings defined in the settings.psd1 file.</maml:para>
+        </dev:remarks>
+      </command:example>
+    </command:examples>
+    <command:relatedLinks />
+  </command:command>
+  <command:command xmlns:maml="http://schemas.microsoft.com/maml/2004/10" xmlns:command="http://schemas.microsoft.com/maml/dev/command/2004/10" xmlns:dev="http://schemas.microsoft.com/maml/dev/2004/10" xmlns:MSHelp="http://msdn.microsoft.com/mshelp">
+    <command:details>
+      <command:name>Invoke-ScriptAnalyzer</command:name>
+      <command:verb>Invoke</command:verb>
+      <command:noun>ScriptAnalyzer</command:noun>
+      <maml:description>
+        <maml:para>Evaluates a script or module based on selected best practice rules</maml:para>
+      </maml:description>
+    </command:details>
+    <maml:description>
+      <maml:para>Invoke-ScriptAnalyzer evaluates a script or module files (.ps1, .psm1 and .psd1 files) based on a collection of best practice rules and returns objects that represent rule violations. It also includes special rules to analyze DSC resources.</maml:para>
+      <maml:para>In each evaluation, you can run either all rules or just a specific set using the -IncludeRule parameter and also exclude rules using the -ExcludeRule parameter. Invoke-ScriptAnalyzer comes with a set of built-in rules, but you can also use customized rules that you write in Windows PowerShell scripts, or compile in assemblies by using C#. This is possible by using the -CustomRulePath parameter and it will then only run those custom rules, if the built-in rules should still be run, then also specify the -IncludeDefaultRules parameter. Custom rules are also supported together with the -IncludeRule and -ExcludeRule parameters. To include multiple custom rules, the -RecurseCustomRulePath parameter can be used.</maml:para>
+      <maml:para>To analyze your script or module, begin by using the Get-ScriptAnalyzerRule cmdlet to examine and select the rules you want to include and/or exclude from the evaluation.</maml:para>
+      <maml:para>You can also include a rule in the analysis, but suppress the output of that rule for selected functions or scripts. This feature should be used only when absolutely necessary. To get rules that were suppressed, run Invoke-ScriptAnalyzer with the -SuppressedOnly parameter. For instructions on suppressing a rule, see the description of the SuppressedOnly parameter.</maml:para>
+      <maml:para>For usage in CI systems, the -EnableExit exits the shell with an exit code equal to  the number of error records.</maml:para>
+      <maml:para>PSScriptAnalyzer is an open-source project. For more information about PSScriptAnalyzer, to contribute or file an issue, see GitHub.com\PowerShell\PSScriptAnalyzer.</maml:para>
+    </maml:description>
+    <command:syntax>
+      <command:syntaxItem>
+        <maml:name>Invoke-ScriptAnalyzer</maml:name>
+        <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="0" aliases="PSPath">
+          <maml:name>Path</maml:name>
+          <maml:Description>
+            <maml:para>Specifies the path to the scripts or module to be analyzed. Wildcard characters are supported.</maml:para>
+            <maml:para>Enter the path to a script (.ps1) or module file (.psm1) or to a directory that contains scripts or modules. If the directory contains other types of files, they are ignored.</maml:para>
+            <maml:para>To analyze files that are not in the root directory of the specified path, use a wildcard character (C:\Modules\MyModule\*) or the Recurse parameter.</maml:para>
+          </maml:Description>
+          <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+          <dev:type>
+            <maml:name>String</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="CustomizedRulePath">
+          <maml:name>CustomRulePath</maml:name>
+          <maml:Description>
+            <maml:para>Uses only the custom rules defined in the specified paths to the analysis. To still use the built-in rules, add the -IncludeDefaultRules switch.</maml:para>
+            <maml:para>Enter the path to a file that defines rules or a directory that contains files that define rules. Wildcard characters are supported. To add rules defined in subdirectories of the path, use the RecurseCustomRulePath parameter.</maml:para>
+            <maml:para>By default, Invoke-ScriptAnalyzer uses only rules defined in the Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules.dll file in the PSScriptAnalyzer module.</maml:para>
+            <maml:para>If Invoke-ScriptAnalyzer cannot find rules in the CustomRulePath, it runs the standard rules without notice.</maml:para>
+          </maml:Description>
+          <command:parameterValue required="true" variableLength="false">String[]</command:parameterValue>
+          <dev:type>
+            <maml:name>String[]</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>RecurseCustomRulePath</maml:name>
+          <maml:Description>
+            <maml:para>Adds rules defined in subdirectories of the CustomRulePath location. By default, Invoke-ScriptAnalyzer uses only the custom rules defined in the specified file or directory. To still use the built-in rules, additionally use the -IncludeDefaultRules switch.</maml:para>
+          </maml:Description>
+          <dev:type>
+            <maml:name>SwitchParameter</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>False</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>ExcludeRule</maml:name>
+          <maml:Description>
+            <maml:para>Omits the specified rules from the Script Analyzer test. Wildcard characters are supported.</maml:para>
+            <maml:para>Enter a comma-separated list of rule names, a variable that contains rule names, or a command that gets rule names. You can also specify a list of excluded rules in a Script Analyzer profile file. You can exclude standard rules and rules in a custom rule path.</maml:para>
+            <maml:para>When you exclude a rule, the rule does not run on any of the files in the path. To exclude a rule on a particular line, parameter, function, script, or class, adjust the Path parameter or suppress the rule. For information about suppressing a rule, see the examples.</maml:para>
+            <maml:para>If a rule is specified in both the ExcludeRule and IncludeRule collections, the rule is excluded.</maml:para>
+          </maml:Description>
+          <command:parameterValue required="true" variableLength="false">String[]</command:parameterValue>
+          <dev:type>
+            <maml:name>String[]</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>All rules are included.</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>IncludeDefaultRules</maml:name>
+          <maml:Description>
+            <maml:para>Invoke default rules along with Custom rules</maml:para>
+          </maml:Description>
+          <dev:type>
+            <maml:name>SwitchParameter</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>False</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>IncludeRule</maml:name>
+          <maml:Description>
+            <maml:para>Runs only the specified rules in the Script Analyzer test. By default, PSScriptAnalyzer runs all rules.</maml:para>
+            <maml:para>Enter a comma-separated list of rule names, a variable that contains rule names, or a command that gets rule names. Wildcard characters are supported. You can also specify rule names in a Script Analyzer profile file.</maml:para>
+            <maml:para>When you use the CustomizedRulePath parameter, you can use this parameter to include standard rules and rules in the custom rule paths.</maml:para>
+            <maml:para>If a rule is specified in both the ExcludeRule and IncludeRule collections, the rule is excluded.</maml:para>
+            <maml:para>Also, Severity takes precedence over IncludeRule. For example, if Severity is Error, you cannot use IncludeRule to include a Warning rule.</maml:para>
+          </maml:Description>
+          <command:parameterValue required="true" variableLength="false">String[]</command:parameterValue>
+          <dev:type>
+            <maml:name>String[]</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>All rules are included.</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>Severity</maml:name>
+          <maml:Description>
+            <maml:para>After running Script Analyzer with all rules, this parameter selects rule violations with the specified severity.</maml:para>
+            <maml:para>Valid values are: Error, Warning, and Information. You can specify one ore more severity values.</maml:para>
+            <maml:para>Because this parameter filters the rules only after running with all rules, it is not an efficient filter. To filter rules efficiently, use Get-ScriptAnalyzer rule to get the rules you want to run or exclude and then use the ExcludeRule or IncludeRule parameters.</maml:para>
+            <maml:para>Also, Severity takes precedence over IncludeRule. For example, if Severity is Error, you cannot use IncludeRule to include a Warning rule.</maml:para>
+          </maml:Description>
+          <command:parameterValue required="true" variableLength="false">String[]</command:parameterValue>
+          <dev:type>
+            <maml:name>String[]</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>All rule violations</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>Recurse</maml:name>
+          <maml:Description>
+            <maml:para>Runs Script Analyzer on the files in the Path directory and all subdirectories recursively.</maml:para>
+            <maml:para>Recurse applies only to the Path parameter value. To search the CustomRulePath recursively, use the RecurseCustomRulePath parameter.</maml:para>
+          </maml:Description>
+          <dev:type>
+            <maml:name>SwitchParameter</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>False</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>SuppressedOnly</maml:name>
+          <maml:Description>
+            <maml:para>Returns rules that are suppressed, instead of analyzing the files in the path.</maml:para>
+            <maml:para>When you used SuppressedOnly, Invoke-ScriptAnalyzer returns a SuppressedRecord object (Microsoft.Windows.PowerShell.ScriptAnalyzer.Generic.SuppressedRecord).</maml:para>
+            <maml:para>To suppress a rule, use the SuppressMessageAttribute. For help, see the examples.</maml:para>
+          </maml:Description>
+          <dev:type>
+            <maml:name>SwitchParameter</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>False</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>Fix</maml:name>
+          <maml:Description>
+            <maml:para>Fixes certain warnings which contain a fix in their DiagnosticRecord.</maml:para>
+            <maml:para>When you used Fix, Invoke-ScriptAnalyzer runs as usual but will apply the fixes before running the analysis. Please make sure that you have a backup of your files when using this switch. It tries to preserve the file encoding but there are still some cases where the encoding can change.</maml:para>
+          </maml:Description>
+          <dev:type>
+            <maml:name>SwitchParameter</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>False</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>EnableExit</maml:name>
+          <maml:Description>
+            <maml:para>Exits PowerShell and returns an exit code equal to the number of error records. This can be useful in CI systems.</maml:para>
+          </maml:Description>
+          <dev:type>
+            <maml:name>SwitchParameter</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>False</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>ReportSummary</maml:name>
+          <maml:Description>
+            <maml:para>Writes a report summary of the found warnings to the host.</maml:para>
+          </maml:Description>
+          <dev:type>
+            <maml:name>SwitchParameter</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>False</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="Profile">
+          <maml:name>Settings</maml:name>
+          <maml:Description>
+            <maml:para>File path that contains user profile or hash table for ScriptAnalyzer</maml:para>
+            <maml:para>Runs Invoke-ScriptAnalyzer with the parameters and values specified in a Script Analyzer profile file or hash table</maml:para>
+            <maml:para>If the path, the file's or hashtable's content are invalid, it is ignored. The parameters and values in the profile take precedence over the same parameter and values specified at the command line.</maml:para>
+            <maml:para>A Script Analyzer profile file is a text file that contains a hash table with one or more of the following keys: -- Severity</maml:para>
+            <maml:para>-- IncludeRules</maml:para>
+            <maml:para>-- ExcludeRules</maml:para>
+            <maml:para>-- Rules</maml:para>
+            <maml:para>-- CustomRulePath</maml:para>
+            <maml:para>-- IncludeDefaultRules</maml:para>
+            <maml:para></maml:para>
+            <maml:para>The keys and values in the profile are interpreted as if they were standard parameters and parameter values of Invoke-ScriptAnalyzer.</maml:para>
+            <maml:para>To specify a single value, enclose the value in quotation marks. For example:</maml:para>
+            <maml:para>    @{ Severity = 'Error'}</maml:para>
+            <maml:para>To specify multiple values, enclose the values in an array. For example:</maml:para>
+            <maml:para>    @{ Severity = 'Error', 'Warning'}</maml:para>
+            <maml:para>A more sophisticated example is:</maml:para>
+            <maml:para>    @{         CustomRulePath='path\to\CustomRuleModule.psm1'         IncludeDefaultRules=$true         ExcludeRules = @(             'PSAvoidUsingWriteHost',             'MyCustomRuleName'         )     }</maml:para>
+          </maml:Description>
+          <command:parameterValue required="true" variableLength="false">Object</command:parameterValue>
+          <dev:type>
+            <maml:name>Object</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>SaveDscDependency</maml:name>
+          <maml:Description>
+            <maml:para>Resolve DSC resource dependency</maml:para>
+            <maml:para>Whenever Invoke-ScriptAnalyzer is run on a script having the dynamic keyword "Import-DSCResource -ModuleName &lt;somemodule&gt;", if &lt;somemodule&gt; is not present in any of the PSModulePath, Invoke-ScriptAnalyzer gives parse error. This error is caused by the powershell parser not being able to find the symbol for &lt;somemodule&gt;. If Invoke-ScriptAnalyzer finds the module in the PowerShell Gallery (www.powershellgallery.com) then it downloads the missing module to a temp path. The temp path is then added to PSModulePath only for duration of the scan. The temp location can be found in $LOCALAPPDATA/PSScriptAnalyzer/TempModuleDir.</maml:para>
+          </maml:Description>
+          <dev:type>
+            <maml:name>SwitchParameter</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>False</dev:defaultValue>
+        </command:parameter>
+      </command:syntaxItem>
+      <command:syntaxItem>
+        <maml:name>Invoke-ScriptAnalyzer</maml:name>
+        <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="0" aliases="none">
+          <maml:name>ScriptDefinition</maml:name>
+          <maml:Description>
+            <maml:para>Runs Invoke-ScriptAnalyzer on commands, functions, or expressions in a string. You can use this feature to analyze statements, expressions, and functions, independent of their script context.</maml:para>
+            <maml:para>Unlike ScriptBlock parameters, the ScriptDefinition parameter requires a string value.</maml:para>
+          </maml:Description>
+          <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+          <dev:type>
+            <maml:name>String</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="CustomizedRulePath">
+          <maml:name>CustomRulePath</maml:name>
+          <maml:Description>
+            <maml:para>Uses only the custom rules defined in the specified paths to the analysis. To still use the built-in rules, add the -IncludeDefaultRules switch.</maml:para>
+            <maml:para>Enter the path to a file that defines rules or a directory that contains files that define rules. Wildcard characters are supported. To add rules defined in subdirectories of the path, use the RecurseCustomRulePath parameter.</maml:para>
+            <maml:para>By default, Invoke-ScriptAnalyzer uses only rules defined in the Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules.dll file in the PSScriptAnalyzer module.</maml:para>
+            <maml:para>If Invoke-ScriptAnalyzer cannot find rules in the CustomRulePath, it runs the standard rules without notice.</maml:para>
+          </maml:Description>
+          <command:parameterValue required="true" variableLength="false">String[]</command:parameterValue>
+          <dev:type>
+            <maml:name>String[]</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>RecurseCustomRulePath</maml:name>
+          <maml:Description>
+            <maml:para>Adds rules defined in subdirectories of the CustomRulePath location. By default, Invoke-ScriptAnalyzer uses only the custom rules defined in the specified file or directory. To still use the built-in rules, additionally use the -IncludeDefaultRules switch.</maml:para>
+          </maml:Description>
+          <dev:type>
+            <maml:name>SwitchParameter</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>False</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>ExcludeRule</maml:name>
+          <maml:Description>
+            <maml:para>Omits the specified rules from the Script Analyzer test. Wildcard characters are supported.</maml:para>
+            <maml:para>Enter a comma-separated list of rule names, a variable that contains rule names, or a command that gets rule names. You can also specify a list of excluded rules in a Script Analyzer profile file. You can exclude standard rules and rules in a custom rule path.</maml:para>
+            <maml:para>When you exclude a rule, the rule does not run on any of the files in the path. To exclude a rule on a particular line, parameter, function, script, or class, adjust the Path parameter or suppress the rule. For information about suppressing a rule, see the examples.</maml:para>
+            <maml:para>If a rule is specified in both the ExcludeRule and IncludeRule collections, the rule is excluded.</maml:para>
+          </maml:Description>
+          <command:parameterValue required="true" variableLength="false">String[]</command:parameterValue>
+          <dev:type>
+            <maml:name>String[]</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>All rules are included.</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>IncludeDefaultRules</maml:name>
+          <maml:Description>
+            <maml:para>Invoke default rules along with Custom rules</maml:para>
+          </maml:Description>
+          <dev:type>
+            <maml:name>SwitchParameter</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>False</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>IncludeRule</maml:name>
+          <maml:Description>
+            <maml:para>Runs only the specified rules in the Script Analyzer test. By default, PSScriptAnalyzer runs all rules.</maml:para>
+            <maml:para>Enter a comma-separated list of rule names, a variable that contains rule names, or a command that gets rule names. Wildcard characters are supported. You can also specify rule names in a Script Analyzer profile file.</maml:para>
+            <maml:para>When you use the CustomizedRulePath parameter, you can use this parameter to include standard rules and rules in the custom rule paths.</maml:para>
+            <maml:para>If a rule is specified in both the ExcludeRule and IncludeRule collections, the rule is excluded.</maml:para>
+            <maml:para>Also, Severity takes precedence over IncludeRule. For example, if Severity is Error, you cannot use IncludeRule to include a Warning rule.</maml:para>
+          </maml:Description>
+          <command:parameterValue required="true" variableLength="false">String[]</command:parameterValue>
+          <dev:type>
+            <maml:name>String[]</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>All rules are included.</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>Severity</maml:name>
+          <maml:Description>
+            <maml:para>After running Script Analyzer with all rules, this parameter selects rule violations with the specified severity.</maml:para>
+            <maml:para>Valid values are: Error, Warning, and Information. You can specify one ore more severity values.</maml:para>
+            <maml:para>Because this parameter filters the rules only after running with all rules, it is not an efficient filter. To filter rules efficiently, use Get-ScriptAnalyzer rule to get the rules you want to run or exclude and then use the ExcludeRule or IncludeRule parameters.</maml:para>
+            <maml:para>Also, Severity takes precedence over IncludeRule. For example, if Severity is Error, you cannot use IncludeRule to include a Warning rule.</maml:para>
+          </maml:Description>
+          <command:parameterValue required="true" variableLength="false">String[]</command:parameterValue>
+          <dev:type>
+            <maml:name>String[]</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>All rule violations</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>Recurse</maml:name>
+          <maml:Description>
+            <maml:para>Runs Script Analyzer on the files in the Path directory and all subdirectories recursively.</maml:para>
+            <maml:para>Recurse applies only to the Path parameter value. To search the CustomRulePath recursively, use the RecurseCustomRulePath parameter.</maml:para>
+          </maml:Description>
+          <dev:type>
+            <maml:name>SwitchParameter</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>False</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>SuppressedOnly</maml:name>
+          <maml:Description>
+            <maml:para>Returns rules that are suppressed, instead of analyzing the files in the path.</maml:para>
+            <maml:para>When you used SuppressedOnly, Invoke-ScriptAnalyzer returns a SuppressedRecord object (Microsoft.Windows.PowerShell.ScriptAnalyzer.Generic.SuppressedRecord).</maml:para>
+            <maml:para>To suppress a rule, use the SuppressMessageAttribute. For help, see the examples.</maml:para>
+          </maml:Description>
+          <dev:type>
+            <maml:name>SwitchParameter</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>False</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>EnableExit</maml:name>
+          <maml:Description>
+            <maml:para>Exits PowerShell and returns an exit code equal to the number of error records. This can be useful in CI systems.</maml:para>
+          </maml:Description>
+          <dev:type>
+            <maml:name>SwitchParameter</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>False</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>ReportSummary</maml:name>
+          <maml:Description>
+            <maml:para>Writes a report summary of the found warnings to the host.</maml:para>
+          </maml:Description>
+          <dev:type>
+            <maml:name>SwitchParameter</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>False</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="Profile">
+          <maml:name>Settings</maml:name>
+          <maml:Description>
+            <maml:para>File path that contains user profile or hash table for ScriptAnalyzer</maml:para>
+            <maml:para>Runs Invoke-ScriptAnalyzer with the parameters and values specified in a Script Analyzer profile file or hash table</maml:para>
+            <maml:para>If the path, the file's or hashtable's content are invalid, it is ignored. The parameters and values in the profile take precedence over the same parameter and values specified at the command line.</maml:para>
+            <maml:para>A Script Analyzer profile file is a text file that contains a hash table with one or more of the following keys: -- Severity</maml:para>
+            <maml:para>-- IncludeRules</maml:para>
+            <maml:para>-- ExcludeRules</maml:para>
+            <maml:para>-- Rules</maml:para>
+            <maml:para>-- CustomRulePath</maml:para>
+            <maml:para>-- IncludeDefaultRules</maml:para>
+            <maml:para></maml:para>
+            <maml:para>The keys and values in the profile are interpreted as if they were standard parameters and parameter values of Invoke-ScriptAnalyzer.</maml:para>
+            <maml:para>To specify a single value, enclose the value in quotation marks. For example:</maml:para>
+            <maml:para>    @{ Severity = 'Error'}</maml:para>
+            <maml:para>To specify multiple values, enclose the values in an array. For example:</maml:para>
+            <maml:para>    @{ Severity = 'Error', 'Warning'}</maml:para>
+            <maml:para>A more sophisticated example is:</maml:para>
+            <maml:para>    @{         CustomRulePath='path\to\CustomRuleModule.psm1'         IncludeDefaultRules=$true         ExcludeRules = @(             'PSAvoidUsingWriteHost',             'MyCustomRuleName'         )     }</maml:para>
+          </maml:Description>
+          <command:parameterValue required="true" variableLength="false">Object</command:parameterValue>
+          <dev:type>
+            <maml:name>Object</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>None</dev:defaultValue>
+        </command:parameter>
+        <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+          <maml:name>SaveDscDependency</maml:name>
+          <maml:Description>
+            <maml:para>Resolve DSC resource dependency</maml:para>
+            <maml:para>Whenever Invoke-ScriptAnalyzer is run on a script having the dynamic keyword "Import-DSCResource -ModuleName &lt;somemodule&gt;", if &lt;somemodule&gt; is not present in any of the PSModulePath, Invoke-ScriptAnalyzer gives parse error. This error is caused by the powershell parser not being able to find the symbol for &lt;somemodule&gt;. If Invoke-ScriptAnalyzer finds the module in the PowerShell Gallery (www.powershellgallery.com) then it downloads the missing module to a temp path. The temp path is then added to PSModulePath only for duration of the scan. The temp location can be found in $LOCALAPPDATA/PSScriptAnalyzer/TempModuleDir.</maml:para>
+          </maml:Description>
+          <dev:type>
+            <maml:name>SwitchParameter</maml:name>
+            <maml:uri />
+          </dev:type>
+          <dev:defaultValue>False</dev:defaultValue>
+        </command:parameter>
+      </command:syntaxItem>
+    </command:syntax>
+    <command:parameters>
+      <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="0" aliases="PSPath">
+        <maml:name>Path</maml:name>
+        <maml:Description>
+          <maml:para>Specifies the path to the scripts or module to be analyzed. Wildcard characters are supported.</maml:para>
+          <maml:para>Enter the path to a script (.ps1) or module file (.psm1) or to a directory that contains scripts or modules. If the directory contains other types of files, they are ignored.</maml:para>
+          <maml:para>To analyze files that are not in the root directory of the specified path, use a wildcard character (C:\Modules\MyModule\*) or the Recurse parameter.</maml:para>
+        </maml:Description>
+        <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+        <dev:type>
+          <maml:name>String</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>None</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="CustomizedRulePath">
+        <maml:name>CustomRulePath</maml:name>
+        <maml:Description>
+          <maml:para>Uses only the custom rules defined in the specified paths to the analysis. To still use the built-in rules, add the -IncludeDefaultRules switch.</maml:para>
+          <maml:para>Enter the path to a file that defines rules or a directory that contains files that define rules. Wildcard characters are supported. To add rules defined in subdirectories of the path, use the RecurseCustomRulePath parameter.</maml:para>
+          <maml:para>By default, Invoke-ScriptAnalyzer uses only rules defined in the Microsoft.Windows.PowerShell.ScriptAnalyzer.BuiltinRules.dll file in the PSScriptAnalyzer module.</maml:para>
+          <maml:para>If Invoke-ScriptAnalyzer cannot find rules in the CustomRulePath, it runs the standard rules without notice.</maml:para>
+        </maml:Description>
+        <command:parameterValue required="true" variableLength="false">String[]</command:parameterValue>
+        <dev:type>
+          <maml:name>String[]</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>None</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+        <maml:name>RecurseCustomRulePath</maml:name>
+        <maml:Description>
+          <maml:para>Adds rules defined in subdirectories of the CustomRulePath location. By default, Invoke-ScriptAnalyzer uses only the custom rules defined in the specified file or directory. To still use the built-in rules, additionally use the -IncludeDefaultRules switch.</maml:para>
+        </maml:Description>
+        <command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
+        <dev:type>
+          <maml:name>SwitchParameter</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>False</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+        <maml:name>ExcludeRule</maml:name>
+        <maml:Description>
+          <maml:para>Omits the specified rules from the Script Analyzer test. Wildcard characters are supported.</maml:para>
+          <maml:para>Enter a comma-separated list of rule names, a variable that contains rule names, or a command that gets rule names. You can also specify a list of excluded rules in a Script Analyzer profile file. You can exclude standard rules and rules in a custom rule path.</maml:para>
+          <maml:para>When you exclude a rule, the rule does not run on any of the files in the path. To exclude a rule on a particular line, parameter, function, script, or class, adjust the Path parameter or suppress the rule. For information about suppressing a rule, see the examples.</maml:para>
+          <maml:para>If a rule is specified in both the ExcludeRule and IncludeRule collections, the rule is excluded.</maml:para>
+        </maml:Description>
+        <command:parameterValue required="true" variableLength="false">String[]</command:parameterValue>
+        <dev:type>
+          <maml:name>String[]</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>All rules are included.</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+        <maml:name>IncludeDefaultRules</maml:name>
+        <maml:Description>
+          <maml:para>Invoke default rules along with Custom rules</maml:para>
+        </maml:Description>
+        <command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
+        <dev:type>
+          <maml:name>SwitchParameter</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>False</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+        <maml:name>IncludeRule</maml:name>
+        <maml:Description>
+          <maml:para>Runs only the specified rules in the Script Analyzer test. By default, PSScriptAnalyzer runs all rules.</maml:para>
+          <maml:para>Enter a comma-separated list of rule names, a variable that contains rule names, or a command that gets rule names. Wildcard characters are supported. You can also specify rule names in a Script Analyzer profile file.</maml:para>
+          <maml:para>When you use the CustomizedRulePath parameter, you can use this parameter to include standard rules and rules in the custom rule paths.</maml:para>
+          <maml:para>If a rule is specified in both the ExcludeRule and IncludeRule collections, the rule is excluded.</maml:para>
+          <maml:para>Also, Severity takes precedence over IncludeRule. For example, if Severity is Error, you cannot use IncludeRule to include a Warning rule.</maml:para>
+        </maml:Description>
+        <command:parameterValue required="true" variableLength="false">String[]</command:parameterValue>
+        <dev:type>
+          <maml:name>String[]</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>All rules are included.</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+        <maml:name>Severity</maml:name>
+        <maml:Description>
+          <maml:para>After running Script Analyzer with all rules, this parameter selects rule violations with the specified severity.</maml:para>
+          <maml:para>Valid values are: Error, Warning, and Information. You can specify one ore more severity values.</maml:para>
+          <maml:para>Because this parameter filters the rules only after running with all rules, it is not an efficient filter. To filter rules efficiently, use Get-ScriptAnalyzer rule to get the rules you want to run or exclude and then use the ExcludeRule or IncludeRule parameters.</maml:para>
+          <maml:para>Also, Severity takes precedence over IncludeRule. For example, if Severity is Error, you cannot use IncludeRule to include a Warning rule.</maml:para>
+        </maml:Description>
+        <command:parameterValue required="true" variableLength="false">String[]</command:parameterValue>
+        <dev:type>
+          <maml:name>String[]</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>All rule violations</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+        <maml:name>Recurse</maml:name>
+        <maml:Description>
+          <maml:para>Runs Script Analyzer on the files in the Path directory and all subdirectories recursively.</maml:para>
+          <maml:para>Recurse applies only to the Path parameter value. To search the CustomRulePath recursively, use the RecurseCustomRulePath parameter.</maml:para>
+        </maml:Description>
+        <command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
+        <dev:type>
+          <maml:name>SwitchParameter</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>False</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+        <maml:name>SuppressedOnly</maml:name>
+        <maml:Description>
+          <maml:para>Returns rules that are suppressed, instead of analyzing the files in the path.</maml:para>
+          <maml:para>When you used SuppressedOnly, Invoke-ScriptAnalyzer returns a SuppressedRecord object (Microsoft.Windows.PowerShell.ScriptAnalyzer.Generic.SuppressedRecord).</maml:para>
+          <maml:para>To suppress a rule, use the SuppressMessageAttribute. For help, see the examples.</maml:para>
+        </maml:Description>
+        <command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
+        <dev:type>
+          <maml:name>SwitchParameter</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>False</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+        <maml:name>Fix</maml:name>
+        <maml:Description>
+          <maml:para>Fixes certain warnings which contain a fix in their DiagnosticRecord.</maml:para>
+          <maml:para>When you used Fix, Invoke-ScriptAnalyzer runs as usual but will apply the fixes before running the analysis. Please make sure that you have a backup of your files when using this switch. It tries to preserve the file encoding but there are still some cases where the encoding can change.</maml:para>
+        </maml:Description>
+        <command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
+        <dev:type>
+          <maml:name>SwitchParameter</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>False</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+        <maml:name>EnableExit</maml:name>
+        <maml:Description>
+          <maml:para>Exits PowerShell and returns an exit code equal to the number of error records. This can be useful in CI systems.</maml:para>
+        </maml:Description>
+        <command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
+        <dev:type>
+          <maml:name>SwitchParameter</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>False</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+        <maml:name>ReportSummary</maml:name>
+        <maml:Description>
+          <maml:para>Writes a report summary of the found warnings to the host.</maml:para>
+        </maml:Description>
+        <command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
+        <dev:type>
+          <maml:name>SwitchParameter</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>False</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="Profile">
+        <maml:name>Settings</maml:name>
+        <maml:Description>
+          <maml:para>File path that contains user profile or hash table for ScriptAnalyzer</maml:para>
+          <maml:para>Runs Invoke-ScriptAnalyzer with the parameters and values specified in a Script Analyzer profile file or hash table</maml:para>
+          <maml:para>If the path, the file's or hashtable's content are invalid, it is ignored. The parameters and values in the profile take precedence over the same parameter and values specified at the command line.</maml:para>
+          <maml:para>A Script Analyzer profile file is a text file that contains a hash table with one or more of the following keys: -- Severity</maml:para>
+          <maml:para>-- IncludeRules</maml:para>
+          <maml:para>-- ExcludeRules</maml:para>
+          <maml:para>-- Rules</maml:para>
+          <maml:para>-- CustomRulePath</maml:para>
+          <maml:para>-- IncludeDefaultRules</maml:para>
+          <maml:para></maml:para>
+          <maml:para>The keys and values in the profile are interpreted as if they were standard parameters and parameter values of Invoke-ScriptAnalyzer.</maml:para>
+          <maml:para>To specify a single value, enclose the value in quotation marks. For example:</maml:para>
+          <maml:para>    @{ Severity = 'Error'}</maml:para>
+          <maml:para>To specify multiple values, enclose the values in an array. For example:</maml:para>
+          <maml:para>    @{ Severity = 'Error', 'Warning'}</maml:para>
+          <maml:para>A more sophisticated example is:</maml:para>
+          <maml:para>    @{         CustomRulePath='path\to\CustomRuleModule.psm1'         IncludeDefaultRules=$true         ExcludeRules = @(             'PSAvoidUsingWriteHost',             'MyCustomRuleName'         )     }</maml:para>
+        </maml:Description>
+        <command:parameterValue required="true" variableLength="false">Object</command:parameterValue>
+        <dev:type>
+          <maml:name>Object</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>None</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="true" variableLength="true" globbing="false" pipelineInput="False" position="0" aliases="none">
+        <maml:name>ScriptDefinition</maml:name>
+        <maml:Description>
+          <maml:para>Runs Invoke-ScriptAnalyzer on commands, functions, or expressions in a string. You can use this feature to analyze statements, expressions, and functions, independent of their script context.</maml:para>
+          <maml:para>Unlike ScriptBlock parameters, the ScriptDefinition parameter requires a string value.</maml:para>
+        </maml:Description>
+        <command:parameterValue required="true" variableLength="false">String</command:parameterValue>
+        <dev:type>
+          <maml:name>String</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>None</dev:defaultValue>
+      </command:parameter>
+      <command:parameter required="false" variableLength="true" globbing="false" pipelineInput="False" position="named" aliases="none">
+        <maml:name>SaveDscDependency</maml:name>
+        <maml:Description>
+          <maml:para>Resolve DSC resource dependency</maml:para>
+          <maml:para>Whenever Invoke-ScriptAnalyzer is run on a script having the dynamic keyword "Import-DSCResource -ModuleName &lt;somemodule&gt;", if &lt;somemodule&gt; is not present in any of the PSModulePath, Invoke-ScriptAnalyzer gives parse error. This error is caused by the powershell parser not being able to find the symbol for &lt;somemodule&gt;. If Invoke-ScriptAnalyzer finds the module in the PowerShell Gallery (www.powershellgallery.com) then it downloads the missing module to a temp path. The temp path is then added to PSModulePath only for duration of the scan. The temp location can be found in $LOCALAPPDATA/PSScriptAnalyzer/TempModuleDir.</maml:para>
+        </maml:Description>
+        <command:parameterValue required="false" variableLength="false">SwitchParameter</command:parameterValue>
+        <dev:type>
+          <maml:name>SwitchParameter</maml:name>
+          <maml:uri />
+        </dev:type>
+        <dev:defaultValue>False</dev:defaultValue>
+      </command:parameter>
+    </command:parameters>
+    <command:inputTypes>
+      <command:inputType>
+        <dev:type>
+          <maml:name>None</maml:name>
+        </dev:type>
+        <maml:description>
+          <maml:para>You cannot pipe input to this cmdlet.</maml:para>
+        </maml:description>
+      </command:inputType>
+    </command:inputTypes>
+    <command:returnValues>
+      <command:returnValue>
+        <dev:type>
+          <maml:name>Microsoft.Windows.PowerShell.ScriptAnalyzer.Generic.DiagnosticRecord</maml:name>
+        </dev:type>
+        <maml:description>
+          <maml:para>By default, Invoke-ScriptAnalyzer returns one DiagnosticRecord object to report a rule violation.</maml:para>
+        </maml:description>
+      </command:returnValue>
+      <command:returnValue>
+        <dev:type>
+          <maml:name>Microsoft.Windows.PowerShell.ScriptAnalyzer.Generic.SuppressedRecord</maml:name>
+        </dev:type>
+        <maml:description>
+          <maml:para>If you use the SuppressedOnly parameter, Invoke-ScriptAnalyzer instead returns a SuppressedRecord object.</maml:para>
+        </maml:description>
+      </command:returnValue>
+    </command:returnValues>
+    <maml:alertSet>
+      <maml:alert>
+        <maml:para></maml:para>
+      </maml:alert>
+    </maml:alertSet>
+    <command:examples>
+      <command:example>
+        <maml:title>-------------------------- EXAMPLE 1 --------------------------</maml:title>
+        <dev:code>Invoke-ScriptAnalyzer -Path C:\Scripts\Get-LogData.ps1</dev:code>
+        <dev:remarks>
+          <maml:para>This command runs all Script Analyzer rules on the Get-LogData.ps1 script.</maml:para>
+        </dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>-------------------------- EXAMPLE 2 --------------------------</maml:title>
+        <dev:code>Invoke-ScriptAnalyzer -Path $home\Documents\WindowsPowerShell\Modules -Recurse</dev:code>
+        <dev:remarks>
+          <maml:para>This command runs all Script Analyzer rules on all .ps1 and .psm1 files in the Modules directory and its subdirectories.</maml:para>
+        </dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>-------------------------- EXAMPLE 3 --------------------------</maml:title>
+        <dev:code>Invoke-ScriptAnalyzer -Path C:\Windows\System32\WindowsPowerShell\v1.0\Modules\PSDiagnostics -IncludeRule PSAvoidUsingPositionalParameters</dev:code>
+        <dev:remarks>
+          <maml:para>This command runs only the PSAvoidUsingPositionalParameters rule on the files in the PSDiagnostics module. You might use a command like this to find all instances of a particular rule violation while working to eliminate it.</maml:para>
+        </dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>-------------------------- EXAMPLE 4 --------------------------</maml:title>
+        <dev:code>Invoke-ScriptAnalyzer -Path C:\ps-test\MyModule -Recurse -ExcludeRule PSAvoidUsingCmdletAliases, PSAvoidUsingInternalURLs</dev:code>
+        <dev:remarks>
+          <maml:para>This command runs Script Analyzer on the .ps1 and .psm1 files in the MyModules directory, including the scripts in its subdirectories, with all rules except for PSAvoidUsingCmdletAliases and PSAvoidUsingInternalURLs.</maml:para>
+        </dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>-------------------------- EXAMPLE 5 --------------------------</maml:title>
+        <dev:code>Invoke-ScriptAnalyzer -Path D:\test_scripts\Test-Script.ps1 -CustomRulePath C:\CommunityAnalyzerRules</dev:code>
+        <dev:remarks>
+          <maml:para>This command runs Script Analyzer on Test-Script.ps1 with the standard rules and rules in the C:\CommunityAnalyzerRules path.</maml:para>
+        </dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>-------------------------- EXAMPLE 6 --------------------------</maml:title>
+        <dev:code>$DSCError = Get-ScriptAnalyzerRule -Severity Error | Where SourceName -eq PSDSC
+
+PS C:\&gt;$Path = "$home\Documents\WindowsPowerShell\Modules\MyDSCModule"
+
+PS C:\&gt; Invoke-ScriptAnalyzerRule -Path $Path -IncludeRule $DSCError -Recurse</dev:code>
+        <dev:remarks>
+          <maml:para>This example runs only the rules that are Error severity and have the PSDSC source name.</maml:para>
+        </dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>-------------------------- EXAMPLE 7 --------------------------</maml:title>
+        <dev:code>function Get-Widgets
+{
+    [CmdletBinding()]
+    [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseSingularNouns", "")]
+    [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSAvoidUsingCmdletAliases", "", Justification="Resolution in progress.")]
+    Param()
+
+    dir $pshome
+    ...
+}
+
+PS C:\&gt; Invoke-ScriptAnalyzer -Path .\Get-Widgets.ps1
+
+RuleName                            Severity     FileName   Line  Message
+--------                            --------     --------   ----  -------
+PSProvideCommentHelp                Information  ManageProf 14    The cmdlet 'Get-Widget' does not have a help comment.
+                                                 iles.psm1
+
+PS C:\&gt; Invoke-ScriptAnalyzer -Path .\Get-Widgets.ps1 -SuppressedOnly
+
+Rule Name                           Severity     File Name  Line  Justification
+---------                           --------     ---------  ----  -------------
+PSAvoidUsingCmdletAliases           Warning      ManageProf 21    Resolution in progress.
+                                                 iles.psm1
+PSUseSingularNouns                  Warning      ManageProf 14
+                                                 iles.psm1</dev:code>
+        <dev:remarks>
+          <maml:para>This example shows how to suppress the reporting of rule violations in a function and how to discover rule violations that are suppressed.</maml:para>
+          <maml:para>The example uses the SuppressMessageAttribute attribute to suppress the PSUseSingularNouns and PSAvoidUsingCmdletAliases rules for the Get-Widgets function in the Get-Widgets.ps1 script. You can use this attribute to suppress a rule for a module, script, class, function, parameter, or line.</maml:para>
+          <maml:para>The first command runs Script Analyzer on the script that contains the Get-Widgets function. The output reports a rule violation, but neither of the suppressed rules is listed, even though they are violated.</maml:para>
+          <maml:para>The second command uses the SuppressedOnly parameter to discover the rules that are supressed in the Get-Widgets.ps1 file. The output reports the suppressed rules.</maml:para>
+        </dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>-------------------------- EXAMPLE 8 --------------------------</maml:title>
+        <dev:code># In .\ScriptAnalyzerProfile.txt
+@{
+    Severity = @('Error', 'Warning')
+    IncludeRules = 'PSAvoid*'
+    ExcludeRules = '*WriteHost'
+}
+
+PS C:\&gt; Invoke-ScriptAnalyzer -Path $pshome\Modules\BitLocker -Profile .\ScriptAnalyzerProfile.txt</dev:code>
+        <dev:remarks>
+          <maml:para>In this example, we create a Script Analyzer profile and save it in the ScriptAnalyzerProfile.txt file in the local directory.</maml:para>
+          <maml:para>Next, we run Invoke-ScriptAnalyzer on the BitLocker module files. The value of the Profile parameter is the path to the Script Analyzer profile.</maml:para>
+          <maml:para>If you include a conflicting parameter in the Invoke-ScriptAnalyzer command, such as '-Severity Error', Invoke-ScriptAnalyzer uses the profile value and ignores the parameter.</maml:para>
+        </dev:remarks>
+      </command:example>
+      <command:example>
+        <maml:title>-------------------------- EXAMPLE 9 --------------------------</maml:title>
+        <dev:code>Invoke-ScriptAnalyzer -ScriptDefinition "function Get-Widgets {Write-Host 'Hello'}"
+
+RuleName                            Severity     FileName   Line  Message
+--------                            --------     --------   ----  -------
+PSAvoidUsingWriteHost               Warning                 1     Script
+                                                                  because
+                                                                  there i
+                                                                  suppres
+                                                                  Write-O
+PSUseSingularNouns                  Warning                 1     The cmd
+                                                                  noun sh</dev:code>
+        <dev:remarks>
+          <maml:para>This command uses the ScriptDefinition parameter to analyze a function at the command line. The function string is enclosed in quotation marks.</maml:para>
+          <maml:para>When you use the ScriptDefinition parameter, the FileName property of the DiagnosticRecord object is $null.</maml:para>
+        </dev:remarks>
+      </command:example>
+    </command:examples>
+    <command:relatedLinks>
+      <maml:navigationLink>
+        <maml:linkText>Get-ScriptAnalyzerRule</maml:linkText>
+        <maml:uri></maml:uri>
+      </maml:navigationLink>
+      <maml:navigationLink>
+        <maml:linkText>PSScriptAnalyzer on GitHub</maml:linkText>
+        <maml:uri>https://github.com/PowerShell/PSScriptAnalyzer</maml:uri>
+      </maml:navigationLink>
+    </command:relatedLinks>
+  </command:command>
+</helpItems>

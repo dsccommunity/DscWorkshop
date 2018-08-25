@@ -1,0 +1,162 @@
+TOPIC
+    about_PSDepend
+
+SHORT DESCRIPTION
+    PSDepend is a module to simplify dependency handling
+
+DETAILED DESCRIPTION
+    PSDepend is a module to simplify dependency handling
+
+    Think of this like a simplified (Ruby) Bundler, or (Python) pip requirements files
+
+    Terminology and concepts
+    ========================
+    There are three primary concepts:
+
+        *.depend.psd1 files:    PSD1 files that tell PSDepend what you want to install.
+                                You can also use requirements.psd1
+
+        Dependency Type:        These define how to actually install something.
+                                Each type is associated with a script.
+                                The default type is PSGalleryModule.
+                                This is extensible.
+
+        Dependency Script:      These are scripts associated to a particular dependency type.
+                                They tell PSDepend how to install a dependency type.
+                                All should accept a 'Dependency' parameter.
+                                For example, the PSGalleryModule script uses PowerShellGet to find
+                                and install any dependencies specified in a depend.psd1 or requirements.psd1 file.
+
+    Prerequisites
+    ============
+    
+    Each dependency type may have certain prerequisites:
+
+      * PSGalleryModule: Requires the PowerShellGet module (WMF 5 or a separate install)
+      * PSGalleryNuget:  This requires nuget.exe in your path*.  We handle this for you:
+                         When you import PSDepend, we... 
+                            Look for nuget.exe in your path. 
+                            If we don't find it... Look in the path specified in PSDepend\PSDepend.Config's NugetPath. Default is PSDepend\nuget.exe
+                                If we don't find it there, we download to that path
+                                If we do find it there, we add the parent container to $ENV:Path
+      * Git: Requires git.exe in your path, or in the file path specified in PSDepend\PSDepend.Config's GitPath
+      * Npm: Requires npm in your path
+                            
+    Example use (*.PSDepend.ps1)
+    ============================
+
+    I want to install dependencies from C:\projectx\projectx.depend.psd1
+
+        C:\projectx\projectx.depend.psd1 looks like this:
+
+            @{
+                psdeploy = @{
+                    Version = '0.1.8'
+                    Target = 'C:\ProjectX'
+                    DependencyType = 'PSGalleryModule'
+                }
+                buildhelpers = @{
+                    Target = 'CurrentUser'
+                }
+                pester = 'latest' 
+                psake = '4.6.0'
+            }
+
+        # Install dependencies
+        cd C:\projectx
+        Invoke-PSDepend
+
+        # Alternatively
+        Invoke-PSDepend -Path C:\projectx
+
+    See about_PSDepend_Definitions for more information
+
+    Learning about Dependency Scripts
+    ================================
+    PSDepend Dependency scripts each treat Dependency details (e.g. Name, Source, Version)
+    differently.  In some cases, they may have their own Parameters.  For example,
+    a PSGalleryModule has a Repository Parameter.
+
+    It is up to authors of Dependency scripts to expose help for this information.
+
+    A few tools can assist in finding more information:
+
+    # List available PSDepend Types, and their DependencyScripts
+    Get-PSDependType
+
+    # Show comment-based help for the PSGalleryModule DependencyType:
+    Get-PSDependType -DependencyType PSGalleryModule -ShowHelp
+
+    By convention, the comment-based help DESCRIPTION field should indicate
+    how Dependency details are handled. For example, here's PSGalleryModule:
+
+        Relevant Dependency metadata:
+            Name: The name for this module
+            Version: Used to identify existing installs meeting this criteria, and as RequiredVersion for installation.  Defaults to 'latest'
+            Target: Used as 'Scope' for Install-Module.  If this is a path, we use Save-Module with this path.  Defaults to 'AllUsers'
+
+    Lastly, DependencyType specific parameters should be included as parameters
+    for Dependency scripts. For example, we can see the Repository parameter for PSGalleryModule:
+
+        -Repository <String>
+            PSRepository to download from.  Defaults to PSGallery
+        
+            Required?                    false
+            Position?                    2
+            Default value                PSGallery
+
+    Extending PSDepend
+    ==================
+    PSDepend is somewhat extensible. To add a new dependency type:
+
+        Update PSDependMap.psd1 in the PSDepend root.
+
+            The dependency type name is the root node.
+            The script node defines what script to run for these dependency types
+            The description is... not really used. But feel free to write one!
+
+            For example, I might add support for PackageManagement, and include a long and shorthand way to name these:
+
+              Package:
+                Script: Package.ps1
+                Description: Install packages via PackageManagement module
+
+              PackageManagement:
+                Script: Package.ps1
+                Description: Install packages via PackageManagement module
+
+        Create the associated script in PSDepend\PSDependScripts
+
+            For example, I would create \\Path\To\PSDepend\PSDependScripts\Package.ps1
+
+        Include a 'Dependency' parameter.
+
+            See \\Path\To\PSDepend\PSDependScripts\PSGalleryModule.ps1 for an example
+
+            Here's how I implement this:
+                param(
+                    [PSTypeName('PSDepend.Dependency')]
+                    [psobject[]]$Dependency
+                    ...
+
+        Include a 'PSDependAction' parameter.
+        
+            Use ValidateSet to specify whether your type supports Test, Install, Import, or other actions.
+
+        Include details on how you use Dependency properties in the comment-based help DESCRIPTION field.
+        
+            See \\Path\To\PSDepend\PSDependScripts\PSGalleryModule.ps1 DESCRIPTION field for an example
+
+        Include parameters and comment based help for any parameters you read from the Dependency Parameter property.
+
+            See \\Path\To\PSDepend\PSDependScripts\PSGalleryModule.ps1 parameters and help for an example
+
+        Update *.depend.ps1 schema as needed.
+
+            Get-Dependency converts PSD1 files into a number of 'Dependency' objects.
+            If you need other data included, you can extend the schema and reference the
+            'Raw' property on the dependency objects: this contains the raw data from the psd1
+
+SEE ALSO
+    about_PSDepend_Definitions
+    https://github.com/RamblingCookieMonster/PSDepend
