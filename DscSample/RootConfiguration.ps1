@@ -7,7 +7,7 @@ $goodPSModulePath = $Env:PSModulePath
 configuration "RootConfiguration"
 {
     Import-DscResource -ModuleName PSDesiredStateConfiguration
-    Import-DscResource -ModuleName Common -ModuleVersion 0.0.1
+    Import-DscResource -ModuleName CommonTasks -ModuleVersion 0.0.1
 
     $module = Get-Module PSDesiredStateConfiguration
     $null = & $module {param($tag,$Env) Set-PSTopConfigurationName "MOF_$($Env)_$($tag)"} "$BuildVersion",$Environment

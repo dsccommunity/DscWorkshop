@@ -1,0 +1,3 @@
+Key;ValueName;ValueData;ValueType;Ensure
+HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\W32Time\Parameters;NtpServer;time.windows.com,0x9;DWORD;Present
+HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\W32Txime\Parameters;NtpSxerver;time.windows.com,0x9;DWORD;Present

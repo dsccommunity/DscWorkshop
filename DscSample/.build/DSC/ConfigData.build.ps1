@@ -63,10 +63,6 @@ task Load_Datum_ConfigData {
     {
         $BuildOutput = Join-Path -Path $ProjectPath -ChildPath $BuildOutput
     }
-    $configDataPath = Join-Path -Path $ProjectPath -ChildPath $ConfigDataFolder
-    $configurationPath = Join-Path -Path $ProjectPath -ChildPath $ConfigurationsFolder
-    $resourcePath = Join-Path -Path $ProjectPath -ChildPath $ResourcesFolder
-    $buildModulesPath = Join-Path -Path $BuildOutput -ChildPath Modules
         
     Set-PSModulePath -ModuleToLeaveLoaded $ModuleToLeaveLoaded -PathsToSet @($configurationPath, $resourcePath, $buildModulesPath)
 

@@ -1,6 +1,6 @@
 @{
     # Set up a mini virtual environment...
-    PSDependOptions             = @{
+    PSDependOptions = @{
         AddToPath  = $True
         Target     = 'DSC_Configurations'
         Parameters = @{
@@ -9,5 +9,5 @@
         }
     }
 
-    'gaelcolas/sharedDscConfig' = 'master'
+    CommonTasks     = 'latest'
 }
