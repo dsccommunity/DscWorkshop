@@ -19,7 +19,7 @@ task Clean_BuildOutput {
     if (Test-Path $BuildOutput) 
     {
         "Removing $BuildOutput\*"
-        Get-ChildItem -Path .\BuildOutput\ -Exclude Modules, README.md | Remove-Item -Force -Recurse
+        Get-ChildItem -Path $BuildOutput -Exclude Modules, README.md | Remove-Item -Force -Recurse
     }
 }
 
