@@ -1,11 +1,10 @@
 @{
     # Set up a mini virtual environment...
     PSDependOptions = @{
-        AddToPath  = $True
+        AddToPath  = $true
         Target     = 'DSC_Configurations'
         Parameters = @{
-            #Force = $True
-            #Import = $True
+            Force = $true
         }
     }
 
