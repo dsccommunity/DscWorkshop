@@ -18,7 +18,7 @@ param (
     $RandomWait = (property RandomWait $false),
 
     [String]
-    $Environment = (property Environment 'DEV'),
+    $Environment = (property Environment 'Dev'),
 
     [String]
     $ConfigDataFolder = (property ConfigDataFolder 'DSC_ConfigData'),
@@ -34,16 +34,27 @@ param (
 )
 
 task PSModulePath_BuildModules {
-    Write-Build Green "RandomWait: $($RandomWait.ToString())"
+    $tid = [System.Threading.Thread]::CurrentThread.ManagedThreadId
+    Start-Transcript -Path "$BuildOutput\Logs\PSModulePath_BuildModules$tid-Log.txt"
+    
+    Write-Host "RandomWait: $($RandomWait.ToString())"
+    
     if ($RandomWait)
     {
-        $rnd = Get-Random -Minimum 0 -Maximum 10
-        Write-Build Green "Waiting $rnd seconds to start the compilation job"
-        Start-Sleep -Seconds $rnd
+        $m = [System.Threading.Mutex]::OpenExisting('DscBuildProcess')
+        Write-Host "Mutex handle $($m.Handle.ToInt32())"
+        $r = $m.WaitOne(300000) #timeout is 5 minutes
+        if (-not $r)
+        {
+            Write-Error "Error getting the mutex 'DscBuildProcess' in 5 minutes"
+        }
+        Start-Sleep -Seconds 5
+        Write-Host "Releasing mutex at $(Get-Date)"
+        $m.ReleaseMutex()
     }
     else
     {
-        Write-Build Green "Not waiting, starting compilation job"
+        Write-Host "Not waiting, starting compilation job"
     }
 
     if (!([System.IO.Path]::IsPathRooted($BuildOutput)))
@@ -56,6 +67,7 @@ task PSModulePath_BuildModules {
     $buildModulesPath = Join-Path -Path $BuildOutput -ChildPath Modules
         
     Set-PSModulePath -ModuleToLeaveLoaded $ModuleToLeaveLoaded -PathsToSet @($configurationPath, $resourcePath, $buildModulesPath)
+    Stop-Transcript
 }
 
 task Load_Datum_ConfigData {
@@ -63,6 +75,10 @@ task Load_Datum_ConfigData {
     {
         $BuildOutput = Join-Path -Path $ProjectPath -ChildPath $BuildOutput
     }
+    $configDataPath = Join-Path -Path $ProjectPath -ChildPath $ConfigDataFolder
+    $configurationPath = Join-Path -Path $ProjectPath -ChildPath $ConfigurationsFolder
+    $resourcePath = Join-Path -Path $ProjectPath -ChildPath $ResourcesFolder
+    $buildModulesPath = Join-Path -Path $BuildOutput -ChildPath Modules
         
     Set-PSModulePath -ModuleToLeaveLoaded $ModuleToLeaveLoaded -PathsToSet @($configurationPath, $resourcePath, $buildModulesPath)
 
@@ -76,16 +92,16 @@ task Load_Datum_ConfigData {
     if (-not ($datum.AllNodes.$Environment))
     {
         Write-Error "No nodes found in the environment '$Environment'"
-    }
-    Write-Build Green "Node count: $(($datum.AllNodes.$Environment | Get-Member -MemberType ScriptProperty | Measure-Object).Count)"
-    
-    Write-Build Green "Filter: $($Filter.ToString())"
+    }   
+
     $global:configurationData = Get-FilteredConfigurationData -Environment $Environment -Filter $Filter -Datum $datum
-    Write-Build Green "Node count after applying filter: $($configurationData.AllNodes.Count)"
 }
 
 task Compile_Root_Configuration {
-    try 
+    $tid = [System.Threading.Thread]::CurrentThread.ManagedThreadId
+    Start-Transcript -Path "$BuildOutput\Logs\Compile_Root_Configuration$tid-Log.txt"
+
+    try
     {
         $mofs = . (Join-Path -Path $ProjectPath -ChildPath 'RootConfiguration.ps1')
         Write-Build Green "Successfully compiled $($mofs.Count) MOF files"
@@ -98,6 +114,8 @@ task Compile_Root_Configuration {
         }
         Write-Build Red ($relevantErrors[0..2] | Out-String)
     }
+
+    Stop-Transcript
 }
 
 task Compile_Root_Meta_Mof {
@@ -108,7 +126,19 @@ task Compile_Root_Meta_Mof {
 
 task Create_Mof_Checksums {
     Import-Module -Name DscBuildHelpers -Scope Global
-    New-DscChecksum -Path (Join-Path -Path $BuildOutput -ChildPath MOF) -Verbose:$false
+    $mofs = Get-ChildItem -Path (Join-Path -Path $BuildOutput -ChildPath MOF)
+    foreach ($mof in $mofs)
+    {
+        if ($mof.BaseName -in $global:configurationData.AllNodes.NodeName)
+        {
+            New-DscChecksum -Path $mof.FullName -Verbose:$false -Force
+        }
+    }
+}
+
+task Copy_files_to_Pullserver {
+    Get-ChildItem -Path (Join-Path -Path $BuildOutput -ChildPath MOF) | Where-Object{$Filter} | Copy-Item -Destination \\9109z0imsdscl01\DscService\Configuration -Force
+    Copy-Item -Path (Join-Path -Path $BuildOutput -ChildPath "DscModules\*") -Destination \\9109z0imsdscl01\DscService\Modules -Recurse -Force
 }
 
 task Compile_Datum_Rsop {
@@ -119,12 +149,12 @@ task Compile_Datum_Rsop {
         $RsopOutputPath = $rsopFolder
     }
 
-    if(!(Test-Path -Path $rsopOutputPath)) {
+    if (-not (Test-Path -Path $rsopOutputPath)) {
         mkdir -Path $rsopOutputPath -Force | Out-Null
     }
 
     $rsopOutputPathVersion = Join-Path -Path $RsopOutputPath -ChildPath $BuildVersion
-    if(!(Test-Path -Path $rsopOutputPathVersion)) {
+    if (-not (Test-Path -Path $rsopOutputPathVersion)) {
         mkdir -Path $rsopOutputPathVersion -Force | Out-Null
     }
 
