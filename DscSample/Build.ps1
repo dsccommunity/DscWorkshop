@@ -169,12 +169,12 @@ if ($MyInvocation.ScriptName -notlike '*Invoke-Build.ps1') {
                 Build-Parallel $mofCompilationTasks
             }
         }
-        return
     }
 
     $m.Dispose()
-
     Write-Host "Created $((Get-ChildItem -Path "$BuildOutput\MOF" -Filter *.mof).Count) MOF files in '$BuildOutput/MOF'" -ForegroundColor Green
+    
+    return
 }
 
 if ($TaskHeader) {
