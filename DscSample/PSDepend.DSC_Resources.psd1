@@ -1,16 +1,12 @@
 @{
-    #PSDepend dependencies
-    
     PSDependOptions              = @{
         AddToPath  = $True
         Target     = 'DSC_Resources'
         Parameters = @{
-            #Force = $True
-            #Import = $True
+            Force = $true
         }
     }
 
     xPSDesiredStateConfiguration = 'latest'
     xDscResourceDesigner         = 'latest'
-    CommonTasks                  = 'latest'
 }

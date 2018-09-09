@@ -9,6 +9,7 @@ configuration "RootConfiguration"
     Import-DscResource -ModuleName PSDesiredStateConfiguration
     Import-DscResource -ModuleName CommonTasks -ModuleVersion 0.0.1
 
+
     $module = Get-Module PSDesiredStateConfiguration
     $null = & $module {param($tag,$Env) Set-PSTopConfigurationName "MOF_$($Env)_$($tag)"} "$BuildVersion",$Environment
 
@@ -19,10 +20,6 @@ configuration "RootConfiguration"
             $configurationName = $_
             $(Write-Debug "`tLooking up params for $configurationName")
             $properties = $(lookup $configurationName -DefaultValue @{})
-            #if ($properties.Gettype().BaseType.Name -eq 'DatumProvider')
-            #{
-            #    $properties = $properties.ToHashTable()
-            #}
             $dscError = [System.Collections.ArrayList]::new()
             Get-DscSplattedResource -ResourceName $configurationName -ExecutionName $configurationName -Properties $properties
             if($Error[0] -and $lastError -ne $Error[0]) {
@@ -60,4 +57,22 @@ configuration "RootConfiguration"
     }
 }
 
-RootConfiguration -ConfigurationData $ConfigurationData -OutputPath "$ProjectPath\BuildOutput\MOF\"
+$cd = @{}
+$cd.Datum = $ConfigurationData.Datum
+
+foreach ($n in $configurationData.AllNodes)
+{
+    $cd.AllNodes = @($ConfigurationData.AllNodes | Where-Object NodeName -eq $n.NodeName)
+    try
+    {
+        RootConfiguration -ConfigurationData $cd -OutputPath "$ProjectPath\BuildOutput\MOF\"
+    }
+    catch
+    {
+        Write-Host "Error occured during compilation of node '$($n.NodeName)' : $($_.Exception.Message)" -ForegroundColor Red
+        $relevantErrors = $Error | Where-Object {
+            $_.Exception -isnot [System.Management.Automation.ItemNotFoundException]
+        }
+        Write-Host ($relevantErrors[0..2] | Out-String) -ForegroundColor Red
+    }
+}
