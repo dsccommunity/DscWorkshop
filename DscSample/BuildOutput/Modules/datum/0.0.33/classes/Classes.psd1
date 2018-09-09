@@ -1,7 +1,0 @@
-@{
-    order = @(
-        ,'DatumProvider'
-        ,'FileProvider'
-        ,'Node'
-    )
-}
