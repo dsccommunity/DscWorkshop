@@ -2,9 +2,9 @@ Configurations:
   - SecurityBase
   - WindowsFeatures
 
-SecurityBase:
-  SecurityLevel: 1
-
 WindowsFeatures:
   Name:
     - -XPS-Viewer
+
+SecurityBase:
+  Role: Baseline

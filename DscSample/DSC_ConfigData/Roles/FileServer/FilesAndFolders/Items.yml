@@ -1,4 +1,3 @@
-#Items:
 - DestinationPath: C:\Test1.txt
   Type: File
   Contents: Some test data
