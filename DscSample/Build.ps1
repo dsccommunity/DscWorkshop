@@ -103,8 +103,10 @@ if (-not (Test-Path -Path $buildModulesPath)) {
     $null = mkdir -Path $buildModulesPath -Force
 }
 
-if ($buildModulesPath -notin ($Env:PSModulePath -split ';')) {
-    $env:PSModulePath = "$buildModulesPath;$Env:PSModulePath"
+$psModulePathElemets = $env:PSModulePath -split ';'
+if ($buildModulesPath -notin $psModulePathElemets) {
+    $env:PSModulePath = $psModulePathElemets -join ';'
+    $env:PSModulePath += ";$buildModulesPath"
 }
 
 if (-not (Get-Module -Name InvokeBuild -ListAvailable) -and -not $ResolveDependency) {

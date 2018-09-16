@@ -7,11 +7,8 @@ function Set-PSModulePath {
         $PathsToSet = @()
     )
 
-    if(Get-Module PSDesiredStateConfiguration) {
-        Remove-Module -Force PSDesiredStateConfiguration
-    }
-
-    $Env:PSModulePath = Join-Path -Path $PShome -ChildPath Modules
+    $env:PSModulePath = Join-Path -Path $PShome -ChildPath Modules
+    
     Get-Module | Where-Object { $_.Name -notin $ModuleToLeaveLoaded } | Remove-Module -Force
 
     $PathsToSet.Foreach{
