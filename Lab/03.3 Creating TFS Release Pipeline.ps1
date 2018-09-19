@@ -42,7 +42,19 @@ Push-Location
 cd "$labSources\GitRepositories\psconf18\DscWorkshop"
 git checkout master 2>&1 | Out-Null
 git pull origin master 2>&1 | Out-Null
-git -c http.sslverify=false push tfs 2>&1 | Out-Null
+
+Write-Host 'Starting git push to TFS'
+$retryCount = 20
+$pushResult = git -c http.sslverify=false push tfs 2>&1
+do
+{
+    Write-Host "failed, retrying (RetryCount = $retryCount)"
+    $pushResult = git -c http.sslverify=false push tfs 2>&1
+    $retryCount--
+}
+until ($pushResult -like 'Everything up-to-date' -or $retryCount -le 0)
+Write-Host 'Finished git push to TFS'
+
 Pop-Location
 Write-ScreenInfo done
 
