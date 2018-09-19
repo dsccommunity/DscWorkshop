@@ -2,9 +2,7 @@
     PSDependOptions              = @{
         AddToPath  = $true
         Target     = 'DSC_Resources'
-        Parameters = @{
-            Force = $true
-        }
+        #Parameters = @{}
     }
 
     xPSDesiredStateConfiguration = '8.4.0.0'
