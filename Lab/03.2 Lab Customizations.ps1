@@ -71,8 +71,31 @@ Invoke-LabCommand -ActivityName 'Create link to TFS' -ComputerName $tfsServer -S
     $shortcut.Save()
 }
 
+#in server 2019 there seems to be an issue with dynamic DNS registration, doing this manually
+foreach ($domain in (Get-Lab).Domains)
+{
+    $vms = Get-LabVM -All -IncludeLinux | Where-Object { 
+        $_.DomainName -eq $domain.Name -and
+        $_.OperatingSystem -like '*2019*' -or
+        $_.OperatingSystem -like '*CentOS*'
+    }
+    
+    $dc = Get-LabVM -Role ADDS | Where-Object DomainName -eq $domain.Name | Select-Object -First 1
+    
+    Invoke-LabCommand -ActivityName 'Registering DNS records' -ScriptBlock {
+        foreach ($vm in $vms)
+        {
+            if (-not (Get-DnsServerResourceRecord -Name $vm.Name -ZoneName $vm.DomainName -ErrorAction SilentlyContinue))
+            {
+                "Running 'Add-DnsServerResourceRecord -ZoneName $($vm.DomainName) -IPv4Address $($vm.IpV4Address) -Name $($vm.Name) -A'"
+                Add-DnsServerResourceRecord -ZoneName $vm.DomainName -IPv4Address $vm.IpV4Address -Name $vm.Name -A
+            }
+        }    
+    } -ComputerName $dc -Variable (Get-Variable -Name vms) -PassThru
+}
+
 Invoke-LabCommand -ActivityName 'Getting required modules and publishing them to ProGet' -ComputerName $tfsServer -ScriptBlock {
-    $requiredModules = 'powershell-yaml' #, 'BuildHelpers', 'datum' , 'DscBuildHelpers', 'InvokeBuild', 'PackageManagement', 'Pester', 'PowerShellGet', 'ProtectedData', 'PSDepend', 'PSDeploy', 'PSScriptAnalyzer', 'xDSCResourceDesigner', 'xPSDesiredStateConfiguration'
+    $requiredModules = 'powershell-yaml', 'BuildHelpers', 'datum' , 'DscBuildHelpers', 'InvokeBuild', 'PackageManagement', 'Pester', 'PowerShellGet', 'ProtectedData', 'PSDepend', 'PSDeploy', 'PSScriptAnalyzer', 'xDSCResourceDesigner', 'xPSDesiredStateConfiguration'
 
     Install-PackageProvider -Name NuGet -Force
     mkdir -Path C:\ProgramData\Microsoft\Windows\PowerShell\PowerShellGet -Force
@@ -80,21 +103,21 @@ Invoke-LabCommand -ActivityName 'Getting required modules and publishing them to
     Install-Module -Name $requiredModules -Repository PSGallery -Force -AllowClobber -SkipPublisherCheck -WarningAction SilentlyContinue
     
     $path = "http://DSCPull01.contoso.com/nuget/PowerShell"
-    if (-not (Get-PSRepository -Name Internal -ErrorAction SilentlyContinue)) {
-        Register-PSRepository -Name Internal -SourceLocation $path -PublishLocation $path -InstallationPolicy Trusted
+    if (-not (Get-PSRepository -Name PowerShell -ErrorAction SilentlyContinue)) {
+        Register-PSRepository -Name PowerShell -SourceLocation $path -PublishLocation $path -InstallationPolicy Trusted
     }
     foreach ($requiredModule in $requiredModules) {
         $module = Get-Module $requiredModule -ListAvailable | Sort-Object -Property Version -Descending | Select-Object -First 1
-        if (-not (Find-Module -Name $requiredModule -Repository Internal -ErrorAction SilentlyContinue)) {
-            Publish-Module -Name $requiredModule -RequiredVersion $module.Version -Repository Internal -NuGetApiKey 'Install@Contoso.com:Somepass1' -Force -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
+        if (-not (Find-Module -Name $requiredModule -Repository PowerShell -ErrorAction SilentlyContinue)) {
+            Publish-Module -Name $requiredModule -RequiredVersion $module.Version -Repository PowerShell -NuGetApiKey 'Install@Contoso.com:Somepass1' -Force -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
         }
     }
     
     foreach ($requiredModule in $requiredModules) {
         Write-Host "Publishing module '$requiredModule'"
         $module = Get-Module $requiredModule -ListAvailable | Sort-Object -Property Version -Descending | Select-Object -First 1
-        if (-not (Find-Module -Name $requiredModule -Repository Internal -ErrorAction SilentlyContinue)) {
-            Publish-Module -Name $requiredModule -RequiredVersion $module.Version -Repository Internal -NuGetApiKey 'Install@Contoso.com:Somepass1' -Force #-ErrorAction SilentlyContinue -WarningAction SilentlyContinue
+        if (-not (Find-Module -Name $requiredModule -Repository PowerShell -ErrorAction SilentlyContinue)) {
+            Publish-Module -Name $requiredModule -RequiredVersion $module.Version -Repository PowerShell -NuGetApiKey 'Install@Contoso.com:Somepass1' -Force #-ErrorAction SilentlyContinue -WarningAction SilentlyContinue
         }
     }
     
@@ -105,17 +128,17 @@ Invoke-LabCommand -ActivityName 'Getting required modules and publishing them to
         Uninstall-Module -Name $requiredModule -ErrorAction SilentlyContinue
     }
 
-    if (Get-PSRepository -Name Internal) {
-        Unregister-PSRepository -Name Internal
+    if (Get-PSRepository -Name PowerShell) {
+        Unregister-PSRepository -Name PowerShell
     }
 }
 
 <# The Default PSGallery is not removed as the build process does not support an internal repository yet.
-        Invoke-LabCommand -ActivityName 'Register ProGet Gallery' -ComputerName (Get-LabVM) -ScriptBlock {
+    Invoke-LabCommand -ActivityName 'Register ProGet Gallery' -ComputerName (Get-LabVM) -ScriptBlock {
         Unregister-PSRepository -Name PSGallery
         $path = "http://DSCPull01.contoso.com/nuget/PowerShell"
-        Register-PSRepository -Name Internal -SourceLocation $path -PublishLocation $path -InstallationPolicy Trusted
-        }
+        Register-PSRepository -Name PowerShell -SourceLocation $path -PublishLocation $path -InstallationPolicy Trusted
+    }
 #>
 
 Invoke-LabCommand -ActivityName 'Disable Git SSL Certificate Check' -ComputerName $tfsServer, $tfsWorker -ScriptBlock {
