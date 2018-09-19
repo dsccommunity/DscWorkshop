@@ -59,7 +59,7 @@ $proGetRole = Get-LabPostInstallationActivity -CustomRole ProGet5 -Properties @{
     SqlServer          = 'DSCCASQL01'
 }
 
-Add-LabMachineDefinition -Name DSCPULL01 -Memory 2GB -Roles $roles -PostInstallationActivity $proGetRole
+Add-LabMachineDefinition -Name DSCPULL01 -Memory 2GB -Roles $roles -PostInstallationActivity $proGetRole -OperatingSystem 'Windows Server 2019 Datacenter (Desktop Experience)'
 
 # Build Server
 Add-LabMachineDefinition -Name DSCTFS01 -Memory 2GB -Roles Tfs2018
