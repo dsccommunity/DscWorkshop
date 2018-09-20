@@ -125,7 +125,6 @@ task Compile_Root_Meta_Mof {
 }
 
 task Create_Mof_Checksums {
-    Import-Module -Name DscBuildHelpers -Scope Global
     $mofs = Get-ChildItem -Path (Join-Path -Path $BuildOutput -ChildPath MOF)
     foreach ($mof in $mofs)
     {
