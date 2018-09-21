@@ -2,7 +2,7 @@
     PSDependOptions = @{
         AddToPath  = $true
         Target     = 'DSC_Configurations'
-        #Parameters = @{}
+        Parameters = @{}
     }
 
     CommonTasks     = 'latest'
