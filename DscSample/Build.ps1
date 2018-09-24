@@ -173,6 +173,8 @@ if ($MyInvocation.ScriptName -notlike '*Invoke-Build.ps1') {
         }
     }
 
+    Invoke-Build  -File "$ProjectPath\PostBuild.ps1"
+
     $m.Dispose()
     Write-Host "Created $((Get-ChildItem -Path "$BuildOutput\MOF" -Filter *.mof).Count) MOF files in '$BuildOutput/MOF'" -ForegroundColor Green
     
@@ -189,22 +191,15 @@ if ($MofCompilationTaskCount) {
     PSModulePath_BuildModules,
     Test_ConfigData,
     Load_Datum_ConfigData
-    #Create_Mof_Checksums, # or use the meta-task: Compile_Datum_DSC,
-    #Zip_Modules_For_Pull_Server
 }
 else {
     task . Clean_BuildOutput,
-    #Download_All_Dependencies,
     PSModulePath_BuildModules,
     Test_ConfigData,
     Load_Datum_ConfigData,
     Compile_Datum_Rsop,
     Compile_Root_Configuration,
-    Compile_Root_Meta_Mof,
-    Create_Mof_Checksums #, # or use the meta-task: Compile_Datum_DSC,
-    #Zip_Modules_For_Pull_Server <#,
-    #Copy_files_to_Pullserver
-    #Deployment#>
+    Compile_Root_Meta_Mof
 }
 
 task Download_All_Dependencies -if ($DownloadResourcesAndConfigurations -or $Tasks -contains 'Download_All_Dependencies') Download_DSC_Configurations, Download_DSC_Resources -Before PSModulePath_BuildModules

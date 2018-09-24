@@ -124,7 +124,7 @@ task Compile_Root_Meta_Mof {
     Write-Build Green "Successfully compiled $($metaMofs.Count) MOF files"
 }
 
-task Create_Mof_Checksums {
+task New_Mof_Checksums {
     $mofs = Get-ChildItem -Path (Join-Path -Path $BuildOutput -ChildPath MOF)
     foreach ($mof in $mofs)
     {
