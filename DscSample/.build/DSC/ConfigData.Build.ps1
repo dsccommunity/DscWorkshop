@@ -135,9 +135,13 @@ task New_Mof_Checksums {
     }
 }
 
-task Copy_files_to_Pullserver {
-    Get-ChildItem -Path (Join-Path -Path $BuildOutput -ChildPath MOF) | Where-Object{$Filter} | Copy-Item -Destination \\9109z0imsdscl01\DscService\Configuration -Force
-    Copy-Item -Path (Join-Path -Path $BuildOutput -ChildPath "DscModules\*") -Destination \\9109z0imsdscl01\DscService\Modules -Recurse -Force
+task Compress_Modules_with_Checksum {
+    if (-not (Test-Path -Path $BuildOutput\CompressedModules))
+    {
+        mkdir -Path $BuildOutput\CompressedModules | Out-Null
+    }
+    $modules = Get-ModuleFromFolder -ModuleFolder "$ProjectPath\DSC_Resources\"
+    $modules | Publish-ModuleToPullServer -OutputFolderPath $BuildOutput\CompressedModules
 }
 
 task Compile_Datum_Rsop {

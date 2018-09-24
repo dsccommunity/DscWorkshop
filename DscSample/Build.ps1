@@ -155,8 +155,7 @@ if ($MyInvocation.ScriptName -notlike '*Invoke-Build.ps1') {
                         'Load_Datum_ConfigData',
                         'Compile_Datum_Rsop',
                         'Compile_Root_Configuration',
-                        'Compile_Root_Meta_Mof',
-                        'Create_Mof_Checksums'
+                        'Compile_Root_Meta_Mof'
                         Filter               = [scriptblock]::Create($filterString)
                         RandomWait           = $true
                         ProjectPath          = $ProjectPath
@@ -230,15 +229,6 @@ task Clean_DSC_Resources_Folder {
 
 task Clean_DSC_Configurations_Folder {
     Get-ChildItem -Path "$ConfigurationsFolder" -Recurse | Remove-Item -Force -Recurse -Exclude README.md
-}
-
-task Zip_Modules_For_Pull_Server {
-    if (-not ([System.IO.Path]::IsPathRooted($buildOutput))) {
-        $BuildOutput = Join-Path $PSScriptRoot -ChildPath $BuildOutput
-    }
-    Import-Module DscBuildHelpers -ErrorAction Stop
-    Get-ModuleFromfolder -ModuleFolder (Join-Path $ProjectPath -ChildPath $ResourcesFolder) |
-        Compress-DscResourceModule -DscBuildOutputModules (Join-Path $BuildOutput -ChildPath 'DscModules') -Verbose:$false 4>$null
 }
 
 task Test_ConfigData {
