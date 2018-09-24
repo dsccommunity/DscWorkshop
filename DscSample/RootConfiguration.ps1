@@ -4,7 +4,6 @@ $env:PSModulePath -split ';' | Write-Host
 Write-Host ------------------------------------------------------------
 Get-DscResource -Module CommonTasks | Out-String | Write-Host
 Write-Host ------------------------------------------------------------
-Start-Sleep -Seconds 5
 
 if ($Env:BuildVersion) {
     $BuildVersion = $Env:BuildVersion
@@ -15,7 +14,6 @@ elseif ($gitshortid = (& git rev-parse --short HEAD)) {
 else {
     $BuildVersion = '0.0.0'
 }
-#$goodPsModulePath = $env:PSModulePath
 
 configuration "RootConfiguration"
 {
@@ -27,7 +25,6 @@ configuration "RootConfiguration"
 
     node $ConfigurationData.AllNodes.NodeName {
         Write-Host "`r`n$('-'*75)`r`n$($Node.Name) : $($Node.NodeName) : $(&$module { $Script:PSTopConfigurationName })" -ForegroundColor Yellow
-        #$env:PSModulePath = $goodPSModulePath
         (Lookup 'Configurations').Foreach{
             $configurationName = $_
             $(Write-Debug "`tLooking up params for $configurationName")
