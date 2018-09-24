@@ -9,7 +9,6 @@
     BuildHelpers                 = 'latest'
     Pester                       = 'latest'
     PSScriptAnalyzer             = 'latest'
-    PSDeploy                     = 'latest'
     DscBuildHelpers              = 'latest'
     Datum                        = 'latest'
     ProtectedData                = 'latest'
