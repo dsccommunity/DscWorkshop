@@ -23,7 +23,10 @@ param (
     [switch]$RandomWait,
     
     $Environment = $(
-        $branch = $env:BranchName
+        if (-not $env:BHProjectName -and (Get-Command -Name Set-BuildEnvironment -ErrorAction SilentlyContinue)) {
+            Set-BuildEnvironment -Force -ErrorAction SilentlyContinue
+        }
+        $branch = $env:BHBranchName
         $branch = if ($branch -eq 'master') {
             'Prod'
         }
@@ -176,6 +179,15 @@ if ($MyInvocation.ScriptName -notlike '*Invoke-Build.ps1') {
 
     $m.Dispose()
     Write-Host "Created $((Get-ChildItem -Path "$BuildOutput\MOF" -Filter *.mof).Count) MOF files in '$BuildOutput/MOF'" -ForegroundColor Green
+
+    #Debug Output
+    Write-Host "------------------------------------" -ForegroundColor Magenta
+    Write-Host "PowerShell Variables" -ForegroundColor Magenta
+    Get-Variable | Out-String | Write-Host -ForegroundColor Magenta
+    Write-Host "------------------------------------" -ForegroundColor Magenta
+    Write-Host "Environment Variables" -ForegroundColor Magenta
+    dir env: | Out-String | Write-Host -ForegroundColor Magenta
+    Write-Host "------------------------------------" -ForegroundColor Magenta
     
     return
 }
