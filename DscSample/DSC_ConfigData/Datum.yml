@@ -1,0 +1,30 @@
+ResolutionPrecedence:
+  - AllNodes\$($Node.Environment)\$($Node.NodeName)
+  - Roles\$($Node.Role)
+  - Roles\LCM
+  - Roles\Baseline
+
+default_lookup_options: MostSpecific
+
+lookup_options:
+  Configurations:
+    merge_basetype_array: Unique
+
+  Baseline:
+    merge_hash: deep
+
+  WindowsFeatures:
+    merge_hash: deep
+
+  WindowsFeatures\Name:
+    merge_basetype_array: Unique
+
+  LCM_config:
+    merge_hash: hash
+  LCM_Config\Settings:
+    merge_hash: deep
+  LCM_config\ReportServerWeb: deep
+  LCM_Config\ConfigurationRepositoryWeb:
+    merge_hash: deep
+  LCM_Config\ConfigurationRepositoryWeb\Server:
+    merge_hash: deep

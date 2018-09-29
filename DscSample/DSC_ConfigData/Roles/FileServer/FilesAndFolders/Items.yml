@@ -1,0 +1,9 @@
+- DestinationPath: C:\Test1.txt
+  Type: File
+  Contents: Some test data
+- DestinationPath: C:\Test2.txt
+  Type: File
+  Contents: Some test data
+- DestinationPath: C:\GpoBackup
+  SourcePath: \\dscdc01\SYSVOL\contoso.com\Policies
+  Type: Directory

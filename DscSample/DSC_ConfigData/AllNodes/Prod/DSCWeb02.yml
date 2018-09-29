@@ -1,0 +1,12 @@
+NodeName: DSCWeb02
+Environment: Prod
+Role: WebServer
+Description: Web Server in Prod
+
+PSDscAllowPlainTextPassword: True
+PSDscAllowDomainUser: True
+
+LCM_config:
+  ConfigurationRepositoryWeb:
+    Server:
+      ConfigurationNames: DSCWeb02

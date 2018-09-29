@@ -1,0 +1,15 @@
+NodeName: DSCFile01
+Environment: Dev
+Role: FileServer
+Description: 'File Server in Dev'
+
+PSDscAllowPlainTextPassword: True
+PSDscAllowDomainUser: True
+
+LCM_config:
+  Settings:
+    ConfigurationModeFrequencyMins: 15
+    ConfigurationMode: ApplyAndAutoCorrect
+  ConfigurationRepositoryWeb:
+    Server:
+      ConfigurationNames: DSCFile01

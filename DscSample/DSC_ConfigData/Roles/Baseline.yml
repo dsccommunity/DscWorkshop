@@ -1,0 +1,10 @@
+Configurations:
+  - SecurityBase
+  - WindowsFeatures
+
+WindowsFeatures:
+  Name:
+    - -XPS-Viewer
+
+SecurityBase:
+  Role: Baseline
