@@ -1,4 +1,17 @@
 ﻿#region Lab customizations
+$tfsServer = Get-LabVM -Role Tfs2018
+$tfsWorker = Get-LabVM -Role TfsBuildWorker
+$sqlServer = Get-LabVM -Role SQLServer2017
+$pullServer = Get-LabVM -Role DSCPullServer
+$souter = Get-LabVM -Role Routing
+$proGetServer = Get-LabVM | Where-Object { $_.PostInstallationActivity.RoleName -like 'ProGet*' }
+
+if (-not (Test-LabMachineInternetConnectivity -ComputerName $tfsServer))
+{
+    Write-Error "The lab is not connected to the internet. Check the connectivity of the machine '$router' which is acting as a router." -ErrorAction Stop
+}
+Write-Host "Lab is connected to the internet, continuing with customizations."
+
 # Web server
 $deployUserName = (Get-LabVm -Role WebServer).GetCredential((Get-Lab)).UserName
 $deployUserPassword = (Get-LabVm  -Role WebServer).GetCredential((Get-Lab)).GetNetworkCredential().Password
@@ -40,9 +53,6 @@ Invoke-LabCommand -Activity 'Creating folders and shares' -ComputerName (Get-Lab
 }
 
 # TFS Server
-$tfsServer = Get-LabVM -Role Tfs2018
-$tfsWorker = Get-LabVM -Role TfsBuildWorker
-
 Get-LabInternetFile -Uri https://go.microsoft.com/fwlink/?Linkid=852157 -Path $labSources\SoftwarePackages\VSCodeSetup.exe
 Get-LabInternetFile -Uri https://github.com/git-for-windows/git/releases/download/v2.16.2.windows.1/Git-2.16.2-64-bit.exe -Path $labSources\SoftwarePackages\Git.exe
 New-Item -ItemType Directory -Path $labSources\SoftwarePackages\VSCodeExtensions -ErrorAction SilentlyContinue | Out-Null
@@ -55,7 +65,7 @@ Restart-LabVM -ComputerName $tfsServer #somehow required to finish all parts of 
 Copy-LabFileItem -Path $labSources\SoftwarePackages\VSCodeExtensions -ComputerName $tfsServer
 Invoke-LabCommand -ActivityName 'Install VSCode Extensions' -ComputerName $tfsServer -ScriptBlock {
     dir -Path C:\VSCodeExtensions | ForEach-Object {
-        code --install-extension $_.FullName
+        code --install-extension $_.FullName 2>$null #suppressing errors
     }
 } -NoDisplay
 
@@ -63,13 +73,17 @@ Invoke-LabCommand -ActivityName 'Create link to TFS' -ComputerName $tfsServer -S
     $shell = New-Object -ComObject WScript.Shell
     $desktopPath = [System.Environment]::GetFolderPath('Desktop')
     $shortcut = $shell.CreateShortcut("$desktopPath\TFS.url")
-    $shortcut.TargetPath = 'https://DSCTFS01:8080/AutomatedLab/PSConfEU2018'
+    $shortcut.TargetPath = "https://$($tfsServer):8080/AutomatedLab/DscWorkshop"
     $shortcut.Save()
     
     $shortcut = $shell.CreateShortcut("$desktopPath\ProGet.url")
-    $shortcut.TargetPath = 'http://DSCPull01/'
+    $shortcut.TargetPath = "http://$proGetServer/"
     $shortcut.Save()
-}
+    
+    $shortcut = $shell.CreateShortcut("$desktopPath\SQL RS.url")
+    $shortcut.TargetPath = "http://$sqlServer/Reports/browse/"
+    $shortcut.Save()
+} -Variable (Get-Variable -Name tfsServer, sqlServer, proGetServer)
 
 #in server 2019 there seems to be an issue with dynamic DNS registration, doing this manually
 foreach ($domain in (Get-Lab).Domains)
@@ -95,32 +109,39 @@ foreach ($domain in (Get-Lab).Domains)
 }
 
 Invoke-LabCommand -ActivityName 'Getting required modules and publishing them to ProGet' -ComputerName $tfsServer -ScriptBlock {
-    $requiredModules = 'powershell-yaml', 'BuildHelpers', 'datum' , 'DscBuildHelpers', 'InvokeBuild', 'PackageManagement', 'Pester', 'PowerShellGet', 'ProtectedData', 'PSDepend', 'PSDeploy', 'PSScriptAnalyzer', 'xDSCResourceDesigner', 'xPSDesiredStateConfiguration'
+    $requiredModules = 'CommonTasks', 'powershell-yaml', 'BuildHelpers', 'datum' , 'DscBuildHelpers', 'InvokeBuild', 'PackageManagement', 'Pester', 'PowerShellGet', 'ProtectedData', 'PSDepend', 'PSDeploy', 'PSScriptAnalyzer', 'xDSCResourceDesigner', 'xPSDesiredStateConfiguration', 'ComputerManagementDsc', 'NetworkingDsc', 'NTFSSecurity'
 
     Install-PackageProvider -Name NuGet -Force
     mkdir -Path C:\ProgramData\Microsoft\Windows\PowerShell\PowerShellGet -Force
-    Invoke-WebRequest -Uri 'https://nuget.org/nuget.exe' -OutFile C:\ProgramData\Microsoft\Windows\PowerShell\PowerShellGet\nuget.exe
-    Install-Module -Name $requiredModules -Repository PSGallery -Force -AllowClobber -SkipPublisherCheck -WarningAction SilentlyContinue
+    Invoke-WebRequest -Uri 'https://nuget.org/nuget.exe' -OutFile C:\ProgramData\Microsoft\Windows\PowerShell\PowerShellGet\nuget.exe -ErrorAction Stop
+    
+    Write-Host "Installing $($requiredModules.Count) modules on $(hostname.exe) for pushing them to the lab"
+    Install-Module -Name $requiredModules -Repository PSGallery -Force -AllowClobber -SkipPublisherCheck -WarningAction SilentlyContinue -ErrorAction Stop
     
     $path = "http://DSCPull01.contoso.com/nuget/PowerShell"
     if (-not (Get-PSRepository -Name PowerShell -ErrorAction SilentlyContinue)) {
-        Register-PSRepository -Name PowerShell -SourceLocation $path -PublishLocation $path -InstallationPolicy Trusted
+        Register-PSRepository -Name PowerShell -SourceLocation $path -PublishLocation $path -InstallationPolicy Trusted -ErrorAction Stop
     }
+    
+    Write-Host "Publishing $($requiredModules.Count) modules to the internal gallery (loop 1)"
     foreach ($requiredModule in $requiredModules) {
+        Write-Host "`t'$requiredModule'"
         $module = Get-Module $requiredModule -ListAvailable | Sort-Object -Property Version -Descending | Select-Object -First 1
         if (-not (Find-Module -Name $requiredModule -Repository PowerShell -ErrorAction SilentlyContinue)) {
             Publish-Module -Name $requiredModule -RequiredVersion $module.Version -Repository PowerShell -NuGetApiKey 'Install@Contoso.com:Somepass1' -Force -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
         }
     }
     
+    Write-Host "Publishing $($requiredModules.Count) modules to the internal gallery (loop 2)"
     foreach ($requiredModule in $requiredModules) {
-        Write-Host "Publishing module '$requiredModule'"
+        Write-Host "`t'$requiredModule'"
         $module = Get-Module $requiredModule -ListAvailable | Sort-Object -Property Version -Descending | Select-Object -First 1
         if (-not (Find-Module -Name $requiredModule -Repository PowerShell -ErrorAction SilentlyContinue)) {
             Publish-Module -Name $requiredModule -RequiredVersion $module.Version -Repository PowerShell -NuGetApiKey 'Install@Contoso.com:Somepass1' -Force #-ErrorAction SilentlyContinue -WarningAction SilentlyContinue
         }
     }
     
+    Write-Host "Uninstalling $($requiredModules.Count) modules"
     foreach ($requiredModule in $requiredModules) {
         Uninstall-Module -Name $requiredModule -ErrorAction SilentlyContinue
     }
@@ -128,17 +149,17 @@ Invoke-LabCommand -ActivityName 'Getting required modules and publishing them to
         Uninstall-Module -Name $requiredModule -ErrorAction SilentlyContinue
     }
 
-    if (Get-PSRepository -Name PowerShell) {
-        Unregister-PSRepository -Name PowerShell
-    }
+    #if (Get-PSRepository -Name PowerShell) {
+    #    Unregister-PSRepository -Name PowerShell
+    #}
 }
 
 <# The Default PSGallery is not removed as the build process does not support an internal repository yet.
-    Invoke-LabCommand -ActivityName 'Register ProGet Gallery' -ComputerName (Get-LabVM) -ScriptBlock {
+        Invoke-LabCommand -ActivityName 'Register ProGet Gallery' -ComputerName (Get-LabVM) -ScriptBlock {
         Unregister-PSRepository -Name PSGallery
         $path = "http://DSCPull01.contoso.com/nuget/PowerShell"
         Register-PSRepository -Name PowerShell -SourceLocation $path -PublishLocation $path -InstallationPolicy Trusted
-    }
+        }
 #>
 
 Invoke-LabCommand -ActivityName 'Disable Git SSL Certificate Check' -ComputerName $tfsServer, $tfsWorker -ScriptBlock {

@@ -14,7 +14,7 @@ New-LabDefinition -Name $labName -DefaultVirtualizationEngine HyperV
 Add-LabVirtualNetworkDefinition -Name $labName -AddressSpace 192.168.111.0/24
 Add-LabVirtualNetworkDefinition -Name 'Default Switch' -HyperVProperties @{ SwitchType = 'External'; AdapterName = 'Wi-Fi' }
 
-#and the domain definition with the domain admin account
+#and the domain definition with the domain admin accoucd\nt
 Add-LabDomainDefinition -Name contoso.com -AdminUser Install -AdminPassword Somepass1
 
 #these credentials are used for connecting to the machines. As this is a lab we use clear-text passwords
@@ -62,7 +62,11 @@ $proGetRole = Get-LabPostInstallationActivity -CustomRole ProGet5 -Properties @{
 Add-LabMachineDefinition -Name DSCPULL01 -Memory 2GB -Roles $roles -PostInstallationActivity $proGetRole -OperatingSystem 'Windows Server 2019 Datacenter (Desktop Experience)'
 
 # Build Server
-Add-LabMachineDefinition -Name DSCTFS01 -Memory 2GB -Roles Tfs2018
+$roles = @(
+    Get-LabMachineRoleDefinition -Role Tfs2018
+    Get-LabMachineRoleDefinition -Role TfsBuildWorker
+)
+Add-LabMachineDefinition -Name DSCTFS01 -Memory 2GB -Roles $roles
 
 # DSC target nodes - our legacy VMs with an existing configuration
 
@@ -76,7 +80,7 @@ Add-LabMachineDefinition -Name "DSCWeb01" -Memory 1GB -OperatingSystem 'Windows 
 # and Prod
 Add-LabMachineDefinition -Name "DSCWeb02" -Memory 1GB -OperatingSystem 'Windows Server 2016 Datacenter Evaluation' -Roles WebServer
 
-Install-Lab
+Install-Lab -NetworkSwitches -BaseImages -VMs -Domains -SQLServers -PostInstallations -WebServers -DSCPullServer -Routing -CA
 
 Enable-LabCertificateAutoenrollment -Computer -User
 Install-LabWindowsFeature -ComputerName (Get-LabVM -Role DSCPullServer, FileServer, WebServer, Tfs2018) -FeatureName RSAT-AD-Tools

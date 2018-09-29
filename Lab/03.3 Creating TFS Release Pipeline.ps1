@@ -1,4 +1,16 @@
-﻿# Create a new release pipeline
+﻿$tfsServer = Get-LabVM -Role Tfs2018
+$artifactsShareName = 'Artifacts'
+$artifactsSharePath = "C:\$artifactsShareName"
+
+Invoke-LabCommand -ActivityName 'Create Aftifacts Share' -ComputerName $tfsServer -ScriptBlock {
+    Install-Module -Name NTFSSecurity -Repository PowerShell
+    mkdir -Path C:\Artifacts
+    
+    New-SmbShare -Name Artifacts -Path C:\Artifacts -FullAccess Everyone
+    Add-NTFSAccess -Path C:\Artifacts -Account Everyone -AccessRights FullControl
+}
+
+# Create a new release pipeline
 # Get those build steps from Get-LabBuildStep
 $buildSteps = @(
     @{
@@ -12,15 +24,15 @@ $buildSteps = @(
         }
         "inputs"          = @{
             scriptType          = "filePath"
-            scriptName          = ".Build.ps1"
-            arguments           = "-resolveDependency"
+            scriptName          = "Build.ps1"
+            arguments           = "-ResolveDependency -GalleryRepository PowerShell"
             failOnStandardError = $false
         }
     }
     @{
-        enabled         = $True
-        continueOnError = $False
-        alwaysRun       = $False
+        enabled         = $true
+        continueOnError = $false
+        alwaysRun       = $false
         displayName     = 'Publish test results' # e.g. Publish Test Results $(testResultsFiles) or Publish Test Results
         task            = @{
             id          = '0b0f01ed-7dde-43ff-9cbb-e48954daf9b1'
@@ -28,8 +40,56 @@ $buildSteps = @(
         }
         inputs          = @{
             testRunner       = 'NUnit' # Type: pickList, Default: JUnit, Mandatory: True
-            testResultsFiles = '**/testresults.xml' # Type: filePath, Default: **/TEST-*.xml, Mandatory: True
+            testResultsFiles = '**/TestResults.xml' # Type: filePath, Default: **/TEST-*.xml, Mandatory: True
 
+        }
+    }
+    @{
+        enabled         = $true
+        continueOnError = $false
+        alwaysRun       = $falsecls
+        displayName     = 'Publish Artifact: MOFs'
+        task            = @{
+            id          = '2ff763a7-ce83-4e1f-bc89-0ae63477cebe'
+            versionSpec = '*'
+        }
+        inputs          = @{
+            PathtoPublish = '$(Build.SourcesDirectory)\BuildOutput\MOF' # Type: filePath, Default: , Mandatory: True
+            ArtifactName = 'MOF' # Type: string, Default: , Mandatory: True
+            ArtifactType = 'FilePath' # Type: pickList, Default: , Mandatory: True
+            TargetPath = '\\{0}\{1}\$(Build.DefinitionName)\$(Build.BuildNumber)' -f $tfsServer, $artifactsShareName
+        }
+    }
+    @{
+        enabled         = $true
+        continueOnError = $false
+        alwaysRun       = $falsecls
+        displayName     = 'Publish Artifact: Meta MOFs'
+        task            = @{
+            id          = '2ff763a7-ce83-4e1f-bc89-0ae63477cebe'
+            versionSpec = '*'
+        }
+        inputs          = @{
+            PathtoPublish = '$(Build.SourcesDirectory)\BuildOutput\MetaMof' # Type: filePath, Default: , Mandatory: True
+            ArtifactName = 'MOF' # Type: string, Default: , Mandatory: True
+            ArtifactType = 'FilePath' # Type: pickList, Default: , Mandatory: True
+            TargetPath = '\\{0}\{1}\$(Build.DefinitionName)\$(Build.BuildNumber)' -f $tfsServer, $artifactsShareName
+        }
+    }
+    @{
+        enabled         = $true
+        continueOnError = $false
+        alwaysRun       = $falsecls
+        displayName     = 'Publish Artifact: CompressedModules'
+        task            = @{
+            id          = '2ff763a7-ce83-4e1f-bc89-0ae63477cebe'
+            versionSpec = '*'
+        }
+        inputs          = @{
+            PathtoPublish = '$(Build.SourcesDirectory)\BuildOutput\CompressedModules' # Type: filePath, Default: , Mandatory: True
+            ArtifactName = 'MOF' # Type: string, Default: , Mandatory: True
+            ArtifactType = 'FilePath' # Type: pickList, Default: , Mandatory: True
+            TargetPath = '\\{0}\{1}\$(Build.DefinitionName)\$(Build.BuildNumber)' -f $tfsServer, $artifactsShareName
         }
     }
 )
@@ -37,9 +97,9 @@ $buildSteps = @(
 # Which will make use of TFS, clone the stuff, add the necessary build step, publish the test results and so on
 # You will see two remotes, Origin (Our code on GitHub) and TFS (Our code pushed to your lab)
 Write-ScreenInfo 'Creating TFS project and cloning from GitHub...' -NoNewLine
-New-LabReleasePipeline -ProjectName PSConfEU2018 -SourceRepository https://github.com/AutomatedLab/DscWorkshop -BuildSteps $buildSteps
+New-LabReleasePipeline -ProjectName DscWorkshop -SourceRepository https://github.com/AutomatedLab/DscWorkshop -BuildSteps $buildSteps
 Push-Location
-cd "$labSources\GitRepositories\psconf18\DscWorkshop"
+cd "$labSources\GitRepositories\$((Get-Lab).Name)\DscWorkshop"
 git checkout master 2>&1 | Out-Null
 git pull origin master 2>&1 | Out-Null
 
@@ -51,14 +111,15 @@ do
     Write-Host "failed, retrying (RetryCount = $retryCount)"
     $pushResult = git -c http.sslverify=false push tfs 2>&1
     $retryCount--
+    Start-Sleep -Seconds 2
 }
-until ($pushResult -like 'Everything up-to-date' -or $retryCount -le 0)
+until ($pushResult -like '*Everything up-to-date*' -or $retryCount -le 0)
 Write-Host 'Finished git push to TFS'
 
 Pop-Location
 Write-ScreenInfo done
 
 # in case you screw something up
-Checkpoint-LabVM -All -SnapshotName AfterPipeline
+#Checkpoint-LabVM -All -SnapshotName AfterPipeline
 Write-Host "3. - Creating Snapshot 'AfterPipeline'" -ForegroundColor Magenta
 #endregion
