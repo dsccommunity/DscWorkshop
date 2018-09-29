@@ -6,7 +6,7 @@ os: WMF 5
 version: 0.0.{build}
 build_script:
 - ps: cd .\DscSample
-- ps: Build.ps1 -ResolveDependency
+- ps: .\Build.ps1 -ResolveDependency
 
 skip_commits:
   message: /updated doc.*|update doc.*s/
