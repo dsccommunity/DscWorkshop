@@ -98,28 +98,32 @@ $buildSteps = @(
 # You will see two remotes, Origin (Our code on GitHub) and TFS (Our code pushed to your lab)
 Write-ScreenInfo 'Creating TFS project and cloning from GitHub...' -NoNewLine
 New-LabReleasePipeline -ProjectName DscWorkshop -SourceRepository https://github.com/AutomatedLab/DscWorkshop -BuildSteps $buildSteps
-Push-Location
-cd "$labSources\GitRepositories\$((Get-Lab).Name)\DscWorkshop"
-git checkout master 2>&1 | Out-Null
-git pull origin master 2>&1 | Out-Null
 
-Write-Host 'Starting git push to TFS'
-$retryCount = 20
-$pushResult = git -c http.sslverify=false push tfs 2>&1
-do
-{
-    Write-Host "failed, retrying (RetryCount = $retryCount)"
-    $pushResult = git -c http.sslverify=false push tfs 2>&1
-    $retryCount--
-    Start-Sleep -Seconds 2
-}
-until ($pushResult -like '*Everything up-to-date*' -or $retryCount -le 0)
-Write-Host 'Finished git push to TFS'
+<#
+THIS IS REMOVED DUE TO A POSSIBLE BUG IN GIT.EXE
 
-Pop-Location
+        Push-Location
+        cd "$labSources\GitRepositories\$((Get-Lab).Name)\DscWorkshop"
+        git checkout master 2>&1 | Out-Null
+        git pull origin master 2>&1 | Out-Null
+
+        Write-Host 'Starting git push to TFS'
+        $retryCount = 20
+        $pushResult = git -c http.sslverify=false push tfs 2>&1
+        do
+        {
+        Write-Host "failed, retrying (RetryCount = $retryCount)"
+        $pushResult = git -c http.sslverify=false push tfs 2>&1
+        $retryCount--
+        Start-Sleep -Seconds 2
+        }
+        until ($pushResult -like '*Everything up-to-date*' -or $retryCount -le 0)
+        Write-Host 'Finished git push to TFS'
+
+        Pop-Location
+#>
 Write-ScreenInfo done
 
 # in case you screw something up
-#Checkpoint-LabVM -All -SnapshotName AfterPipeline
+Checkpoint-LabVM -All -SnapshotName AfterPipeline
 Write-Host "3. - Creating Snapshot 'AfterPipeline'" -ForegroundColor Magenta
-#endregion
