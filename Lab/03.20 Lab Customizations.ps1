@@ -73,7 +73,7 @@ Invoke-LabCommand -ActivityName 'Create link to TFS' -ComputerName $tfsServer -S
     $shell = New-Object -ComObject WScript.Shell
     $desktopPath = [System.Environment]::GetFolderPath('Desktop')
     $shortcut = $shell.CreateShortcut("$desktopPath\TFS.url")
-    $shortcut.TargetPath = "https://$($tfsServer):8080/AutomatedLab/DscWorkshop"
+    $shortcut.TargetPath = "http://$($tfsServer):8080/AutomatedLab/DscWorkshop"
     $shortcut.Save()
     
     $shortcut = $shell.CreateShortcut("$desktopPath\ProGet.url")

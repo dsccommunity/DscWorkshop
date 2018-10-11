@@ -80,11 +80,13 @@ Add-LabMachineDefinition -Name "DSCWeb01" -Memory 1GB -OperatingSystem 'Windows 
 # and Prod
 Add-LabMachineDefinition -Name "DSCWeb02" -Memory 1GB -OperatingSystem 'Windows Server 2016 Datacenter Evaluation' -Roles WebServer
 
-Install-Lab -NetworkSwitches -BaseImages -VMs -Domains -SQLServers -PostInstallations -WebServers -DSCPullServer -Routing -CA
+Install-Lab
 
 Enable-LabCertificateAutoenrollment -Computer -User
 Install-LabWindowsFeature -ComputerName (Get-LabVM -Role DSCPullServer, FileServer, WebServer, Tfs2018) -FeatureName RSAT-AD-Tools
 Install-LabSoftwarePackage -Path $labsources\SoftwarePackages\Notepad++.exe -CommandLine /S -ComputerName (Get-LabVM)
+
+Invoke-LabCommand -ActivityName 'Disable Windows Update service' -ComputerName (Get-LabVM) -ScriptBlock { Stop-Service -Name wuauserv; Set-Service -Name wuauserv -StartupType Disabled }
 
 # in case you screw something up
 Write-Host "1. - Creating Snapshot 'AfterInstall'" -ForegroundColor Magenta
