@@ -1,18 +1,18 @@
 [CmdletBinding()]
 param (
-    [String]
+    [string]
     $BuildOutput = 'BuildOutput',
 
-    [String]
+    [string]
     $ResourcesFolder = 'DSC_Resources',
 
-    [String]
+    [string]
     $ConfigDataFolder = 'DSC_ConfigData',
 
-    [String]
+    [string]
     $ConfigurationsFolder = 'DSC_Configurations',
 
-    [String]
+    [string]
     $TestFolder = 'Tests',
 
     [ScriptBlock]
@@ -22,25 +22,9 @@ param (
 
     [switch]$RandomWait,
     
-    $Environment = $(
-        if (-not $env:BHProjectName -and (Get-Command -Name Set-BuildEnvironment -ErrorAction SilentlyContinue)) {
-            Set-BuildEnvironment -Force -ErrorAction SilentlyContinue
-        }
-        $branch = $env:BHBranchName
-        $branch = if ($branch -eq 'master') {
-            'Prod'
-        }
-        else {
-            'Dev'
-        }
-        if (Test-Path -Path ".\$ConfigDataFolder\AllNodes\$branch") {
-            $branch
-        }
-        else {
-            'Dev'
-        }
-    ),
-    
+    [string]
+    $Environment,
+        
     $BuildVersion = $(
         if ($gitshortid = (& git rev-parse --short HEAD)) {
             $gitshortid
@@ -50,10 +34,10 @@ param (
         }
     ),
 
-    [String[]]
+    [string[]]
     $GalleryRepository, #used in ResolveDependencies, has default
 
-    [Uri]
+    [uri]
     $GalleryProxy, #used in ResolveDependencies, $null if not specified
 
     [Switch]
@@ -62,16 +46,16 @@ param (
     [Parameter(Position = 0)]
     $Tasks,
 
-    [Switch]
+    [switch]
     $ResolveDependency,
 
-    [String]
+    [string]
     $ProjectPath,
 
-    [Switch]
+    [switch]
     $DownloadResourcesAndConfigurations,
 
-    [Switch]
+    [switch]
     $Help,
 
     [ScriptBlock]

@@ -1,32 +1,19 @@
 [CmdletBinding()]
 param (
-    [String]
+    [string]
     $BuildOutput = 'BuildOutput',
 
-    [String]
+    [string]
     $ResourcesFolder = 'DSC_Resources',
 
-    [String]
+    [string]
     $ConfigDataFolder = 'DSC_ConfigData',
 
-    [String]
+    [string]
     $ConfigurationsFolder = 'DSC_Configurations',
 
-    $Environment = $(
-        $branch = $env:BranchName
-        $branch = if ($branch -eq 'master') {
-            'Prod'
-        }
-        else {
-            'Dev'
-        }
-        if (Test-Path -Path ".\$ConfigDataFolder\AllNodes\$branch") {
-            $branch
-        }
-        else {
-            'Dev'
-        }
-    ),
+    [string]
+    $Environment,
     
     $BuildVersion = $(
         if ($gitshortid = (& git rev-parse --short HEAD)) {
@@ -40,7 +27,7 @@ param (
     [Parameter(Position = 0)]
     $Tasks,
 
-    [String]
+    [string]
     $ProjectPath,
 
     [ScriptBlock]
@@ -56,7 +43,7 @@ param (
         ''
     }
 )
-#rmo -Name InvokeBuild
+
 Get-ChildItem -Path "$PSScriptRoot/.build/" -Recurse -Include *.ps1 |
     ForEach-Object {
     Write-Verbose "Importing file $($_.BaseName)"
@@ -65,6 +52,6 @@ Get-ChildItem -Path "$PSScriptRoot/.build/" -Recurse -Include *.ps1 |
     }
     catch { }
 }
-
+write-Build Red "BUILD VERSION: $($BuildVersion)"
 task . New_Mof_Checksums,
 Compress_Modules_with_Checksum
