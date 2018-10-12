@@ -18,10 +18,9 @@ param (
     [ScriptBlock]
     $Filter = {},
 
-    [int]$MofCompilationTaskCount,
+    [int]
+    $MofCompilationTaskCount = 1,
 
-    [switch]$RandomWait,
-    
     [string]
     $Environment,
         
@@ -127,35 +126,33 @@ if ($MyInvocation.ScriptName -notlike '*Invoke-Build.ps1') {
     else {
         Invoke-Build -Tasks $Tasks -File $MyInvocation.MyCommand.Path @PSBoundParameters
 
-        if ($MofCompilationTaskCount) {
+        if ($MofCompilationTaskCount -gt 1) {
             $global:splittedNodes = Split-Array -List $ConfigurationData.AllNodes -ChunkCount $MofCompilationTaskCount
 
-            if ($MofCompilationTaskCount) {
-                $mofCompilationTasks = foreach ($nodeSet in $global:splittedNodes) {
-                    $nodeNamesInSet = "'$($nodeSet.Name -join "', '")'"
-                    $filterString = '$_.NodeName -in {0}' -f $nodeNamesInSet
-                    $PSBoundParameters.Filter = [scriptblock]::Create($filterString)
+            $mofCompilationTasks = foreach ($nodeSet in $global:splittedNodes) {
+                $nodeNamesInSet = "'$($nodeSet.Name -join "', '")'"
+                $filterString = '$_.NodeName -in {0}' -f $nodeNamesInSet
+                $PSBoundParameters.Filter = [scriptblock]::Create($filterString)
 
-                    @{
-                        File                 = $MyInvocation.MyCommand.Path
-                        Task                 = 'PSModulePath_BuildModules',
-                        'Load_Datum_ConfigData',
-                        'Compile_Datum_Rsop',
-                        'Compile_Root_Configuration',
-                        'Compile_Root_Meta_Mof'
-                        Filter               = [scriptblock]::Create($filterString)
-                        RandomWait           = $true
-                        ProjectPath          = $ProjectPath
-                        BuildOutput          = $buildOutput
-                        ResourcesFolder      = $ResourcesFolder
-                        ConfigDataFolder     = $ConfigDataFolder
-                        ConfigurationsFolder = $ConfigurationsFolder
-                        TestFolder           = $TestFolder
-                        Environment          = $Environment
-                    }
+                @{
+                    File                    = $MyInvocation.MyCommand.Path
+                    Task                    = 'PSModulePath_BuildModules',
+                    'Load_Datum_ConfigData',
+                    'Compile_Datum_Rsop',
+                    'Compile_Root_Configuration',
+                    'Compile_Root_Meta_Mof'
+                    Filter                  = [scriptblock]::Create($filterString)
+                    MofCompilationTaskCount = $MofCompilationTaskCount
+                    ProjectPath             = $ProjectPath
+                    BuildOutput             = $buildOutput
+                    ResourcesFolder         = $ResourcesFolder
+                    ConfigDataFolder        = $ConfigDataFolder
+                    ConfigurationsFolder    = $ConfigurationsFolder
+                    TestFolder              = $TestFolder
+                    Environment             = $Environment
                 }
-                Build-Parallel $mofCompilationTasks
             }
+            Build-Parallel $mofCompilationTasks
         }
     }
 
@@ -180,7 +177,7 @@ if ($TaskHeader) {
     Set-BuildHeader $TaskHeader
 }
 
-if ($MofCompilationTaskCount) {
+if ($MofCompilationTaskCount -gt 1) {
     task . Clean_BuildOutput,
     Download_All_Dependencies,
     PSModulePath_BuildModules,
