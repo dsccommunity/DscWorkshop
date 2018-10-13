@@ -1,14 +1,20 @@
 function Get-FilteredConfigurationData {
     param(
-        [String]
-        $Environment = 'DEV',
+        [string]
+        $Environment,
 
         [ScriptBlock]
         $Filter = {},
 
         $Datum = $(Get-variable Datum -ValueOnly -ErrorAction Stop)
     )
-    $allNodes = @(Get-DatumNodesRecursive -Nodes $Datum.AllNodes.$Environment -Depth 20)
+
+    if ($Environment) {
+        $allNodes = @(Get-DatumNodesRecursive -Nodes $Datum.AllNodes.$Environment -Depth 20)
+    }
+    else {
+        $allNodes = @(Get-DatumNodesRecursive -Nodes $Datum.AllNodes -Depth 20)
+    }
     Write-Host "Node count: $($allNodes.Count)"
     
     if($Filter.ToString() -ne ([System.Management.Automation.ScriptBlock]::Create({})).ToString()) {

@@ -1,6 +1,5 @@
 #the lab name is not static here as it has to be globally unique 
 $labName = "psconf_$((1..6 | ForEach-Object { [char[]](97..122) | Get-Random }) -join '')"
-$azureContext = 'YOUR Azure JSON context here - Use Save-AzureRmContext after having selected your subscription!'
 $azureLocation = 'West Europe' # Please use West Europe for the conference
 
 #region Lab setup
@@ -12,7 +11,7 @@ $azureLocation = 'West Europe' # Please use West Europe for the conference
 
 #create an empty lab template and define where the lab XML files and the VMs will be stored
 New-LabDefinition -Name $labName -DefaultVirtualizationEngine Azure
-Add-LabAzureSubscription -Path $azureContext -DefaultLocationName $azureLocation
+Add-LabAzureSubscription -DefaultLocationName $azureLocation
 
 #make the network definition
 Add-LabVirtualNetworkDefinition -Name $labName -AddressSpace 192.168.111.0/24
@@ -24,7 +23,7 @@ Add-LabDomainDefinition -Name contoso.com -AdminUser Install -AdminPassword Some
 Set-LabInstallationCredential -Username Install -Password Somepass1
 
 # Add the reference to our necessary ISO files
-Add-LabIsoImageDefinition -Name Tfs2018 -Path $labsources\ISOs\tfsserver2018.2.iso
+Add-LabIsoImageDefinition -Name Tfs2018 -Path $labsources\ISOs\mu_team_foundation_server_2018_update_2_x64_dvd_12199703.iso
 
 #defining default parameter values, as these ones are the same for all the machines
 $PSDefaultParameterValues = @{
@@ -82,7 +81,7 @@ Install-LabSoftwarePackage -Path $labsources\SoftwarePackages\Notepad++.exe -Com
 #endregion
 
 #region Lab customizations
-
+return
 # Web server
 $deployUserName = (Get-LabVm -Role WebServer).GetCredential((Get-Lab)).UserName
 $deployUserPassword = (Get-LabVm  -Role WebServer).GetCredential((Get-Lab)).GetNetworkCredential().Password
@@ -107,7 +106,7 @@ Invoke-LabCommand -ComputerName (Get-LabVm  -Role WebServer) -ScriptBlock {
 # File server
 Install-LabWindowsFeature -ComputerName (Get-LabVm -Role FileServer) -FeatureName RSAT-AD-Tools
 
-Invoke-LabCommand -ComputerName (Get-LabVm -Role FileServer) -ScriptBlock {
+Invoke-LabCommand -ActivityName 'Create Test Data' -ComputerName (Get-LabVm -Role FileServer) -ScriptBlock {
     New-Item -ItemType Directory -Path C:\UserHome
 
     foreach ($User in (Get-ADUser -Filter * | Select-Object -First 1000)) {
@@ -133,8 +132,8 @@ Get-LabInternetFile -Uri https://marketplace.visualstudio.com/_apis/public/galle
 
 Install-LabSoftwarePackage -Path $labSources\SoftwarePackages\VSCodeSetup.exe -CommandLine /SILENT -ComputerName $tfsServer
 Install-LabSoftwarePackage -Path $labSources\SoftwarePackages\Git.exe -CommandLine /SILENT -ComputerName $tfsServer
-Restart-LabVM -ComputerName $tfsServer #somehow required to finish all parts of the VSCode installation
-
+Restart-LabVM -ComputerName $tfsServer -Wait #somehow required to finish all parts of the VSCode installation
+#-----------------------------------------------------------
 Copy-LabFileItem -Path $labSources\SoftwarePackages\VSCodeExtensions -ComputerName $tfsServer
 Invoke-LabCommand -ActivityName 'Install VSCode Extensions' -ComputerName $tfsServer -ScriptBlock {
     dir -Path C:\VSCodeExtensions | ForEach-Object {
