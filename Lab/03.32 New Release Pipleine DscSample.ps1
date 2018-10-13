@@ -20,7 +20,7 @@ $buildSteps = @(
         "alwaysRun"       = $false
         "displayName"     = "Register PowerShell gallery"
         "task"            = @{
-            "id"          = "e213ff0f-5d5c-4791-802d-52ea3e7be1f1" # We need to refer to a valid ID - refer to Get-LabBuildStep for all available steps
+            "id"          = "e213ff0f-5d5c-4791-802d-52ea3e7be1f1"
             "versionSpec" = "*"
         }
         "inputs"          = @{
@@ -37,7 +37,7 @@ $buildSteps = @(
         "alwaysRun"       = $false
         "displayName"     = "Execute Build.ps1"
         "task"            = @{
-            "id"          = "e213ff0f-5d5c-4791-802d-52ea3e7be1f1" # We need to refer to a valid ID - refer to Get-LabBuildStep for all available steps
+            "id"          = "e213ff0f-5d5c-4791-802d-52ea3e7be1f1"
             "versionSpec" = "*"
         }
         "inputs"          = @{
@@ -52,15 +52,63 @@ $buildSteps = @(
         enabled         = $true
         continueOnError = $false
         alwaysRun       = $false
-        displayName     = 'Publish test results' # e.g. Publish Test Results $(testResultsFiles) or Publish Test Results
+        displayName     = 'Publish test results'
         task            = @{
             id          = '0b0f01ed-7dde-43ff-9cbb-e48954daf9b1'
             versionSpec = '*'
         }
         inputs          = @{
-            testRunner       = 'NUnit' # Type: pickList, Default: JUnit, Mandatory: True
-            testResultsFiles = '**/TestResults.xml' # Type: filePath, Default: **/TEST-*.xml, Mandatory: True
+            testRunner       = 'NUnit'
+            testResultsFiles = '**/TestResults.xml'
 
+        }
+    }
+    @{
+        enabled         = $true
+        continueOnError = $false
+        alwaysRun       = $false
+        displayName     = 'Publish Artifact to Share: MOFs'
+        task            = @{
+            id          = '2ff763a7-ce83-4e1f-bc89-0ae63477cebe'
+            versionSpec = '*'
+        }
+        inputs          = @{
+            PathtoPublish = '$(Build.SourcesDirectory)\DscSample\BuildOutput\MOF'
+            ArtifactName = 'MOFOnShare' 
+            ArtifactType = 'FilePath'
+            TargetPath = '\\{0}\{1}\$(Build.DefinitionName)\$(Build.BuildNumber)' -f $tfsServer, $artifactsShareName
+        }
+    }
+    @{
+        enabled         = $true
+        continueOnError = $false
+        alwaysRun       = $false
+        displayName     = 'Publish Artifact to Share: Meta MOFs'
+        task            = @{
+            id          = '2ff763a7-ce83-4e1f-bc89-0ae63477cebe'
+            versionSpec = '*'
+        }
+        inputs          = @{
+            PathtoPublish = '$(Build.SourcesDirectory)\DscSample\BuildOutput\MetaMof'
+            ArtifactName = 'MetaMofOnShare'
+            ArtifactType = 'FilePath'
+            TargetPath = '\\{0}\{1}\$(Build.DefinitionName)\$(Build.BuildNumber)' -f $tfsServer, $artifactsShareName
+        }
+    }
+    @{
+        enabled         = $true
+        continueOnError = $false
+        alwaysRun       = $false
+        displayName     = 'Publish Artifact to Share: CompressedModules'
+        task            = @{
+            id          = '2ff763a7-ce83-4e1f-bc89-0ae63477cebe'
+            versionSpec = '*'
+        }
+        inputs          = @{
+            PathtoPublish = '$(Build.SourcesDirectory)\DscSample\BuildOutput\CompressedModules'
+            ArtifactName = 'CompressedModulesOnShare'
+            ArtifactType = 'FilePath'
+            TargetPath = '\\{0}\{1}\$(Build.DefinitionName)\$(Build.BuildNumber)' -f $tfsServer, $artifactsShareName
         }
     }
     @{
@@ -73,10 +121,9 @@ $buildSteps = @(
             versionSpec = '*'
         }
         inputs          = @{
-            PathtoPublish = '$(Build.SourcesDirectory)\DscSample\BuildOutput\MOF' # Type: filePath, Default: , Mandatory: True
-            ArtifactName = 'MOF' # Type: string, Default: , Mandatory: True
-            ArtifactType = 'FilePath' # Type: pickList, Default: , Mandatory: True
-            TargetPath = '\\{0}\{1}\$(Build.DefinitionName)\$(Build.BuildNumber)' -f $tfsServer, $artifactsShareName
+            PathtoPublish = '$(Build.SourcesDirectory)\DscSample\BuildOutput\MOF'
+            ArtifactName = 'MOF'
+            ArtifactType = 'Container'
         }
     }
     @{
@@ -89,10 +136,9 @@ $buildSteps = @(
             versionSpec = '*'
         }
         inputs          = @{
-            PathtoPublish = '$(Build.SourcesDirectory)\DscSample\BuildOutput\MetaMof' # Type: filePath, Default: , Mandatory: True
-            ArtifactName = 'MetaMof' # Type: string, Default: , Mandatory: True
-            ArtifactType = 'FilePath' # Type: pickList, Default: , Mandatory: True
-            TargetPath = '\\{0}\{1}\$(Build.DefinitionName)\$(Build.BuildNumber)' -f $tfsServer, $artifactsShareName
+            PathtoPublish = '$(Build.SourcesDirectory)\DscSample\BuildOutput\MetaMof'
+            ArtifactName = 'MetaMof'
+            ArtifactType = 'Container'
         }
     }
     @{
@@ -105,10 +151,9 @@ $buildSteps = @(
             versionSpec = '*'
         }
         inputs          = @{
-            PathtoPublish = '$(Build.SourcesDirectory)\DscSample\BuildOutput\CompressedModules' # Type: filePath, Default: , Mandatory: True
-            ArtifactName = 'CompressedModules' # Type: string, Default: , Mandatory: True
-            ArtifactType = 'FilePath' # Type: pickList, Default: , Mandatory: True
-            TargetPath = '\\{0}\{1}\$(Build.DefinitionName)\$(Build.BuildNumber)' -f $tfsServer, $artifactsShareName
+            PathtoPublish = '$(Build.SourcesDirectory)\DscSample\BuildOutput\CompressedModules'
+            ArtifactName = 'CompressedModules'
+            ArtifactType = 'Container'
         }
     }
 )
@@ -138,31 +183,12 @@ $releaseSteps = @(
 # Which will make use of TFS, clone the stuff, add the necessary build step, publish the test results and so on
 # You will see two remotes, Origin (Our code on GitHub) and TFS (Our code pushed to your lab)
 Write-ScreenInfo 'Creating TFS project and cloning from GitHub...' -NoNewLine
-New-LabReleasePipeline -ProjectName DscWorkshop -SourceRepository https://github.com/AutomatedLab/DscWorkshop -BuildSteps $buildSteps -CodeUploadMethod FileCopy
+New-LabReleasePipeline -ProjectName DscWorkshop -SourceRepository https://github.com/AutomatedLab/DscWorkshop -CodeUploadMethod FileCopy #-BuildSteps $buildSteps 
 
-<#
-        THIS IS REMOVED DUE TO A POSSIBLE BUG IN GIT.EXE
+$repo = Get-TfsGitRepository -InstanceName $tfsServer -Port 8080 -CollectionName AutomatedLab -ProjectName Dscworkshop -Credential $tfsCred
+$refs = (Invoke-RestMethod -Uri "http://dsctfs01:8080/AutomatedLab/_apis/git/repositories/{$($repo.id)}/refs?api-version=4.1" -Credential $tfsCred).value.name
+New-TfsBuildDefinition -InstanceName $tfsServer -CollectionName AutomatedLab -Port 8080 -Credential $tfsCred -ProjectName DscWorkshop -DefinitionName DscWorkshopBuild -CiTriggerRefs $refs -BuildTasks $buildSteps
 
-        Push-Location
-        cd "$labSources\GitRepositories\$((Get-Lab).Name)\DscWorkshop"
-        git checkout master 2>&1 | Out-Null
-        git pull origin master 2>&1 | Out-Null
-
-        Write-Host 'Starting git push to TFS'
-        $retryCount = 20
-        $pushResult = git -c http.sslverify=false push tfs 2>&1
-        do
-        {
-        Write-Host "failed, retrying (RetryCount = $retryCount)"
-        $pushResult = git -c http.sslverify=false push tfs 2>&1
-        $retryCount--
-        Start-Sleep -Seconds 2
-        }
-        until ($pushResult -like '*Everything up-to-date*' -or $retryCount -le 0)
-        Write-Host 'Finished git push to TFS'
-
-        Pop-Location
-#>
 Write-ScreenInfo done
 
 # in case you screw something up
