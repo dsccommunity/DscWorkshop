@@ -1,8 +1,11 @@
 ﻿$lab = Get-Lab
 $tfsServer = Get-LabVM -Role Tfs2018
 $tfsCred = $tfsServer.GetCredential($lab)
+$tfsPort = 8080
 
-$tfsAgentQueue = Get-TfsAgentQueue -InstanceName $tfsServer -Port 8080 -Credential $tfsCred -ProjectName CommonTasks -CollectionName AutomatedLab -QueueName Default
+$projectName = 'CommonTasks2'
+$projectGitUrl = 'https://github.com/AutomatedLab/CommonTasks'
+$collectionName = 'AutomatedLab'
 
 # Create a new release pipeline
 # Get those build steps from Get-LabBuildStep
@@ -22,7 +25,7 @@ $buildSteps = @(
             arguments           = ""
             script              = @'
 #always make sure the local PowerShell Gallery is registered correctly
-$uri = 'http://dscpull01.contoso.com/nuget/PowerShell'
+$uri = '$(GalleryUri)'
 $name = 'PowerShell'
 $r = Get-PSRepository -Name $name -ErrorAction SilentlyContinue
 if (-not $r -or $r.SourceLocation -ne $uri -or $r.PublishLocation -ne $uri) {
@@ -42,13 +45,13 @@ if (-not $r -or $r.SourceLocation -ne $uri -or $r.PublishLocation -ne $uri) {
         "alwaysRun"       = $false
         "displayName"     = "Execute Build.ps1"
         "task"            = @{
-            "id"          = "e213ff0f-5d5c-4791-802d-52ea3e7be1f1" # We need to refer to a valid ID - refer to Get-LabBuildStep for all available steps
+            "id"          = "e213ff0f-5d5c-4791-802d-52ea3e7be1f1"
             "versionSpec" = "*"
         }
         "inputs"          = @{
             scriptType          = "filePath"
             scriptName          = "Build.ps1"
-            arguments           = "-ResolveDependency -GalleryRepository PowerShell -Tasks ClearBuildOutput, Init, SetPsModulePath, CopyModule, Test"
+            arguments           = '-ResolveDependency -GalleryRepository PowerShell -Tasks ClearBuildOutput, Init, SetPsModulePath, CopyModule, IntegrationTest'
             failOnStandardError = $false
         }
     }
@@ -56,14 +59,16 @@ if (-not $r -or $r.SourceLocation -ne $uri -or $r.PublishLocation -ne $uri) {
         enabled         = $true
         continueOnError = $false
         alwaysRun       = $false
-        displayName     = 'Publish test results' # e.g. Publish Test Results $(testResultsFiles) or Publish Test Results
+        displayName     = 'Publish Integration Test Results'
+        condition       = 'always()'
         task            = @{
             id          = '0b0f01ed-7dde-43ff-9cbb-e48954daf9b1'
             versionSpec = '*'
         }
         inputs          = @{
-            testRunner       = 'NUnit' # Type: pickList, Default: JUnit, Mandatory: True
-            testResultsFiles = '**/TestResults.xml' # Type: filePath, Default: **/TEST-*.xml, Mandatory: True
+            testRunner       = 'NUnit'
+            testResultsFiles = '**/IntegrationTestResults.xml'
+            searchFolder     =  '$(System.DefaultWorkingDirectory)'
 
         }
     }
@@ -99,51 +104,74 @@ if (-not $r -or $r.SourceLocation -ne $uri -or $r.PublishLocation -ne $uri) {
     }
 )
 
-$workflowTasks = @(
+$releaseSteps = @(
     @{
         taskId = '5bfb729a-a7c8-4a78-a7c3-8d717bb7c13c'
         version = '2.*'
         name = 'Copy Files to: Artifacte Share'
-        refName = ''
         enabled = $true
-        alwaysRun = $false
-        continueOnError = $false
-        timeoutInMinutes = 0
-        definitionType = 'task'
-        overrideInputs = @{}
         condition = 'succeeded()'
         inputs = @{
             SourceFolder = '$(System.DefaultWorkingDirectory)/$(Build.DefinitionName)/$(Build.Repository.Name)'
             Contents = '**'
             TargetFolder = '\\dsctfs01\Artifacts\$(Build.DefinitionName)\$(Build.BuildNumber)\$(Build.Repository.Name)'
-            CleanTargetFolder = $false
-            OverWrite = $false
-            flattenFolders = $false
         }
     }
     @{
-        taskId = 'e213ff0f-5d5c-4791-802d-52ea3e7be1f1'
-        version = '1.*'
-        name = 'Execute Build.ps1 for Deployment'
-        refName = ''
-        enabled = $true
-        alwaysRun = $false
-        continueOnError = $false
-        timeoutInMinutes = 0
-        definitionType = 'task'
-        overrideInputs = @{}
-        condition = 'succeeded()'
-        inputs = @{
-            scriptType = 'inlineScript'
-            scriptName = ''
-            arguments = ''
-            workingFolder = ''
-            inlineScript = @'
+        enabled         = $true
+        name     = 'Register PowerShell Gallery'        
+        taskId          = 'e213ff0f-5d5c-4791-802d-52ea3e7be1f1'
+        version = '2.*'
+        inputs          = @{
+            targetType          = 'inline'
+            script              = @'
+#always make sure the local PowerShell Gallery is registered correctly
+$uri = '$(GalleryUri)'
+$name = 'PowerShell'
+$r = Get-PSRepository -Name $name -ErrorAction SilentlyContinue
+if (-not $r -or $r.SourceLocation -ne $uri -or $r.PublishLocation -ne $uri) {
+    Write-Host "The Source or PublishLocation of the repository '$name' is not correct or the repository is not registered"
+    Unregister-PSRepository -Name $name -ErrorAction SilentlyContinue
+    Register-PSRepository -Name $name -SourceLocation $uri -PublishLocation $uri -InstallationPolicy Trusted
+    Get-PSRepository
+}
+'@
+        }
+    }
+    @{
+        enabled         = $true
+        name     = "Print Environment Variables"
+        taskid            = 'e213ff0f-5d5c-4791-802d-52ea3e7be1f1'
+        version = '2.*'
+        inputs          = @{
+            targetType          = "inline"
+            script              = 'dir -Path env:'
+        }
+    }
+    @{
+        enabled         = $true
+        name     = "Execute Build.ps1 for Deployment"
+        taskId            = 'e213ff0f-5d5c-4791-802d-52ea3e7be1f1'
+        version = '2.*'
+        inputs          = @{
+            targetType          = 'inline'
+            script              = @'
 Write-Host $(System.DefaultWorkingDirectory)
 cd $(System.DefaultWorkingDirectory)\$(Build.DefinitionName)\SourcesDirectory
-.\Build.ps1 -Tasks Init, SetPsModulePath, Deploy -GalleryRepository PowerShell'
+.\Build.ps1 -Tasks Init, SetPsModulePath, Deploy, AcceptanceTest -GalleryRepository PowerShell
 '@
-            failOnStandardError = $false
+        }
+    }
+    @{
+        enabled         = $true
+        name     = 'Publish Acceptance Test Results'
+        condition       = 'always()'
+        taskid          = '0b0f01ed-7dde-43ff-9cbb-e48954daf9b1'
+        version = '*'
+        inputs          = @{
+            testRunner       = 'NUnit'
+            testResultsFiles = '**/AcceptanceTestResults.xml'
+            searchFolder     =  '$(System.DefaultWorkingDirectory)'
         }
     }
 )
@@ -151,18 +179,16 @@ cd $(System.DefaultWorkingDirectory)\$(Build.DefinitionName)\SourcesDirectory
 $releaseEnvironments = @(
     @{
         id = 3
-        name = "Dev"
+        name = "PowerShell Repository"
         rank = 1
         owner = @{
             displayName = 'Install'
-            #url": "http://dsctfs01:8080/AutomatedLab/_apis/Identities/196672db-49dd-4968-8c52-a94e43186ffd",
-            #_links": { "avatar": { "href": "http://dsctfs01:8080/AutomatedLab/_api/_common/identityImage?id=196672db-49dd-4968-8c52-a94e43186ffd" } },
             id = '196672db-49dd-4968-8c52-a94e43186ffd'
-            uniqueName = 'contoso\Install'
-            #imageUrl": "http://dsctfs01:8080/AutomatedLab/_api/_common/identityImage?id=196672db-49dd-4968-8c52-a94e43186ffd"
+            uniqueName = 'Installer'
         }
-        #"variables": {},
-        #"variableGroups": [],
+        variables = @{
+            GalleryUri = @{ value = "http://dscpull01.contoso.com/nuget/PowerShell" }
+        }
         preDeployApprovals = @{
             approvals = @(
                 @{
@@ -172,14 +198,6 @@ $releaseEnvironments = @(
                     id = 7
                 }
             )
-            #"approvalOptions": {
-            #  "requiredApproverCount": null,
-            #  "releaseCreatorCanBeApprover": false,
-            #  "autoTriggeredAndPreviousEnvironmentApprovedCanBeSkipped": false,
-            #  "enforceIdentityRevalidation": false,
-            #  "timeoutInMinutes": 0,
-            #  "executionOrder": 1
-            #}
         }
         deployStep = @{ id = 10 }
         postDeployApprovals = @{
@@ -191,14 +209,6 @@ $releaseEnvironments = @(
                     id = 11
                 }
             )
-            #    "approvalOptions": {
-            #        "requiredApproverCount": null,
-            #        "releaseCreatorCanBeApprover": false,
-            #        "autoTriggeredAndPreviousEnvironmentApprovedCanBeSkipped": false,
-            #        "enforceIdentityRevalidation": false,
-            #        "timeoutInMinutes": 0,
-            #        "executionOrder": 2
-            #    }
         }
         deployPhases = @(
             @{
@@ -217,7 +227,7 @@ $releaseEnvironments = @(
                 rank = 1
                 phaseType = 1
                 name = 'Run on agent'
-                workflowTasks = $workflowTasks
+                workflowTasks = $releaseSteps
             }
         )
         environmentOptions = @{
@@ -260,39 +270,21 @@ $releaseEnvironments = @(
             gatesOptions = $null
             gates = @()
         }
-        badgeUrl = "http://dsctfs01:8080/AutomatedLab/_apis/public/Release/badge/4e69800e-ce3f-45fa-a99b-95c0885417b0/3/3"
     }
-)
-
-$releaseSteps = @(
-    @{
-        enabled          = $true
-        continueOnError  = $false
-        alwaysRun        = $false
-        timeoutInMinutes = 0
-        definitionType   = 'task'
-        version          = '*'
-        name             = 'YOUR OWN DISPLAY NAME HERE' # e.g. Archive files $(message) or Archive Files
-        taskid           = 'd8b84976-e99a-4b86-b885-4849694435b0'
-        inputs           = @{
-            rootFolder = '$(Build.SourcesDirectory)\BuildOutput\MOF' # Type: filePath, Default: $(Build.BinariesDirectory), Mandatory: True
-            includeRootFolder = 'true' # Type: boolean, Default: true, Mandatory: True
-            archiveType = 'VALUE' # Type: pickList, Default: default, Mandatory: True
-            tarCompression = 'VALUE' # Type: pickList, Default: gz, Mandatory: False
-            archiveFile = 'VALUE' # Type: filePath, Default: $(Build.ArtifactStagingDirectory)/$(Build.BuildId).zip, Mandatory: True
-            replaceExistingArchive = 'VALUE' # Type: boolean, Default: true, Mandatory: True
-        }
-    }
-
 )
 
 # Which will make use of TFS, clone the stuff, add the necessary build step, publish the test results and so on
 # You will see two remotes, Origin (Our code on GitHub) and TFS (Our code pushed to your lab)
 Write-ScreenInfo 'Creating TFS project and cloning from GitHub...' -NoNewLine
-New-LabReleasePipeline -ProjectName CommonTasks -SourceRepository https://github.com/AutomatedLab/CommonTasks -BuildSteps $buildSteps -CodeUploadMethod FileCopy
 
+New-LabReleasePipeline -ProjectName $projectName -SourceRepository $projectGitUrl -CodeUploadMethod FileCopy
+$tfsAgentQueue = Get-TfsAgentQueue -InstanceName $tfsServer -Port $tfsPort -Credential $tfsCred -ProjectName $projectName -CollectionName $collectionName -QueueName Default
+$repo = Get-TfsGitRepository -InstanceName $tfsServer -Port 8080 -CollectionName $collectionName -ProjectName $projectName -Credential $tfsCred
+$refs = (Invoke-RestMethod -Uri "http://$($tfsServer):$tfsPort/$collectionName/_apis/git/repositories/{$($repo.id)}/refs?api-version=4.1" -Credential $tfsCred).value.name
 
-New-TfsReleaseDefinition -ProjectName CommonTasks -InstanceName $tfsServer -Port 8080 -ReleaseName abc -Environments $releaseEnvironments -Credential $tfsCred -CollectionName AutomatedLab
+New-TfsBuildDefinition -ProjectName $projectName -InstanceName $tfsServer -Port $tfsPort -DefinitionName "$($projectName)Build" -CollectionName $collectionName -BuildTasks $buildSteps -Variables @{ GalleryUri = 'http://dscpull01.contoso.com/nuget/PowerShell' } -CiTriggerRefs $refs -Credential $tfsCred #-ApiVersion 4.1
+
+New-TfsReleaseDefinition -ProjectName $projectName -InstanceName $tfsServer -Port $tfsPort -ReleaseName "$($projectName)Release" -Environments $releaseEnvironments -Credential $tfsCred -CollectionName $collectionName #-ApiVersion '4.1-preview'
 Write-ScreenInfo done
 
 # in case you screw something up
