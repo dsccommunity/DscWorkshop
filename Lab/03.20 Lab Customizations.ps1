@@ -118,7 +118,7 @@ Invoke-LabCommand -ActivityName 'Get latest nuget.exe' -ComputerName (Get-LabVM)
 
 Invoke-LabCommand -ActivityName 'Getting required modules and publishing them to ProGet' -ComputerName $tfsServer -ScriptBlock {
 
-    $requiredModules = 'CommonTasks', 'powershell-yaml', 'BuildHelpers', 'datum' , 'DscBuildHelpers', 'InvokeBuild', 'PackageManagement', 'Pester', 'PowerShellGet', 'ProtectedData', 'PSDepend', 'PSDeploy', 'PSScriptAnalyzer', 'xDSCResourceDesigner', 'xPSDesiredStateConfiguration', 'ComputerManagementDsc', 'NetworkingDsc', 'NTFSSecurity'
+    $requiredModules = 'powershell-yaml', 'BuildHelpers', 'datum' , 'DscBuildHelpers', 'InvokeBuild', 'PackageManagement', 'Pester', 'PowerShellGet', 'ProtectedData', 'PSDepend', 'PSDeploy', 'PSScriptAnalyzer', 'xDSCResourceDesigner', 'xPSDesiredStateConfiguration', 'ComputerManagementDsc', 'NetworkingDsc', 'NTFSSecurity'
     
     Write-Host "Installing $($requiredModules.Count) modules on $(hostname.exe) for pushing them to the lab"
     Install-Module -Name $requiredModules -Repository PSGallery -Force -AllowClobber -SkipPublisherCheck -WarningAction SilentlyContinue -ErrorAction Stop
