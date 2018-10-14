@@ -9,7 +9,7 @@ Task Deploy {
     Compress-Archive -Path $buildOutput\MOF -DestinationPath "$projectPath\$buildOutput\CompressedArtifacts\MOF.zip" -Force
     Compress-Archive -Path $buildOutput\MetaMOF -DestinationPath "$projectPath\$buildOutput\CompressedArtifacts\MetaMOF.zip" -Force
 
-    get-command -Name Push-AppVeyorArtifact
+    get-command -Name Push-AppVeyorArtifact -ErrorAction SilentlyContinue
 
     'MODULES'
     get-module
