@@ -2,15 +2,12 @@ NodeName: DSCWeb01
 Environment: Dev
 Role: WebServer
 Description: 'Web Server in Dev'
+Location: Singapore
 
 PSDscAllowPlainTextPassword: True
 PSDscAllowDomainUser: True
 
-WindowsFeatures:
-  Name:
-  - BITS
-
-LCM_config:
+LcmConfig:
   Settings:
     ConfigurationModeFrequencyMins: 15
     ConfigurationMode: ApplyAndAutoCorrect
