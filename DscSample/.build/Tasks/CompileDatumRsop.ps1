@@ -1,3 +1,8 @@
+param (
+    [string]
+    $RsopFolder = (property RsopFolder 'RSOP')
+)
+
 task CompileDatumRsop {
     
     if(![System.IO.Path]::IsPathRooted($rsopFolder)) {
