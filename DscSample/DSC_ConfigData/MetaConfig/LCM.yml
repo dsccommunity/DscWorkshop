@@ -1,4 +1,4 @@
-LCM_Config:
+LcmConfig:
   Settings:
     RefreshMode: Pull
     RefreshFrequencyMins: 60

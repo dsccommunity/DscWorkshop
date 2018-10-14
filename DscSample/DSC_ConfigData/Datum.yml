@@ -1,8 +1,10 @@
 ResolutionPrecedence:
   - AllNodes\$($Node.Environment)\$($Node.NodeName)
   - Roles\$($Node.Role)
-  - Roles\LCM
   - Roles\Baseline
+  - Environment\$($Node.Environment)
+  - MetaConfig\LCM
+  - MetaConfig\DscTagging
 
 default_lookup_options: MostSpecific
 
@@ -13,18 +15,21 @@ lookup_options:
   Baseline:
     merge_hash: deep
 
+  DscTagging:
+    merge_hash: deep
+
   WindowsFeatures:
     merge_hash: deep
 
   WindowsFeatures\Name:
     merge_basetype_array: Unique
 
-  LCM_config:
+  LcmConfig:
     merge_hash: hash
-  LCM_Config\Settings:
+  LcmConfig\Settings:
     merge_hash: deep
-  LCM_config\ReportServerWeb: deep
-  LCM_Config\ConfigurationRepositoryWeb:
+  LcmConfig\ReportServerWeb: deep
+  LcmConfig\ConfigurationRepositoryWeb:
     merge_hash: deep
-  LCM_Config\ConfigurationRepositoryWeb\Server:
+  LcmConfig\ConfigurationRepositoryWeb\Server:
     merge_hash: deep

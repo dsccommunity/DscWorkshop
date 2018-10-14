@@ -1,4 +1,4 @@
-$labName = 'psconf18'
+$labName = 'DscWorkshop'
 
 #region Lab setup
 #--------------------------------------------------------------------------------------------------------------------
@@ -14,15 +14,15 @@ New-LabDefinition -Name $labName -DefaultVirtualizationEngine HyperV
 Add-LabVirtualNetworkDefinition -Name $labName -AddressSpace 192.168.111.0/24
 Add-LabVirtualNetworkDefinition -Name 'Default Switch' -HyperVProperties @{ SwitchType = 'External'; AdapterName = 'Wi-Fi' }
 
-#and the domain definition with the domain admin account
+#and the domain definition with the domain admin accoucd\nt
 Add-LabDomainDefinition -Name contoso.com -AdminUser Install -AdminPassword Somepass1
 
 #these credentials are used for connecting to the machines. As this is a lab we use clear-text passwords
 Set-LabInstallationCredential -Username Install -Password Somepass1
 
 # Add the reference to our necessary ISO files
-Add-LabIsoImageDefinition -Name Tfs2018 -Path $labsources\ISOs\mu_team_foundation_server_2018_update_2_x64_dvd_12199703.iso
-Add-LabIsoImageDefinition -Name SQLServer2017 -Path $labsources\ISOs\SQLServer2017-x64-ENU.iso
+Add-LabIsoImageDefinition -Name Tfs2018 -Path $labsources\ISOs\tfsserver2018.3.iso #from https://visualstudio.microsoft.com/downloads/
+Add-LabIsoImageDefinition -Name SQLServer2017 -Path $labsources\ISOs\SQLServer2017-x64-ENU.iso #from https://www.microsoft.com/en-us/evalcenter/evaluate-sql-server-2017-rtm. The EXE downloads the ISO.
 
 #defining default parameter values, as these ones are the same for all the machines
 $PSDefaultParameterValues = @{
@@ -62,7 +62,11 @@ $proGetRole = Get-LabPostInstallationActivity -CustomRole ProGet5 -Properties @{
 Add-LabMachineDefinition -Name DSCPULL01 -Memory 2GB -Roles $roles -PostInstallationActivity $proGetRole -OperatingSystem 'Windows Server 2019 Datacenter (Desktop Experience)'
 
 # Build Server
-Add-LabMachineDefinition -Name DSCTFS01 -Memory 2GB -Roles Tfs2018
+$roles = @(
+    Get-LabMachineRoleDefinition -Role Tfs2018
+    Get-LabMachineRoleDefinition -Role TfsBuildWorker
+)
+Add-LabMachineDefinition -Name DSCTFS01 -Memory 2GB -Roles $roles
 
 # DSC target nodes - our legacy VMs with an existing configuration
 
@@ -81,6 +85,8 @@ Install-Lab
 Enable-LabCertificateAutoenrollment -Computer -User
 Install-LabWindowsFeature -ComputerName (Get-LabVM -Role DSCPullServer, FileServer, WebServer, Tfs2018) -FeatureName RSAT-AD-Tools
 Install-LabSoftwarePackage -Path $labsources\SoftwarePackages\Notepad++.exe -CommandLine /S -ComputerName (Get-LabVM)
+
+Invoke-LabCommand -ActivityName 'Disable Windows Update service' -ComputerName (Get-LabVM) -ScriptBlock { Stop-Service -Name wuauserv; Set-Service -Name wuauserv -StartupType Disabled }
 
 # in case you screw something up
 Write-Host "1. - Creating Snapshot 'AfterInstall'" -ForegroundColor Magenta

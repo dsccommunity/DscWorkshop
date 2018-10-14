@@ -14,11 +14,11 @@ param (
     [ScriptBlock]
     $Filter = (property Filter {}),
 
-    [switch]
-    $RandomWait = (property RandomWait $false),
+    [int]
+    $MofCompilationTaskCount = (property MofCompilationTaskCount 1),
 
     [String]
-    $Environment = (property Environment 'Dev'),
+    $Environment = (property Environment ''),
 
     [String]
     $ConfigDataFolder = (property ConfigDataFolder 'DSC_ConfigData'),
@@ -37,9 +37,9 @@ task PSModulePath_BuildModules {
     $tid = [System.Threading.Thread]::CurrentThread.ManagedThreadId
     Start-Transcript -Path "$BuildOutput\Logs\PSModulePath_BuildModules$tid-Log.txt"
     
-    Write-Host "RandomWait: $($RandomWait.ToString())"
+    Write-Host "MofCompilationTaskCount: $MofCompilationTaskCount"
     
-    if ($RandomWait)
+    if ($MofCompilationTaskCount -gt 1)
     {
         $m = [System.Threading.Mutex]::OpenExisting('DscBuildProcess')
         Write-Host "Mutex handle $($m.Handle.ToInt32())"
@@ -56,32 +56,11 @@ task PSModulePath_BuildModules {
     {
         Write-Host "Not waiting, starting compilation job"
     }
-
-    if (!([System.IO.Path]::IsPathRooted($BuildOutput)))
-    {
-        $BuildOutput = Join-Path -Path $ProjectPath -ChildPath $BuildOutput
-    }
-
-    $configurationPath = Join-Path -Path $ProjectPath -ChildPath $ConfigurationsFolder
-    $resourcePath = Join-Path -Path $ProjectPath -ChildPath $ResourcesFolder
-    $buildModulesPath = Join-Path -Path $BuildOutput -ChildPath Modules
         
-    Set-PSModulePath -ModuleToLeaveLoaded $ModuleToLeaveLoaded -PathsToSet @($configurationPath, $resourcePath, $buildModulesPath)
     Stop-Transcript
 }
 
 task Load_Datum_ConfigData {
-    if (![System.IO.Path]::IsPathRooted($BuildOutput))
-    {
-        $BuildOutput = Join-Path -Path $ProjectPath -ChildPath $BuildOutput
-    }
-    $configDataPath = Join-Path -Path $ProjectPath -ChildPath $ConfigDataFolder
-    $configurationPath = Join-Path -Path $ProjectPath -ChildPath $ConfigurationsFolder
-    $resourcePath = Join-Path -Path $ProjectPath -ChildPath $ResourcesFolder
-    $buildModulesPath = Join-Path -Path $BuildOutput -ChildPath Modules
-        
-    Set-PSModulePath -ModuleToLeaveLoaded $ModuleToLeaveLoaded -PathsToSet @($configurationPath, $resourcePath, $buildModulesPath)
-
     Import-Module -Name ProtectedData -Scope Global
     Import-Module -Name PowerShell-Yaml -Scope Global
     Import-Module -Name Datum -Scope Global
@@ -89,11 +68,16 @@ task Load_Datum_ConfigData {
     $datumDefinitionFile = Join-Path -Resolve -Path $configDataPath -ChildPath 'Datum.yml'
     Write-Build Green "Loading Datum Definition from '$datumDefinitionFile'"
     $global:datum = New-DatumStructure -DefinitionFile $datumDefinitionFile
-    if (-not ($datum.AllNodes.$Environment))
-    {
-        Write-Error "No nodes found in the environment '$Environment'"
-    }   
-
+    if ($Environment) {
+        if (-not ($datum.AllNodes.$Environment)) {
+            Write-Error "No nodes found in the environment '$Environment'"
+        }
+    } else {
+        if (-not ($datum.AllNodes)) {
+            Write-Error 'No nodes found in the solution'
+        }
+    }
+    
     $global:configurationData = Get-FilteredConfigurationData -Environment $Environment -Filter $Filter -Datum $datum
 }
 
