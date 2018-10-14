@@ -19,7 +19,6 @@ Remember to **charge your Laptop** before the Workshop!
 5. Bringing Existing Infrastructure under DSC Control, with [Datum](https://gaelcolas.files.wordpress.com/2018/04/datum_quick.mp4)
 
 
-
 ## Before you start
 
 The best way (but not mandatory), to follow along, is to get your git and github setup.

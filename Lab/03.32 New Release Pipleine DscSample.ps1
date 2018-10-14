@@ -15,6 +15,7 @@ Write-ScreenInfo 'Creating TFS project and cloning from GitHub...' -NoNewLine
 $tfsAgentQueue = Get-TfsAgentQueue -InstanceName $tfsServer -Port $tfsPort -Credential $tfsCred -ProjectName $projectName -CollectionName $collectionName -QueueName Default
 
 #region Build and Release Definitions
+
 # Create a new release pipeline
 # Get those build steps from Get-LabBuildStep
 $buildSteps = @(
@@ -68,7 +69,6 @@ cd $(Build.SourcesDirectory)\DscSample
             testRunner       = 'NUnit'
             testResultsFiles = '**/IntegrationTestResults.xml'
             searchFolder     =  '$(System.DefaultWorkingDirectory)'
-
         }
     }
     @{
@@ -101,6 +101,7 @@ cd $(Build.SourcesDirectory)\DscSample
             ArtifactName = 'MetaMofOnShare'
             ArtifactType = 'FilePath'
             TargetPath = '$(ArtifactsShare)\$(Build.DefinitionName)\$(Build.BuildNumber)'
+
         }
     }
     @{

@@ -1,59 +1,33 @@
 [CmdletBinding()]
 param (
-    [String]
+    [string]
     $BuildOutput = 'BuildOutput',
 
-    [String]
+    [string]
     $ResourcesFolder = 'DSC_Resources',
 
-    [String]
+    [string]
     $ConfigDataFolder = 'DSC_ConfigData',
 
-    [String]
+    [string]
     $ConfigurationsFolder = 'DSC_Configurations',
 
-    [String]
+    [string]
     $TestFolder = 'Tests',
 
     [ScriptBlock]
     $Filter = {},
 
-    [int]$MofCompilationTaskCount,
+    [int]
+    $MofCompilationTaskCount = 1,
 
-    [switch]$RandomWait,
-    
-    $Environment = $(
-        if (-not $env:BHProjectName -and (Get-Command -Name Set-BuildEnvironment -ErrorAction SilentlyContinue)) {
-            Set-BuildEnvironment -Force -ErrorAction SilentlyContinue
-        }
-        $branch = $env:BHBranchName
-        $branch = if ($branch -eq 'master') {
-            'Prod'
-        }
-        else {
-            'Dev'
-        }
-        if (Test-Path -Path ".\$ConfigDataFolder\AllNodes\$branch") {
-            $branch
-        }
-        else {
-            'Dev'
-        }
-    ),
-    
-    $BuildVersion = $(
-        if ($gitshortid = (& git rev-parse --short HEAD)) {
-            $gitshortid
-        }
-        else {
-            '0.0.0'
-        }
-    ),
+    [string]
+    $Environment,
 
-    [String[]]
+    [string[]]
     $GalleryRepository, #used in ResolveDependencies, has default
 
-    [Uri]
+    [uri]
     $GalleryProxy, #used in ResolveDependencies, $null if not specified
 
     [Switch]
@@ -62,16 +36,16 @@ param (
     [Parameter(Position = 0)]
     $Tasks,
 
-    [Switch]
+    [switch]
     $ResolveDependency,
 
-    [String]
+    [string]
     $ProjectPath,
 
-    [Switch]
+    [switch]
     $DownloadResourcesAndConfigurations,
 
-    [Switch]
+    [switch]
     $Help,
 
     [ScriptBlock]
@@ -141,37 +115,36 @@ if ($MyInvocation.ScriptName -notlike '*Invoke-Build.ps1') {
         Invoke-Build ?
     }
     else {
+        $PSBoundParameters.Remove('Tasks') | Out-Null
         Invoke-Build -Tasks $Tasks -File $MyInvocation.MyCommand.Path @PSBoundParameters
 
-        if ($MofCompilationTaskCount) {
+        if ($MofCompilationTaskCount -gt 1) {
             $global:splittedNodes = Split-Array -List $ConfigurationData.AllNodes -ChunkCount $MofCompilationTaskCount
 
-            if ($MofCompilationTaskCount) {
-                $mofCompilationTasks = foreach ($nodeSet in $global:splittedNodes) {
-                    $nodeNamesInSet = "'$($nodeSet.Name -join "', '")'"
-                    $filterString = '$_.NodeName -in {0}' -f $nodeNamesInSet
-                    $PSBoundParameters.Filter = [scriptblock]::Create($filterString)
+            $mofCompilationTasks = foreach ($nodeSet in $global:splittedNodes) {
+                $nodeNamesInSet = "'$($nodeSet.Name -join "', '")'"
+                $filterString = '$_.NodeName -in {0}' -f $nodeNamesInSet
+                $PSBoundParameters.Filter = [scriptblock]::Create($filterString)
 
-                    @{
-                        File                 = $MyInvocation.MyCommand.Path
-                        Task                 = 'PSModulePath_BuildModules',
-                        'Load_Datum_ConfigData',
-                        'Compile_Datum_Rsop',
-                        'Compile_Root_Configuration',
-                        'Compile_Root_Meta_Mof'
-                        Filter               = [scriptblock]::Create($filterString)
-                        RandomWait           = $true
-                        ProjectPath          = $ProjectPath
-                        BuildOutput          = $buildOutput
-                        ResourcesFolder      = $ResourcesFolder
-                        ConfigDataFolder     = $ConfigDataFolder
-                        ConfigurationsFolder = $ConfigurationsFolder
-                        TestFolder           = $TestFolder
-                        Environment          = $Environment
-                    }
+                @{
+                    File                    = $MyInvocation.MyCommand.Path
+                    Task                    = 'PSModulePath_BuildModules',
+                    'Load_Datum_ConfigData',
+                    'Compile_Datum_Rsop',
+                    'Compile_Root_Configuration',
+                    'Compile_Root_Meta_Mof'
+                    Filter                  = [scriptblock]::Create($filterString)
+                    MofCompilationTaskCount = $MofCompilationTaskCount
+                    ProjectPath             = $ProjectPath
+                    BuildOutput             = $buildOutput
+                    ResourcesFolder         = $ResourcesFolder
+                    ConfigDataFolder        = $ConfigDataFolder
+                    ConfigurationsFolder    = $ConfigurationsFolder
+                    TestFolder              = $TestFolder
+                    Environment             = $Environment
                 }
-                Build-Parallel $mofCompilationTasks
             }
+            Build-Parallel $mofCompilationTasks
         }
     }
 
@@ -196,21 +169,32 @@ if ($TaskHeader) {
     Set-BuildHeader $TaskHeader
 }
 
-if ($MofCompilationTaskCount) {
-    task . Clean_BuildOutput,
+if ($MofCompilationTaskCount -gt 1) {
+    task . Init,
+    Clean_BuildOutput,
+    SetPsModulePath,
     Download_All_Dependencies,
     PSModulePath_BuildModules,
     Test_ConfigData,
+    VersionControl,
     Load_Datum_ConfigData
 }
 else {
-    task . Clean_BuildOutput,
-    PSModulePath_BuildModules,
-    Test_ConfigData,
-    Load_Datum_ConfigData,
-    Compile_Datum_Rsop,
-    Compile_Root_Configuration,
-    Compile_Root_Meta_Mof
+    if (-not $Tasks) {
+        task . Init,
+        Clean_BuildOutput,
+        SetPsModulePath,
+        PSModulePath_BuildModules,
+        Test_ConfigData,
+        VersionControl,
+        Load_Datum_ConfigData,
+        Compile_Datum_Rsop,
+        Compile_Root_Configuration,
+        Compile_Root_Meta_Mof
+    }
+    else {
+        task . $Tasks
+    }
 }
 
 task Download_All_Dependencies -if ($DownloadResourcesAndConfigurations -or $Tasks -contains 'Download_All_Dependencies') Download_DSC_Configurations, Download_DSC_Resources -Before PSModulePath_BuildModules

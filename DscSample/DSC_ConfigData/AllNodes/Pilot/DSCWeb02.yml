@@ -1,0 +1,13 @@
+NodeName: DSCWeb02
+Environment: Prod
+Role: WebServer
+Description: Web Server in Pilot
+Location: Singapore
+
+PSDscAllowPlainTextPassword: True
+PSDscAllowDomainUser: True
+
+LcmConfig:
+  ConfigurationRepositoryWeb:
+    Server:
+      ConfigurationNames: DSCWeb02
