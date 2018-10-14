@@ -1,6 +1,6 @@
 Task Deploy {
 
-    Write-Host "Starting deployment with files inside '$ProjectPath'"
+    Write-Host "Starting deployment with files inside '$projectPath\$buildOutput'"
     $artifactsPath = "$projectPath\$buildOutput\CompressedArtifacts"
     if (-not (Test-Path -Path $artifactsPath)) {
         mkdir -Path $artifactsPath | Out-Null
