@@ -13,5 +13,4 @@
     Datum             = 'latest'
     ProtectedData     = 'latest'
     'powershell-yaml' = 'latest'
-    PSDeploy          = 'latest'
 }
