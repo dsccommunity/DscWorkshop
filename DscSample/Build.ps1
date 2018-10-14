@@ -23,15 +23,6 @@ param (
 
     [string]
     $Environment,
-        
-    $BuildVersion = $(
-        if ($gitshortid = (& git rev-parse --short HEAD)) {
-            $gitshortid
-        }
-        else {
-            '0.0.0'
-        }
-    ),
 
     [string[]]
     $GalleryRepository, #used in ResolveDependencies, has default
@@ -178,16 +169,20 @@ if ($TaskHeader) {
 }
 
 if ($MofCompilationTaskCount -gt 1) {
-    task . Clean_BuildOutput,
+    task . Init,
+    Clean_BuildOutput,
     Download_All_Dependencies,
     PSModulePath_BuildModules,
     Test_ConfigData,
+    VersionControl,
     Load_Datum_ConfigData
 }
 else {
-    task . Clean_BuildOutput,
+    task . Init,
+    Clean_BuildOutput,
     PSModulePath_BuildModules,
     Test_ConfigData,
+    VersionControl,
     Load_Datum_ConfigData,
     Compile_Datum_Rsop,
     Compile_Root_Configuration,
