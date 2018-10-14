@@ -184,7 +184,7 @@ else {
         Clean_BuildOutput,
         PSModulePath_BuildModules,
         Test_ConfigData,
-        VersionControl,
+        #VersionControl,
         Load_Datum_ConfigData,
         Compile_Datum_Rsop,
         Compile_Root_Configuration,
