@@ -1,5 +1,5 @@
 NodeName: DSCWeb02
-Environment: Prod
+Environment: Pilot
 Role: WebServer
 Description: Web Server in Pilot
 Location: Singapore
