@@ -56,32 +56,11 @@ task PSModulePath_BuildModules {
     {
         Write-Host "Not waiting, starting compilation job"
     }
-
-    if (!([System.IO.Path]::IsPathRooted($BuildOutput)))
-    {
-        $BuildOutput = Join-Path -Path $ProjectPath -ChildPath $BuildOutput
-    }
-
-    $configurationPath = Join-Path -Path $ProjectPath -ChildPath $ConfigurationsFolder
-    $resourcePath = Join-Path -Path $ProjectPath -ChildPath $ResourcesFolder
-    $buildModulesPath = Join-Path -Path $BuildOutput -ChildPath Modules
         
-    Set-PSModulePath -ModuleToLeaveLoaded $ModuleToLeaveLoaded -PathsToSet @($configurationPath, $resourcePath, $buildModulesPath)
     Stop-Transcript
 }
 
 task Load_Datum_ConfigData {
-    if (![System.IO.Path]::IsPathRooted($BuildOutput))
-    {
-        $BuildOutput = Join-Path -Path $ProjectPath -ChildPath $BuildOutput
-    }
-    $configDataPath = Join-Path -Path $ProjectPath -ChildPath $ConfigDataFolder
-    $configurationPath = Join-Path -Path $ProjectPath -ChildPath $ConfigurationsFolder
-    $resourcePath = Join-Path -Path $ProjectPath -ChildPath $ResourcesFolder
-    $buildModulesPath = Join-Path -Path $BuildOutput -ChildPath Modules
-        
-    Set-PSModulePath -ModuleToLeaveLoaded $ModuleToLeaveLoaded -PathsToSet @($configurationPath, $resourcePath, $buildModulesPath)
-
     Import-Module -Name ProtectedData -Scope Global
     Import-Module -Name PowerShell-Yaml -Scope Global
     Import-Module -Name Datum -Scope Global

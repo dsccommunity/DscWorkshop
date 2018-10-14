@@ -172,6 +172,7 @@ if ($TaskHeader) {
 if ($MofCompilationTaskCount -gt 1) {
     task . Init,
     Clean_BuildOutput,
+    SetPsModulePath,
     Download_All_Dependencies,
     PSModulePath_BuildModules,
     Test_ConfigData,
@@ -182,6 +183,7 @@ else {
     if (-not $Tasks) {
         task . Init,
         Clean_BuildOutput,
+        SetPsModulePath,
         PSModulePath_BuildModules,
         Test_ConfigData,
         VersionControl,
