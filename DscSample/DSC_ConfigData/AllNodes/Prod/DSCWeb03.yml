@@ -1,12 +1,13 @@
-NodeName: DSCWeb02
+NodeName: DSCWeb03
 Environment: Prod
 Role: WebServer
 Description: Web Server in Prod
+Location: Singapore
 
 PSDscAllowPlainTextPassword: True
 PSDscAllowDomainUser: True
 
-LCM_config:
+LcmConfig:
   ConfigurationRepositoryWeb:
     Server:
-      ConfigurationNames: DSCWeb02
+      ConfigurationNames: DSCWeb03

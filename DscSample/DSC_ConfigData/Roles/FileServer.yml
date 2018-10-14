@@ -1,0 +1,26 @@
+Configurations:
+  - FilesAndFolders
+  - RegistryValues
+
+FilesAndFolders:
+  Items:
+    - DestinationPath: C:\Test1.txt
+      Type: File
+      Contents: Some test data
+    - DestinationPath: C:\Test2.txt
+      Type: File
+      Contents: Some test data
+    - DestinationPath: C:\GpoBackup
+      SourcePath: \\dscdc01\SYSVOL\contoso.com\Policies
+      Type: Directory
+
+RegistryValues:
+  Values:
+    - Key: HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\W32Time\Parameters
+      ValueName: NtpServer
+      ValueData: pool.ntp.org,0x9
+      ValueType: DWORD
+      Ensure: Present
+
+SecurityBaseline:
+  Role: FileServer

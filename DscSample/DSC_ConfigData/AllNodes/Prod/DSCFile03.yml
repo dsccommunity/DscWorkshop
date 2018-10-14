@@ -1,12 +1,13 @@
-NodeName: DSCFile02
+NodeName: DSCFile03
 Environment: Prod
 Role: FileServer
 Description: File Server in Prod
+Location: Frankfurt
 
 PSDscAllowPlainTextPassword: True
 PSDscAllowDomainUser: True
 
-LCM_config:
+LcmConfig:
   ConfigurationRepositoryWeb:
     Server:
-      ConfigurationNames: DSCFile02
+      ConfigurationNames: DSCFile03
