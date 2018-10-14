@@ -15,11 +15,22 @@ else {
 # Publish to AppVeyor if we're in AppVeyor
 if ($env:BHBuildSystem -eq 'AppVeyor') {
     Write-Host "Creating build with version '$($env:APPVEYOR_BUILD_VERSION)'"
-    Deploy MOFs {
+    Deploy MOF {
         By FileSystem  {
-            FromSource "$($env:BHBuildOutput)\Modules\$($env:BHProjectName)"
+            FromSource "$($env:BHBuildOutput)\MOF"
             To AppVeyor
             Tagged MOFs
+            WithOptions @{
+                Mirror = $true
+            }
+        }
+    }
+
+    Deploy MetaMOF {
+        By FileSystem  {
+            FromSource "$($env:BHBuildOutput)\MetaMOF"
+            To AppVeyor
+            Tagged MetaMOFs
             WithOptions @{
                 Mirror = $true
             }
