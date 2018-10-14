@@ -148,7 +148,9 @@ if ($MyInvocation.ScriptName -notlike '*Invoke-Build.ps1') {
         }
     }
 
-    Invoke-Build  -File "$ProjectPath\PostBuild.ps1"
+    if (($Tasks -contains 'CompileRootConfiguration' -and $Tasks -contains 'CompileRootMetaMof') -or -not $Tasks) {
+        Invoke-Build -File "$ProjectPath\PostBuild.ps1"
+    }
 
     $m.Dispose()
     Write-Host "Created $((Get-ChildItem -Path "$BuildOutput\MOF" -Filter *.mof).Count) MOF files in '$BuildOutput/MOF'" -ForegroundColor Green
@@ -171,19 +173,19 @@ if ($TaskHeader) {
 
 if ($MofCompilationTaskCount -gt 1) {
     task . Init,
-    Clean_BuildOutput,
+    CleanBuildOutput,
     SetPsModulePath,
     Download_All_Dependencies,
-    Test_ConfigData,
+    TestConfigData,
     VersionControl,
     LoadDatumConfigData
 }
 else {
     if (-not $Tasks) {
         task . Init,
-        Clean_BuildOutput,
+        CleanBuildOutput,
         SetPsModulePath,
-        Test_ConfigData,
+        TestConfigData,
         VersionControl,
         LoadDatumConfigData,
         CompileDatumRsop,
@@ -223,18 +225,4 @@ task Clean_DSC_Resources_Folder {
 
 task Clean_DSC_Configurations_Folder {
     Get-ChildItem -Path "$ConfigurationsFolder" -Recurse | Remove-Item -Force -Recurse -Exclude README.md
-}
-
-task Test_ConfigData {
-    if (-not (Test-Path -Path $testsPath)) {
-        Write-Build Yellow "Path for tests '$testsPath' does not exist"
-        return
-    }
-    if (-not ([System.IO.Path]::IsPathRooted($BuildOutput))) {
-        $BuildOutput = Join-Path -Path $PSScriptRoot -ChildPath $BuildOutput
-    }
-    $testResultsPath = Join-Path -Path $BuildOutput -ChildPath TestResults.xml
-    $testResults = Invoke-Pester -Script $testsPath -PassThru -OutputFile $testResultsPath -OutputFormat NUnitXml
-
-    assert ($testResults.FailedCount -eq 0)
 }
