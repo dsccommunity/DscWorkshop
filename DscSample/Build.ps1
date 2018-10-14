@@ -115,6 +115,7 @@ if ($MyInvocation.ScriptName -notlike '*Invoke-Build.ps1') {
         Invoke-Build ?
     }
     else {
+        $PSBoundParameters.Remove('Tasks') | Out-Null
         Invoke-Build -Tasks $Tasks -File $MyInvocation.MyCommand.Path @PSBoundParameters
 
         if ($MofCompilationTaskCount -gt 1) {
@@ -178,15 +179,20 @@ if ($MofCompilationTaskCount -gt 1) {
     Load_Datum_ConfigData
 }
 else {
-    task . Init,
-    Clean_BuildOutput,
-    PSModulePath_BuildModules,
-    Test_ConfigData,
-    VersionControl,
-    Load_Datum_ConfigData,
-    Compile_Datum_Rsop,
-    Compile_Root_Configuration,
-    Compile_Root_Meta_Mof
+    if (-not $Tasks) {
+        task . Init,
+        Clean_BuildOutput,
+        PSModulePath_BuildModules,
+        Test_ConfigData,
+        VersionControl,
+        Load_Datum_ConfigData,
+        Compile_Datum_Rsop,
+        Compile_Root_Configuration,
+        Compile_Root_Meta_Mof
+    }
+    else {
+        task . $Tasks
+    }
 }
 
 task Download_All_Dependencies -if ($DownloadResourcesAndConfigurations -or $Tasks -contains 'Download_All_Dependencies') Download_DSC_Configurations, Download_DSC_Resources -Before PSModulePath_BuildModules
