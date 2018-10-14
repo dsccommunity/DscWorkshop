@@ -8,7 +8,7 @@ task SetPsModulePath {
     $resourcePath = Join-Path -Path $ProjectPath -ChildPath $ResourcesFolder
     $buildModulesPath = Join-Path -Path $BuildOutput -ChildPath Modules
     
-    $moduleToLeaveLoaded = 'InvokeBuild', 'PSReadline', 'PackageManagement', 'ISESteroids'
+    $moduleToLeaveLoaded = 'InvokeBuild', 'PSReadline', 'PackageManagement', 'PowerShellGet', 'ISESteroids'
     $pathToSet = $buildModulesPath, $resourcePath, $configurationPath
     if ($env:BHBuildSystem -eq 'AppVeyor') {
         $pathToSet += ';C:\Program Files\AppVeyor\BuildAgent\Modules'
