@@ -108,12 +108,17 @@ foreach ($domain in (Get-Lab).Domains)
     } -ComputerName $dc -Variable (Get-Variable -Name vms) -PassThru
 }
 
-Invoke-LabCommand -ActivityName 'Getting required modules and publishing them to ProGet' -ComputerName $tfsServer -ScriptBlock {
-    $requiredModules = 'CommonTasks', 'powershell-yaml', 'BuildHelpers', 'datum' , 'DscBuildHelpers', 'InvokeBuild', 'PackageManagement', 'Pester', 'PowerShellGet', 'ProtectedData', 'PSDepend', 'PSDeploy', 'PSScriptAnalyzer', 'xDSCResourceDesigner', 'xPSDesiredStateConfiguration', 'ComputerManagementDsc', 'NetworkingDsc', 'NTFSSecurity'
+Invoke-LabCommand -ActivityName 'Get latest nuget.exe' -ComputerName (Get-LabVM) -ScriptBlock {
 
     Install-PackageProvider -Name NuGet -Force
     mkdir -Path C:\ProgramData\Microsoft\Windows\PowerShell\PowerShellGet -Force
-    Invoke-WebRequest -Uri 'https://nuget.org/nuget.exe' -OutFile C:\ProgramData\Microsoft\Windows\PowerShell\PowerShellGet\nuget.exe -ErrorAction Stop
+    Invoke-WebRequest -Uri 'https://aka.ms/psget-nugetexe' -OutFile C:\ProgramData\Microsoft\Windows\PowerShell\PowerShellGet\nuget.exe -ErrorAction Stop
+
+}
+
+Invoke-LabCommand -ActivityName 'Getting required modules and publishing them to ProGet' -ComputerName $tfsServer -ScriptBlock {
+
+    $requiredModules = 'powershell-yaml', 'BuildHelpers', 'datum' , 'DscBuildHelpers', 'InvokeBuild', 'PackageManagement', 'Pester', 'PowerShellGet', 'ProtectedData', 'PSDepend', 'PSDeploy', 'PSScriptAnalyzer', 'xDSCResourceDesigner', 'xPSDesiredStateConfiguration', 'ComputerManagementDsc', 'NetworkingDsc', 'NTFSSecurity'
     
     Write-Host "Installing $($requiredModules.Count) modules on $(hostname.exe) for pushing them to the lab"
     Install-Module -Name $requiredModules -Repository PSGallery -Force -AllowClobber -SkipPublisherCheck -WarningAction SilentlyContinue -ErrorAction Stop
@@ -148,34 +153,31 @@ Invoke-LabCommand -ActivityName 'Getting required modules and publishing them to
     foreach ($requiredModule in $requiredModules) {
         Uninstall-Module -Name $requiredModule -ErrorAction SilentlyContinue
     }
-
-    #if (Get-PSRepository -Name PowerShell) {
-    #    Unregister-PSRepository -Name PowerShell
-    #}
 }
-
-<# The Default PSGallery is not removed as the build process does not support an internal repository yet.
-        Invoke-LabCommand -ActivityName 'Register ProGet Gallery' -ComputerName (Get-LabVM) -ScriptBlock {
-        Unregister-PSRepository -Name PSGallery
-        $path = "http://DSCPull01.contoso.com/nuget/PowerShell"
-        Register-PSRepository -Name PowerShell -SourceLocation $path -PublishLocation $path -InstallationPolicy Trusted
-        }
-#>
 
 Invoke-LabCommand -ActivityName 'Disable Git SSL Certificate Check' -ComputerName $tfsServer, $tfsWorker -ScriptBlock {
     [System.Environment]::SetEnvironmentVariable('GIT_SSL_NO_VERIFY', '1', 'Machine')
 }
 
-Restart-LabVM -ComputerName $tfsServer, $tfsWorker -Wait
+$artifactsShareName = 'Artifacts'
+$artifactsSharePath = "C:\$artifactsShareName"
+Invoke-LabCommand -ActivityName 'Create Aftifacts Share' -ComputerName $tfsServer -ScriptBlock {
+    Install-Module -Name NTFSSecurity -Repository PowerShell
+    mkdir -Path $artifactsSharePath
+    
+    New-SmbShare -Name $artifactsShareName -Path $artifactsSharePath -FullAccess Everyone
+    Add-NTFSAccess -Path $artifactsSharePath -Account Everyone -AccessRights FullControl
+} -Variable (Get-Variable -Name artifactsShareName, artifactsSharePath)
 
 Invoke-LabCommand -ActivityName 'Setting the worker service account to local system to be able to write to deployment path' -ComputerName $tfsWorker -ScriptBlock {
     $services = Get-CimInstance -ClassName Win32_Service -Filter 'Name like "vsts%"'
     foreach ($service in $services)
     {    
         $service | Invoke-CimMethod -MethodName Change -Arguments @{ StartName = 'LocalSystem' } | Out-Null
-        $service | Restart-Service
     }
 }
+
+Restart-LabVM -ComputerName $tfsServer, $tfsWorker -Wait
 
 Write-Host "2. - Creating Snapshot 'AfterCustomizations'" -ForegroundColor Magenta
 Checkpoint-LabVM -All -SnapshotName AfterCustomizations
