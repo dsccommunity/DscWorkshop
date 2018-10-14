@@ -271,10 +271,9 @@ $releaseEnvironments = @(
 
 $repo = Get-TfsGitRepository -InstanceName $tfsServer -Port 8080 -CollectionName $collectionName -ProjectName $projectName -Credential $tfsCred
 $refs = (Invoke-RestMethod -Uri "http://$($tfsServer):$tfsPort/$collectionName/_apis/git/repositories/{$($repo.id)}/refs?api-version=4.1" -Credential $tfsCred).value.name
-
 New-TfsBuildDefinition -ProjectName $projectName -InstanceName $tfsServer -Port $tfsPort -DefinitionName "$($projectName)Build" -CollectionName $collectionName -BuildTasks $buildSteps -Variables @{ GalleryUri = 'http://dscpull01.contoso.com/nuget/PowerShell' } -CiTriggerRefs $refs -Credential $tfsCred -ApiVersion 4.1
 
-New-TfsReleaseDefinition -ProjectName $projectName -InstanceName $tfsServer -Port $tfsPort -ReleaseName "$($projectName)Release" -Environments $releaseEnvironments -Credential $tfsCred -CollectionName $collectionName #-ApiVersion '4.1-preview'
+New-TfsReleaseDefinition -ProjectName $projectName -InstanceName $tfsServer -Port $tfsPort -ReleaseName "$($projectName)Release" -Environments $releaseEnvironments -Credential $tfsCred -CollectionName $collectionName
 Write-ScreenInfo done
 
 # in case you screw something up
