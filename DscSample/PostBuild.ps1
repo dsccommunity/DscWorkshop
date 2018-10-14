@@ -14,15 +14,6 @@ param (
 
     [string]
     $Environment,
-    
-    $BuildVersion = $(
-        if ($gitshortid = (& git rev-parse --short HEAD)) {
-            $gitshortid
-        }
-        else {
-            '0.0.0'
-        }
-    ),
 
     [Parameter(Position = 0)]
     $Tasks,
@@ -52,6 +43,7 @@ Get-ChildItem -Path "$PSScriptRoot/.build/" -Recurse -Include *.ps1 |
     }
     catch { }
 }
-write-Build Red "BUILD VERSION: $($BuildVersion)"
+
 task . New_Mof_Checksums,
-Compress_Modules_with_Checksum
+Compress_Modules_with_Checksum,
+Deploy
