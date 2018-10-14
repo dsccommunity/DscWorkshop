@@ -44,6 +44,6 @@ Get-ChildItem -Path "$PSScriptRoot/.build/" -Recurse -Include *.ps1 |
     catch { }
 }
 
-task . New_Mof_Checksums,
-Compress_Modules_with_Checksum,
+task . NewMofChecksums,
+CompressModulesWithChecksum,
 Deploy

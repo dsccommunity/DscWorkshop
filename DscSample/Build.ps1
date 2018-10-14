@@ -128,11 +128,11 @@ if ($MyInvocation.ScriptName -notlike '*Invoke-Build.ps1') {
 
                 @{
                     File                    = $MyInvocation.MyCommand.Path
-                    Task                    = 'PSModulePath_BuildModules',
-                    'Load_Datum_ConfigData',
-                    'Compile_Datum_Rsop',
-                    'Compile_Root_Configuration',
-                    'Compile_Root_Meta_Mof'
+                    Task                    = 'WaitForMutex',
+                    'LoadDatumConfigData',
+                    'CompileDatumRsop',
+                    'CompileRootConfiguration',
+                    'CompileRootMetaMof'
                     Filter                  = [scriptblock]::Create($filterString)
                     MofCompilationTaskCount = $MofCompilationTaskCount
                     ProjectPath             = $ProjectPath
@@ -174,30 +174,28 @@ if ($MofCompilationTaskCount -gt 1) {
     Clean_BuildOutput,
     SetPsModulePath,
     Download_All_Dependencies,
-    PSModulePath_BuildModules,
     Test_ConfigData,
     VersionControl,
-    Load_Datum_ConfigData
+    LoadDatumConfigData
 }
 else {
     if (-not $Tasks) {
         task . Init,
         Clean_BuildOutput,
         SetPsModulePath,
-        PSModulePath_BuildModules,
         Test_ConfigData,
         VersionControl,
-        Load_Datum_ConfigData,
-        Compile_Datum_Rsop,
-        Compile_Root_Configuration,
-        Compile_Root_Meta_Mof
+        LoadDatumConfigData,
+        CompileDatumRsop,
+        CompileRootConfiguration,
+        CompileRootMetaMof
     }
     else {
         task . $Tasks
     }
 }
 
-task Download_All_Dependencies -if ($DownloadResourcesAndConfigurations -or $Tasks -contains 'Download_All_Dependencies') Download_DSC_Configurations, Download_DSC_Resources -Before PSModulePath_BuildModules
+task Download_All_Dependencies -if ($DownloadResourcesAndConfigurations -or $Tasks -contains 'Download_All_Dependencies') Download_DSC_Configurations, Download_DSC_Resources -Before SetPsModulePath
 
 $configurationPath = Join-Path -Path $ProjectPath -ChildPath $ConfigurationsFolder
 $resourcePath = Join-Path -Path $ProjectPath -ChildPath $ResourcesFolder
