@@ -1,7 +1,7 @@
 task VersionControl {
     
     if ($env:BHBuildSystem -eq 'AppVeyor' -or $env:BHBuildSystem -eq 'VSTS') {
-        $path = "$($env:BHProjectPath)\DSC_ConfigData\MetaConfig\DscTagging.yml"
+        $path = "$ProjectPath\DSC_ConfigData\MetaConfig\DscTagging.yml"
 
         $content = Select-String -Pattern 'DscTagging:' -Path $path -Context 0,1
         $content.Context.PostContext[0] -match '  Version: (?<Version>\d+.\d+.\d+)' | Out-Null
