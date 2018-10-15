@@ -24,11 +24,11 @@ param (
     [string]
     $Environment,
 
-    [string[]]
-    $GalleryRepository, #used in ResolveDependencies, has default
+    [string]
+    $GalleryRepository = 'PSGallery',
 
     [uri]
-    $GalleryProxy, #used in ResolveDependencies, $null if not specified
+    $GalleryProxy,
 
     [Switch]
     $ForceEnvironmentVariables = $true,
@@ -66,6 +66,12 @@ param (
 Add-Type -AssemblyName System.Threading
 $m = [System.Threading.Mutex]::new($false, 'DscBuildProcess')
 
+#changing the path is required to make PSDepend run without internet connection. It is required to download nutget.exe once first:
+#Invoke-WebRequest -Uri 'https://aka.ms/psget-nugetexe' -OutFile C:\ProgramData\Microsoft\Windows\PowerShell\PowerShellGet\nuget.exe -ErrorAction Stop
+$pathElements = $env:Path -split ';'
+$pathElements += 'C:\ProgramData\Microsoft\Windows\PowerShell\PowerShellGet'
+$env:Path = $pathElements -join ';'
+
 #cannot be a default parameter value due to https://github.com/PowerShell/PowerShell/issues/4688
 if (-not $ProjectPath) {
     $ProjectPath = $PSScriptRoot
@@ -86,16 +92,6 @@ if ($buildModulesPath -notin $psModulePathElemets) {
     $env:PSModulePath += ";$buildModulesPath"
 }
 
-if (-not (Get-Module -Name InvokeBuild -ListAvailable) -and -not $ResolveDependency) {
-    Write-Error "Requirements are missing. Please call the script again with the switch 'ResolveDependency'"
-    return
-}
-
-if ($ResolveDependency) {
-    . $PSScriptRoot/.build/BuildHelpers/Resolve-Dependency.ps1
-    Resolve-Dependency
-}
-
 #importing all resources from .build directory
 Get-ChildItem -Path "$PSScriptRoot/.build/" -Recurse -Include *.ps1 |
     ForEach-Object {
@@ -104,6 +100,16 @@ Get-ChildItem -Path "$PSScriptRoot/.build/" -Recurse -Include *.ps1 |
         . $_.FullName
     }
     catch { }
+}
+
+if (-not (Get-Module -Name InvokeBuild -ListAvailable) -and -not $ResolveDependency) {
+    Write-Error "Requirements are missing. Please call the script again with the switch 'ResolveDependency'"
+    return
+}
+
+if ($ResolveDependency) {
+    . $PSScriptRoot/.build/BuildHelpers/Resolve-Dependency.ps1
+    Resolve-Dependency
 }
 
 if ($MyInvocation.ScriptName -notlike '*Invoke-Build.ps1') {
@@ -208,7 +214,12 @@ $testsPath = Join-Path -Path $ProjectPath -ChildPath $TestFolder
 task Download_DSC_Resources {
     $PSDependResourceDefinition = "$ProjectPath\PSDepend.DSC_Resources.psd1"
     if (Test-Path $PSDependResourceDefinition) {
-        Invoke-PSDepend -Path $PSDependResourceDefinition -Confirm:$false -Target $resourcePath
+        $psDependParams = @{
+            Path    = $PSDependResourceDefinition
+            Confirm = $false
+            Target  = $resourcePath
+        }
+        Invoke-PSDependInternal -PSDependParameters $psDependParams -Reporitory $GalleryRepository
     }
 }
 
@@ -216,7 +227,12 @@ task Download_DSC_Configurations {
     $PSDependConfigurationDefinition = "$ProjectPath\PSDepend.DSC_Configurations.psd1"
     if (Test-Path $PSDependConfigurationDefinition) {
         Write-Build Green 'Pull dependencies from PSDepend.DSC_Configurations.psd1'
-        Invoke-PSDepend -Path $PSDependConfigurationDefinition -Confirm:$false -Target $configurationPath
+        $psDependParams = @{
+            Path    = $PSDependConfigurationDefinition
+            Confirm = $false
+            Target  = $configurationPath
+        }
+        Invoke-PSDependInternal -PSDependParameters $psDependParams -Reporitory $GalleryRepository
     }
 }
 

@@ -583,5 +583,5 @@ New-TfsReleaseDefinition @releaseParameters
 Write-ScreenInfo done
 
 # in case you screw something up
-Checkpoint-LabVM -All -SnapshotName AfterCommonTasksPipeline
+Checkpoint-LabVM -All -SnapshotName AfterPipelines
 Write-Host "3. - Creating Snapshot 'AfterPipeline'" -ForegroundColor Magenta

@@ -275,7 +275,3 @@ New-TfsBuildDefinition -ProjectName $projectName -InstanceName $tfsServer -Port 
 
 New-TfsReleaseDefinition -ProjectName $projectName -InstanceName $tfsServer -Port $tfsPort -ReleaseName "$($projectName)Release" -Environments $releaseEnvironments -Credential $tfsCred -CollectionName $collectionName
 Write-ScreenInfo done
-
-# in case you screw something up
-Checkpoint-LabVM -All -SnapshotName AfterDscWorkshopPipeline
-Write-Host "3. - Creating Snapshot 'AfterPipeline'" -ForegroundColor Magenta

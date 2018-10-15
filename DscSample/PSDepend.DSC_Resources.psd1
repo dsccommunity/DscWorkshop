@@ -1,8 +1,11 @@
 @{
-    PSDependOptions              = @{
+    PSDependOptions = @{
         AddToPath  = $true
         Target     = 'DSC_Resources'
-        Parameters = @{}
+        DependencyType = 'PSGalleryModule'
+        Parameters = @{
+            Repository = 'PSGallery'
+        }
     }
 
     xPSDesiredStateConfiguration = '8.4.0.0'
