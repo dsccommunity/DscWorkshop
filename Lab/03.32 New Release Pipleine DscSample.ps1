@@ -11,11 +11,10 @@ $collectionName = 'AutomatedLab'
 # You will see two remotes, Origin (Our code on GitHub) and TFS (Our code pushed to your lab)
 Write-ScreenInfo 'Creating TFS project and cloning from GitHub...' -NoNewLine
 
-##New-LabReleasePipeline -ProjectName $projectName -SourceRepository $projectGitUrl -CodeUploadMethod FileCopy
+New-LabReleasePipeline -ProjectName $projectName -SourceRepository $projectGitUrl -CodeUploadMethod FileCopy
 $tfsAgentQueue = Get-TfsAgentQueue -InstanceName $tfsServer -Port $tfsPort -Credential $tfsCred -ProjectName $projectName -CollectionName $collectionName -QueueName Default
 
 #region Build and Release Definitions
-
 # Create a new release pipeline
 # Get those build steps from Get-LabBuildStep
 $buildSteps = @(
@@ -53,7 +52,7 @@ if (-not $r -or $r.SourceLocation -ne $uri -or $r.PublishLocation -ne $uri) {
             targetType          = "inline"
             script              = @'
 cd $(Build.SourcesDirectory)\DscSample
-.\Build.ps1 -ResolveDependency -GalleryRepository PowerShell
+.\Build.ps1 -ResolveDependency -GalleryRepository PowerShell -Tasks Init, CleanBuildOutput, SetPsModulePath, TestConfigData, VersionControl, LoadDatumConfigData, CompileDatumRsop, CompileRootConfiguration, CompileRootMetaMof
 '@
         }
     }
@@ -72,9 +71,7 @@ cd $(Build.SourcesDirectory)\DscSample
         }
     }
     @{
-        enabled         = $true
-        continueOnError = $false
-        alwaysRun       = $false
+        enabled         = $false
         displayName     = 'Publish Artifact to Share: MOFs'
         task            = @{
             id          = '2ff763a7-ce83-4e1f-bc89-0ae63477cebe'
@@ -88,9 +85,7 @@ cd $(Build.SourcesDirectory)\DscSample
         }
     }
     @{
-        enabled         = $true
-        continueOnError = $false
-        alwaysRun       = $false
+        enabled         = $false
         displayName     = 'Publish Artifact to Share: Meta MOFs'
         task            = @{
             id          = '2ff763a7-ce83-4e1f-bc89-0ae63477cebe'
@@ -105,9 +100,7 @@ cd $(Build.SourcesDirectory)\DscSample
         }
     }
     @{
-        enabled         = $true
-        continueOnError = $false
-        alwaysRun       = $false
+        enabled         = $false
         displayName     = 'Publish Artifact to Share: CompressedModules'
         task            = @{
             id          = '2ff763a7-ce83-4e1f-bc89-0ae63477cebe'
@@ -122,8 +115,6 @@ cd $(Build.SourcesDirectory)\DscSample
     }
     @{
         enabled         = $true
-        continueOnError = $false
-        alwaysRun       = $false
         displayName     = 'Publish Artifact: MOFs'
         task            = @{
             id          = '2ff763a7-ce83-4e1f-bc89-0ae63477cebe'
@@ -137,8 +128,6 @@ cd $(Build.SourcesDirectory)\DscSample
     }
     @{
         enabled         = $true
-        continueOnError = $false
-        alwaysRun       = $false
         displayName     = 'Publish Artifact: Meta MOFs'
         task            = @{
             id          = '2ff763a7-ce83-4e1f-bc89-0ae63477cebe'
@@ -152,8 +141,6 @@ cd $(Build.SourcesDirectory)\DscSample
     }
     @{
         enabled         = $true
-        continueOnError = $false
-        alwaysRun       = $false
         displayName     = 'Publish Artifact: CompressedModules'
         task            = @{
             id          = '2ff763a7-ce83-4e1f-bc89-0ae63477cebe'
@@ -162,6 +149,19 @@ cd $(Build.SourcesDirectory)\DscSample
         inputs          = @{
             PathtoPublish = '$(Build.SourcesDirectory)\DscSample\BuildOutput\CompressedModules'
             ArtifactName = 'CompressedModules'
+            ArtifactType = 'Container'
+        }
+    }
+    @{
+        enabled         = $true
+        displayName     = 'Publish Artifact: BuildFolder'
+        task            = @{
+            id          = '2ff763a7-ce83-4e1f-bc89-0ae63477cebe'
+            versionSpec = '*'
+        }
+        inputs          = @{
+            PathtoPublish = '$(Build.SourcesDirectory)'
+            ArtifactName = 'SourcesDirectory'
             ArtifactType = 'Container'
         }
     }
@@ -175,7 +175,7 @@ $releaseSteps = @(
         enabled = $true
         condition = 'succeeded()'
         inputs = @{
-            SourceFolder = '$(System.DefaultWorkingDirectory)/$(Build.DefinitionName)/$(Build.Repository.Name)'
+            SourceFolder = '$(System.DefaultWorkingDirectory)/$(Build.DefinitionName)'
             Contents = '**'
             TargetFolder = '\\dsctfs01\Artifacts\$(Build.DefinitionName)\$(Build.BuildNumber)\$(Build.Repository.Name)'
         }
@@ -220,7 +220,7 @@ if (-not $r -or $r.SourceLocation -ne $uri -or $r.PublishLocation -ne $uri) {
             targetType          = 'inline'
             script              = @'
 Write-Host $(System.DefaultWorkingDirectory)
-cd $(System.DefaultWorkingDirectory)\$(Build.DefinitionName)\SourcesDirectory
+cd $(System.DefaultWorkingDirectory)\$(Build.DefinitionName)\SourcesDirectory\DscSample
 .\Build.ps1 -Tasks Init, SetPsModulePath, Deploy, AcceptanceTest -GalleryRepository PowerShell
 '@
         }
@@ -250,9 +250,11 @@ $releaseEnvironments = @(
             uniqueName = 'Installer'
         }
         variables = @{
-            GalleryUri = @{ value = "http://dscpull01.contoso.com/nuget/PowerShell" }
-            InstallUserName = @{ value = "contoso\install" }
-            InstallUserPassword = @{ value = "Somepass1" }
+            GalleryUri = @{ value = 'http://dscpull01.contoso.com/nuget/PowerShell' }
+            InstallUserName = @{ value = 'contoso\install' }
+            InstallUserPassword = @{ value = 'Somepass1' }
+            DscConfiguration = @{ value = '\\dscpull01\DscConfiguration' }
+            DscModules = @{ value = '\\dscpull01\DscModules' }
         }
         preDeployApprovals = @{
             approvals = @(
@@ -301,7 +303,7 @@ $releaseEnvironments = @(
             skipArtifactsDownload = $false
             timeoutInMinutes = 0
             enableAccessToken = $false
-            publishDeploymentStatus = $false
+            publishDeploymentStatus = $true
             badgeEnabled = $false
             autoLinkWorkItems = $false
         }
@@ -310,7 +312,6 @@ $releaseEnvironments = @(
             @{
                 name = 'ReleaseStarted'
                 conditionType = 1
-                value = ''
             }
         )
         executionPolicy = @{
@@ -346,9 +347,11 @@ $releaseEnvironments = @(
             uniqueName = 'Installer'
         }
         variables = @{
-            GalleryUri = @{ value = "http://dscpull01.contoso.com/nuget/PowerShell" }
-            InstallUserName = @{ value = "contoso\install" }
-            InstallUserPassword = @{ value = "Somepass1" }
+            GalleryUri = @{ value = 'http://dscpull01.contoso.com/nuget/PowerShell' }
+            InstallUserName = @{ value = 'contoso\install' }
+            InstallUserPassword = @{ value = 'Somepass1' }
+            DscConfiguration = @{ value = '\\dscpull01\DscConfiguration' }
+            DscModules = @{ value = '\\dscpull01\DscModules' }
         }
         preDeployApprovals = @{
             approvals = @(
@@ -397,7 +400,7 @@ $releaseEnvironments = @(
             skipArtifactsDownload = $false
             timeoutInMinutes = 0
             enableAccessToken = $false
-            publishDeploymentStatus = $false
+            publishDeploymentStatus = $true
             badgeEnabled = $false
             autoLinkWorkItems = $false
         }
@@ -407,6 +410,11 @@ $releaseEnvironments = @(
                 name = 'Dev'
                 conditionType = 2
                 value = ''
+            }
+            @{
+                name = 'DscWorkshopBuild'
+                conditionType = 4
+                value = '{"sourceBranch":"master","tags":[],"useBuildDefinitionBranch":false}'
             }
         )
         executionPolicy = @{
@@ -442,17 +450,23 @@ $releaseEnvironments = @(
             uniqueName = 'Installer'
         }
         variables = @{
-            GalleryUri = @{ value = "http://dscpull01.contoso.com/nuget/PowerShell" }
-            InstallUserName = @{ value = "contoso\install" }
-            InstallUserPassword = @{ value = "Somepass1" }
+            GalleryUri = @{ value = 'http://dscpull01.contoso.com/nuget/PowerShell' }
+            InstallUserName = @{ value = 'contoso\install' }
+            InstallUserPassword = @{ value = 'Somepass1' }
+            DscConfiguration = @{ value = '\\dscpull01\DscConfiguration' }
+            DscModules = @{ value = '\\dscpull01\DscModules' }
         }
         preDeployApprovals = @{
             approvals = @(
                 @{
                     rank = 1
-                    isAutomated = $true
+                    isAutomated = $false
                     isNotificationOn = $false
-                    id = 7
+                    approver = @{
+                        displayName = "Install"
+                        id = '196672db-49dd-4968-8c52-a94e43186ffd'
+                        uniqueName = 'contoso\Install'
+                    }
                 }
             )
         }
@@ -493,7 +507,7 @@ $releaseEnvironments = @(
             skipArtifactsDownload = $false
             timeoutInMinutes = 0
             enableAccessToken = $false
-            publishDeploymentStatus = $false
+            publishDeploymentStatus = $true
             badgeEnabled = $false
             autoLinkWorkItems = $false
         }
@@ -503,6 +517,11 @@ $releaseEnvironments = @(
                 name = 'Pilot'
                 conditionType = 2
                 value = ''
+            }
+            @{
+                name = 'DscWorkshopBuild'
+                conditionType = 4
+                value = '{"sourceBranch":"master","tags":[],"useBuildDefinitionBranch":false}'
             }
         )
         executionPolicy = @{
@@ -551,18 +570,18 @@ $buildParameters = @{
 New-TfsBuildDefinition @buildParameters
 
 $releaseParameters = @{
-     ProjectName = $projectName
-     InstanceName = $tfsServer
-     Port = $tfsPort
-     ReleaseName = "$($projectName)Release"
-     Environments = $releaseEnvironments
-     Credential = $tfsCred
-     CollectionName = $collectionName
+    ProjectName = $projectName
+    InstanceName = $tfsServer
+    Port = $tfsPort
+    ReleaseName = "$($projectName)Release"
+    Environments = $releaseEnvironments
+    Credential = $tfsCred
+    CollectionName = $collectionName
 }
 New-TfsReleaseDefinition @releaseParameters
 
 Write-ScreenInfo done
 
 # in case you screw something up
-#Checkpoint-LabVM -All -SnapshotName AfterPipeline
+Checkpoint-LabVM -All -SnapshotName AfterCommonTasksPipeline
 Write-Host "3. - Creating Snapshot 'AfterPipeline'" -ForegroundColor Magenta

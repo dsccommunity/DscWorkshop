@@ -277,5 +277,5 @@ New-TfsReleaseDefinition -ProjectName $projectName -InstanceName $tfsServer -Por
 Write-ScreenInfo done
 
 # in case you screw something up
-#Checkpoint-LabVM -All -SnapshotName AfterPipeline
+Checkpoint-LabVM -All -SnapshotName AfterDscWorkshopPipeline
 Write-Host "3. - Creating Snapshot 'AfterPipeline'" -ForegroundColor Magenta
