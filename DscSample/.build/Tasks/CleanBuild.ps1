@@ -9,7 +9,7 @@ param (
     $LineSeparation = (property LineSeparation ('-' * 78)) 
 )
 
-task Clean_BuildOutput {
+task CleanBuildOutput {
     # Synopsis: Clears the BuildOutput folder from its artefacts, but leaves the modules subfolder and its content. 
 
     if (![System.IO.Path]::IsPathRooted($BuildOutput)) 
@@ -23,7 +23,7 @@ task Clean_BuildOutput {
     }
 }
 
-task Clean_Module {
+task CleanModule {
     # Synopsis: Clears the content of the BuildOutput folder INCLUDING the modules folder
     if (![System.IO.Path]::IsPathRooted($BuildOutput)) 
     {

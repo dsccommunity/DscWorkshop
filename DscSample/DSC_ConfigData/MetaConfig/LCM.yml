@@ -11,7 +11,7 @@ LcmConfig:
   ConfigurationRepositoryWeb:
     Server:
       ServerURL: https://dscpull01.contoso.com:8080/PSDSCPullServer.svc
-      RegistrationKey: 42b69ba6-9834-4256-b26c-3e7adb789c22
+      RegistrationKey: ec717ee9-b343-49ee-98a2-26e53939eecf
   ReportServerWeb:
       ServerURL: https://dscpull01.contoso.com:8080/PSDSCPullServer.svc
-      RegistrationKey: 42b69ba6-9834-4256-b26c-3e7adb789c22
+      RegistrationKey: ec717ee9-b343-49ee-98a2-26e53939eecf

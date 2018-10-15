@@ -4,7 +4,7 @@ Configurations:
 
 WindowsFeatures:
   Name:
-    - -XPS-Viewer
+    - -Telnet-Client
 
 SecurityBase:
   Role: Baseline

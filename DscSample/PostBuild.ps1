@@ -35,6 +35,7 @@ param (
     }
 )
 
+#importing all resources from .build directory
 Get-ChildItem -Path "$PSScriptRoot/.build/" -Recurse -Include *.ps1 |
     ForEach-Object {
     Write-Verbose "Importing file $($_.BaseName)"
@@ -44,6 +45,6 @@ Get-ChildItem -Path "$PSScriptRoot/.build/" -Recurse -Include *.ps1 |
     catch { }
 }
 
-task . New_Mof_Checksums,
-Compress_Modules_with_Checksum,
+task . NewMofChecksums,
+CompressModulesWithChecksum,
 Deploy

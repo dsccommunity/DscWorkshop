@@ -71,11 +71,11 @@ if (-not $ProjectPath) {
     $ProjectPath = $PSScriptRoot
 }
 
-if (-not ([System.IO.Path]::IsPathRooted($buildOutput))) {
-    $buildOutput = Join-Path -Path $ProjectPath -ChildPath $buildOutput
+if (-not ([System.IO.Path]::IsPathRooted($BuildOutput))) {
+    $BuildOutput = Join-Path -Path $ProjectPath -ChildPath $BuildOutput
 }
 
-$buildModulesPath = Join-Path -Path $buildOutput -ChildPath 'Modules'
+$buildModulesPath = Join-Path -Path $BuildOutput -ChildPath 'Modules'
 if (-not (Test-Path -Path $buildModulesPath)) {
     $null = mkdir -Path $buildModulesPath -Force
 }
@@ -96,6 +96,7 @@ if ($ResolveDependency) {
     Resolve-Dependency
 }
 
+#importing all resources from .build directory
 Get-ChildItem -Path "$PSScriptRoot/.build/" -Recurse -Include *.ps1 |
     ForEach-Object {
     Write-Verbose "Importing file $($_.BaseName)"
@@ -128,11 +129,11 @@ if ($MyInvocation.ScriptName -notlike '*Invoke-Build.ps1') {
 
                 @{
                     File                    = $MyInvocation.MyCommand.Path
-                    Task                    = 'PSModulePath_BuildModules',
-                    'Load_Datum_ConfigData',
-                    'Compile_Datum_Rsop',
-                    'Compile_Root_Configuration',
-                    'Compile_Root_Meta_Mof'
+                    Task                    = 'WaitForMutex',
+                    'LoadDatumConfigData',
+                    'CompileDatumRsop',
+                    'CompileRootConfiguration',
+                    'CompileRootMetaMof'
                     Filter                  = [scriptblock]::Create($filterString)
                     MofCompilationTaskCount = $MofCompilationTaskCount
                     ProjectPath             = $ProjectPath
@@ -148,7 +149,9 @@ if ($MyInvocation.ScriptName -notlike '*Invoke-Build.ps1') {
         }
     }
 
-    Invoke-Build  -File "$ProjectPath\PostBuild.ps1"
+    if (($Tasks -contains 'CompileRootConfiguration' -and $Tasks -contains 'CompileRootMetaMof') -or -not $Tasks) {
+        Invoke-Build -File "$ProjectPath\PostBuild.ps1"
+    }
 
     $m.Dispose()
     Write-Host "Created $((Get-ChildItem -Path "$BuildOutput\MOF" -Filter *.mof).Count) MOF files in '$BuildOutput/MOF'" -ForegroundColor Green
@@ -171,33 +174,31 @@ if ($TaskHeader) {
 
 if ($MofCompilationTaskCount -gt 1) {
     task . Init,
-    Clean_BuildOutput,
+    CleanBuildOutput,
     SetPsModulePath,
     Download_All_Dependencies,
-    PSModulePath_BuildModules,
-    Test_ConfigData,
+    TestConfigData,
     VersionControl,
-    Load_Datum_ConfigData
+    LoadDatumConfigData
 }
 else {
     if (-not $Tasks) {
         task . Init,
-        Clean_BuildOutput,
+        CleanBuildOutput,
         SetPsModulePath,
-        PSModulePath_BuildModules,
-        Test_ConfigData,
+        TestConfigData,
         VersionControl,
-        Load_Datum_ConfigData,
-        Compile_Datum_Rsop,
-        Compile_Root_Configuration,
-        Compile_Root_Meta_Mof
+        LoadDatumConfigData,
+        CompileDatumRsop,
+        CompileRootConfiguration,
+        CompileRootMetaMof
     }
     else {
         task . $Tasks
     }
 }
 
-task Download_All_Dependencies -if ($DownloadResourcesAndConfigurations -or $Tasks -contains 'Download_All_Dependencies') Download_DSC_Configurations, Download_DSC_Resources -Before PSModulePath_BuildModules
+task Download_All_Dependencies -if ($DownloadResourcesAndConfigurations -or $Tasks -contains 'Download_All_Dependencies') Download_DSC_Configurations, Download_DSC_Resources -Before SetPsModulePath
 
 $configurationPath = Join-Path -Path $ProjectPath -ChildPath $ConfigurationsFolder
 $resourcePath = Join-Path -Path $ProjectPath -ChildPath $ResourcesFolder
@@ -225,18 +226,4 @@ task Clean_DSC_Resources_Folder {
 
 task Clean_DSC_Configurations_Folder {
     Get-ChildItem -Path "$ConfigurationsFolder" -Recurse | Remove-Item -Force -Recurse -Exclude README.md
-}
-
-task Test_ConfigData {
-    if (-not (Test-Path -Path $testsPath)) {
-        Write-Build Yellow "Path for tests '$testsPath' does not exist"
-        return
-    }
-    if (-not ([System.IO.Path]::IsPathRooted($BuildOutput))) {
-        $BuildOutput = Join-Path -Path $PSScriptRoot -ChildPath $BuildOutput
-    }
-    $testResultsPath = Join-Path -Path $BuildOutput -ChildPath TestResults.xml
-    $testResults = Invoke-Pester -Script $testsPath -PassThru -OutputFile $testResultsPath -OutputFormat NUnitXml
-
-    assert ($testResults.FailedCount -eq 0)
 }

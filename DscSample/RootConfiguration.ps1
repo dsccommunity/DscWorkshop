@@ -5,13 +5,7 @@ Write-Host ------------------------------------------------------------
 Get-DscResource -Module CommonTasks | Out-String | Write-Host
 Write-Host ------------------------------------------------------------
 
-if ($Env:BuildVersion) {
-    $BuildVersion = $Env:BuildVersion
-}
-elseif ($gitshortid = (& git rev-parse --short HEAD)) {
-    $BuildVersion = $gitshortid
-}
-else {
+if (-not $env:BHBuildVersion) {
     $BuildVersion = '0.0.0'
 }
 
@@ -20,7 +14,7 @@ configuration "RootConfiguration"
     Import-DscResource -ModuleName PSDesiredStateConfiguration
     Import-DscResource -ModuleName CommonTasks
 
-    $module = Get-Module PSDesiredStateConfiguration
+    $module = Get-Module -Name PSDesiredStateConfiguration
     $null = & $module {param($tag,$Env) $Script:PSTopConfigurationName = "MOF_$($Env)_$($tag)"} "$BuildVersion",$Environment
 
     node $ConfigurationData.AllNodes.NodeName {
