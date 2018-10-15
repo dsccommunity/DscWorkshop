@@ -71,11 +71,11 @@ if (-not $ProjectPath) {
     $ProjectPath = $PSScriptRoot
 }
 
-if (-not ([System.IO.Path]::IsPathRooted($buildOutput))) {
-    $buildOutput = Join-Path -Path $ProjectPath -ChildPath $buildOutput
+if (-not ([System.IO.Path]::IsPathRooted($BuildOutput))) {
+    $BuildOutput = Join-Path -Path $ProjectPath -ChildPath $BuildOutput
 }
 
-$buildModulesPath = Join-Path -Path $buildOutput -ChildPath 'Modules'
+$buildModulesPath = Join-Path -Path $BuildOutput -ChildPath 'Modules'
 if (-not (Test-Path -Path $buildModulesPath)) {
     $null = mkdir -Path $buildModulesPath -Force
 }
@@ -96,6 +96,7 @@ if ($ResolveDependency) {
     Resolve-Dependency
 }
 
+#importing all resources from .build directory
 Get-ChildItem -Path "$PSScriptRoot/.build/" -Recurse -Include *.ps1 |
     ForEach-Object {
     Write-Verbose "Importing file $($_.BaseName)"
