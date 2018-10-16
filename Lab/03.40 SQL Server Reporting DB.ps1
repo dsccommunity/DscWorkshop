@@ -16,7 +16,7 @@ if (-not (Get-Module -Name ReportingServicesTools -ListAvailable))
     Install-Module -Name ReportingServicesTools -Force
 }
 $s = New-LabPSSession -ComputerName $sqlServer
-Send-ModuleToPSSession -Module (Get-Module -Name ReportingServicesTools -ListAvailable) -Session $s
+Send-ModuleToPSSession -Module (Get-Module -Name ReportingServicesTools -ListAvailable | Select-Object -First 1) -Session $s
 
 Copy-LabFileItem -Path $PSScriptRoot\Reports -ComputerName $sqlServer -DestinationFolderPath C:\ -Recurse -UseAzureLabSourcesOnAzureVm $false
 
@@ -29,3 +29,6 @@ Invoke-LabCommand -ActivityName 'Add DSC Reports to Reporting Server' -ComputerN
 
     Write-RsFolderContent -ReportServerUri http://localhost/ReportServer -Path C:\Reports -Destination /DSC
 }
+
+Checkpoint-LabVM -All -SnapshotName AfterSqlReporting
+Write-Host "4. - Creating Snapshot 'AfterSqlReporting'" -ForegroundColor Magenta
