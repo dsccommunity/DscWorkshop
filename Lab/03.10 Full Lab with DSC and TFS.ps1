@@ -50,7 +50,7 @@ Add-LabMachineDefinition -Name DSCCASQL01 -Memory 3GB -Roles CaRoot, SQLServer20
 
 # DSC Pull Server with SQL server backing, TFS Build Worker
 $roles = @(
-    Get-LabMachineRoleDefinition -Role DSCPullServer -Properties @{ DoNotPushLocalModules = 'true' } #; DatabaseEngine = 'mdb' }
+    Get-LabMachineRoleDefinition -Role DSCPullServer -Properties @{ DoNotPushLocalModules = 'true'; DatabaseEngine = 'sql'; SqlServer = 'DSCCASQL01'; DatabaseName = 'DSC' }
     Get-LabMachineRoleDefinition -Role TfsBuildWorker
     Get-LabMachineRoleDefinition -Role WebServer
 )
