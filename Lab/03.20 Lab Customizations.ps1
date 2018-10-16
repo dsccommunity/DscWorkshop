@@ -73,8 +73,12 @@ Invoke-LabCommand -ActivityName 'Install VSCode Extensions' -ComputerName $tfsSe
 Invoke-LabCommand -ActivityName 'Create link to TFS' -ComputerName $tfsServer -ScriptBlock {
     $shell = New-Object -ComObject WScript.Shell
     $desktopPath = [System.Environment]::GetFolderPath('Desktop')
-    $shortcut = $shell.CreateShortcut("$desktopPath\TFS.url")
+    $shortcut = $shell.CreateShortcut("$desktopPath\DscWorkshop TFS Project.url")
     $shortcut.TargetPath = "http://$($tfsServer):8080/AutomatedLab/DscWorkshop"
+    $shortcut.Save()
+
+    $shortcut = $shell.CreateShortcut("$desktopPath\CommonTasks TFS Project.url")
+    $shortcut.TargetPath = "http://$($tfsServer):8080/AutomatedLab/CommonTasks"
     $shortcut.Save()
     
     $shortcut = $shell.CreateShortcut("$desktopPath\ProGet.url")
@@ -88,7 +92,7 @@ Invoke-LabCommand -ActivityName 'Create link to TFS' -ComputerName $tfsServer -S
     $shortcut = $shell.CreateShortcut("$desktopPath\Pull Server Endpoint.url")
     $shortcut.TargetPath = "https://$($pullServer.FQDN):8080/PSDSCPullServer.svc/"
     $shortcut.Save()
-} -Variable (Get-Variable -Name tfsServer, sqlServer, proGetServer)
+} -Variable (Get-Variable -Name tfsServer, sqlServer, proGetServer, pullServer)
 
 #in server 2019 there seems to be an issue with dynamic DNS registration, doing this manually
 foreach ($domain in (Get-Lab).Domains)
@@ -113,11 +117,14 @@ foreach ($domain in (Get-Lab).Domains)
     } -ComputerName $dc -Variable (Get-Variable -Name vms) -PassThru
 }
 
-Invoke-LabCommand -ActivityName 'Get latest nuget.exe and register ProGet Repository' -ComputerName (Get-LabVM) -ScriptBlock {
+Invoke-LabCommand -ActivityName 'Get tested nuget.exe and register ProGet Repository' -ComputerName (Get-LabVM) -ScriptBlock {
 
     Install-PackageProvider -Name NuGet -Force
     mkdir -Path C:\ProgramData\Microsoft\Windows\PowerShell\PowerShellGet -Force
-    Invoke-WebRequest -Uri 'https://aka.ms/psget-nugetexe' -OutFile C:\ProgramData\Microsoft\Windows\PowerShell\PowerShellGet\nuget.exe -ErrorAction Stop
+    Invoke-WebRequest -Uri 'https://nuget.org/nuget.exe' -OutFile C:\ProgramData\Microsoft\Windows\PowerShell\PowerShellGet\nuget.exe -ErrorAction Stop
+
+    Install-Module -Name PackageManagement -RequiredVersion 1.1.7.0 -Force -WarningAction SilentlyContinue
+    Install-Module -Name PowerShellGet -RequiredVersion 1.6.0 -Force -WarningAction SilentlyContinue
 
     if (-not (Get-PSRepository -Name PowerShell -ErrorAction SilentlyContinue)) {
         Register-PSRepository -Name PowerShell -SourceLocation $progetUrl -PublishLocation $progetUrl -InstallationPolicy Trusted -ErrorAction Stop
@@ -125,13 +132,19 @@ Invoke-LabCommand -ActivityName 'Get latest nuget.exe and register ProGet Reposi
 
 } -Variable (Get-Variable -Name progetUrl)
 
+Remove-LabPSSession #this is required to make use of the new version of PowerShellGet
+
 Invoke-LabCommand -ActivityName 'Getting required modules and publishing them to ProGet' -ComputerName $tfsServer -ScriptBlock {
 
-    $requiredModules = 'powershell-yaml', 'BuildHelpers', 'datum' , 'DscBuildHelpers', 'InvokeBuild', 'PackageManagement', 'Pester', 'PowerShellGet', 'ProtectedData', 'PSDepend', 'PSDeploy', 'PSScriptAnalyzer', 'xDSCResourceDesigner', 'xPSDesiredStateConfiguration', 'ComputerManagementDsc', 'NetworkingDsc', 'NTFSSecurity'
-    
+    $requiredModules = 'powershell-yaml', 'BuildHelpers', 'datum' , 'DscBuildHelpers', 'InvokeBuild', 'Pester', 'ProtectedData', 'PSDepend', 'PSDeploy', 'PSScriptAnalyzer', 'xDSCResourceDesigner', 'xPSDesiredStateConfiguration', 'ComputerManagementDsc', 'NetworkingDsc', 'NTFSSecurity'
+
     Write-Host "Installing $($requiredModules.Count) modules on $(hostname.exe) for pushing them to the lab"
     Install-Module -Name $requiredModules -Repository PSGallery -Force -AllowClobber -SkipPublisherCheck -WarningAction SilentlyContinue -ErrorAction Stop
 
+    #these modules have been downloaded in a previous step with a dedicated version and should only be published but not dowloaded again.
+    $requiredModules += 'PackageManagement'
+    $requiredModules += 'PowerShellGet'
+    
     Write-Host "Publishing $($requiredModules.Count) modules to the internal gallery (loop 1)"
     foreach ($requiredModule in $requiredModules) {
         Write-Host "`t'$requiredModule'"
@@ -157,11 +170,13 @@ Invoke-LabCommand -ActivityName 'Getting required modules and publishing them to
     foreach ($requiredModule in $requiredModules) {
         Uninstall-Module -Name $requiredModule -ErrorAction SilentlyContinue
     }
-} -Variable (Get-Variable -Name progetUrl)
+}
 
 Invoke-LabCommand -ActivityName 'Disable Git SSL Certificate Check' -ComputerName $tfsServer, $tfsWorker -ScriptBlock {
     [System.Environment]::SetEnvironmentVariable('GIT_SSL_NO_VERIFY', '1', 'Machine')
 }
+
+Remove-LabPSSession #this is required to make use of the new version of PowerShellGet
 
 Invoke-LabCommand -ActivityName 'Create Aftifacts Share' -ComputerName $tfsServer -ScriptBlock {
     $artifactsShareName = 'Artifacts'
