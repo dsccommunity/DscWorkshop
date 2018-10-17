@@ -33,10 +33,9 @@ Invoke-LabCommand -Activity 'Setup Web Site' -ComputerName (Get-LabVm  -Role Web
     New-Website -name "PSConfSite" -PhysicalPath C:\PsConfSite -ApplicationPool "PSConfSite"  
 } -Variable (Get-Variable deployUserName, deployUserPassword)
 
-$vm = Get-LabVM -ComputerName DSCPull01
 Invoke-LabCommand -ActivityName 'Add ProGet DNS A record' -ComputerName (Get-LabVM -Role RootDC) -ScriptBlock {
-    Add-DnsServerResourceRecord -ZoneName $vm.DomainName -IPv4Address $vm.IpV4Address -Name ProGet -A
-} -Variable (Get-Variable -Name vm)
+    Add-DnsServerResourceRecord -ZoneName $pullServer.DomainName -IPv4Address $pullServer.IpV4Address -Name ProGet -A
+} -Variable (Get-Variable -Name pullServer)
 
 # File server
 Invoke-LabCommand -Activity 'Creating folders and shares' -ComputerName (Get-LabVM -Role FileServer) -ScriptBlock {
@@ -60,7 +59,7 @@ New-Item -ItemType Directory -Path $labSources\SoftwarePackages\VSCodeExtensions
 Get-LabInternetFile -Uri https://marketplace.visualstudio.com/_apis/public/gallery/publishers/ms-vscode/vsextensions/PowerShell/1.6.0/vspackage -Path $labSources\SoftwarePackages\VSCodeExtensions\ps.vsix
 
 Install-LabSoftwarePackage -Path $labSources\SoftwarePackages\VSCodeSetup.exe -CommandLine /SILENT -ComputerName $tfsServer
-Install-LabSoftwarePackage -Path $labSources\SoftwarePackages\Git.exe -CommandLine /SILENT -ComputerName $tfsServer
+Install-LabSoftwarePackage -Path $labSources\SoftwarePackages\Git.exe -CommandLine /SILENT -ComputerName ((@($tfsServer) + $tfsWorker) | Select-Object -Unique)
 Restart-LabVM -ComputerName $tfsServer #somehow required to finish all parts of the VSCode installation
 
 Copy-LabFileItem -Path $labSources\SoftwarePackages\VSCodeExtensions -ComputerName $tfsServer
@@ -134,21 +133,24 @@ Invoke-LabCommand -ActivityName 'Get tested nuget.exe and register ProGet Reposi
 
 Remove-LabPSSession #this is required to make use of the new version of PowerShellGet
 
-Invoke-LabCommand -ActivityName 'Getting required modules and publishing them to ProGet' -ComputerName $tfsServer -ScriptBlock {
+Restart-LabVM -ComputerName $pullServer
+
+Invoke-LabCommand -ActivityName 'Downloading required modules from PSGallery' -ComputerName $tfsServer -ScriptBlock {
 
     $requiredModules = 'powershell-yaml', 'BuildHelpers', 'datum' , 'DscBuildHelpers', 'InvokeBuild', 'Pester', 'ProtectedData', 'PSDepend', 'PSDeploy', 'PSScriptAnalyzer', 'xDSCResourceDesigner', 'xPSDesiredStateConfiguration', 'ComputerManagementDsc', 'NetworkingDsc', 'NTFSSecurity'
 
     Write-Host "Installing $($requiredModules.Count) modules on $(hostname.exe) for pushing them to the lab"
     Install-Module -Name $requiredModules -Repository PSGallery -Force -AllowClobber -SkipPublisherCheck -WarningAction SilentlyContinue -ErrorAction Stop
+}
 
-    #these modules have been downloaded in a previous step with a dedicated version and should only be published but not dowloaded again.
-    $requiredModules += 'PackageManagement'
-    $requiredModules += 'PowerShellGet'
-    
+Invoke-LabCommand -ActivityName 'Publishing required mofules to internal ProGet repository' -ComputerName $tfsServer -ScriptBlock {
+
+    $requiredModules =  'PackageManagement', 'PowerShellGet', 'powershell-yaml', 'BuildHelpers', 'datum' , 'DscBuildHelpers', 'InvokeBuild', 'Pester', 'ProtectedData', 'PSDepend', 'PSDeploy', 'PSScriptAnalyzer', 'xDSCResourceDesigner', 'xPSDesiredStateConfiguration', 'ComputerManagementDsc', 'NetworkingDsc', 'NTFSSecurity'
+
     Write-Host "Publishing $($requiredModules.Count) modules to the internal gallery (loop 1)"
     foreach ($requiredModule in $requiredModules) {
-        Write-Host "`t'$requiredModule'"
         $module = Get-Module $requiredModule -ListAvailable | Sort-Object -Property Version -Descending | Select-Object -First 1
+        Write-Host "`t'$($module.Name) - $($module.Version)'"
         if (-not (Find-Module -Name $requiredModule -Repository PowerShell -ErrorAction SilentlyContinue)) {
             Publish-Module -Name $requiredModule -RequiredVersion $module.Version -Repository PowerShell -NuGetApiKey 'Install@Contoso.com:Somepass1' -Force -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
         }
@@ -156,8 +158,8 @@ Invoke-LabCommand -ActivityName 'Getting required modules and publishing them to
     
     Write-Host "Publishing $($requiredModules.Count) modules to the internal gallery (loop 2)"
     foreach ($requiredModule in $requiredModules) {
-        Write-Host "`t'$requiredModule'"
         $module = Get-Module $requiredModule -ListAvailable | Sort-Object -Property Version -Descending | Select-Object -First 1
+        Write-Host "`t'$($module.Name) - $($module.Version)'"
         if (-not (Find-Module -Name $requiredModule -Repository PowerShell -ErrorAction SilentlyContinue)) {
             Publish-Module -Name $requiredModule -RequiredVersion $module.Version -Repository PowerShell -NuGetApiKey 'Install@Contoso.com:Somepass1' -Force #-ErrorAction SilentlyContinue -WarningAction SilentlyContinue
         }
