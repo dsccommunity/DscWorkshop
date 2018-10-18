@@ -69,18 +69,20 @@ $roles = @(
 Add-LabMachineDefinition -Name DSCTFS01 -Memory 2GB -Roles $roles
 
 # DSC target nodes - our legacy VMs with an existing configuration
+# Servers in Dev
+Add-LabMachineDefinition -Name DSCFile01 -Memory 1GB -OperatingSystem 'Windows Server 2016 Datacenter Evaluation' -Roles FileServer
+Add-LabMachineDefinition -Name DSCWeb01 -Memory 1GB -OperatingSystem 'Windows Server 2016 Datacenter Evaluation' -Roles WebServer
+Add-LabMachineDefinition -Name DSCFile99 -Memory 1GB -OperatingSystem 'Windows Server 2016 Datacenter Evaluation' -Roles FileServer
 
-# Your run-of-the-mill file server in Dev
-Add-LabMachineDefinition -Name "DSCFile01" -Memory 1GB -OperatingSystem 'Windows Server 2016 Datacenter Evaluation' -Roles FileServer
-# and Prod
-Add-LabMachineDefinition -Name "DSCFile02" -Memory 1GB -OperatingSystem 'Windows Server 2016 Datacenter Evaluation' -Roles FileServer
+# Servers in Pilot
+Add-LabMachineDefinition -Name DSCFile02 -Memory 1GB -OperatingSystem 'Windows Server 2016 Datacenter Evaluation' -Roles FileServer
+Add-LabMachineDefinition -Name DSCWeb02 -Memory 1GB -OperatingSystem 'Windows Server 2016 Datacenter Evaluation' -Roles WebServer
 
-# The ubiquitous web server in Dev
-Add-LabMachineDefinition -Name "DSCWeb01" -Memory 1GB -OperatingSystem 'Windows Server 2016 Datacenter Evaluation' -Roles WebServer
-# and Prod
-Add-LabMachineDefinition -Name "DSCWeb02" -Memory 1GB -OperatingSystem 'Windows Server 2016 Datacenter Evaluation' -Roles WebServer
+# Servers in Prod
+#Add-LabMachineDefinition -Name DSCFile03 -Memory 1GB -OperatingSystem 'Windows Server 2016 Datacenter Evaluation' -Roles FileServer
+#Add-LabMachineDefinition -Name DSCWeb03 -Memory 1GB -OperatingSystem 'Windows Server 2016 Datacenter Evaluation' -Roles WebServer
 
-Install-Lab
+#Install-Lab
 
 Enable-LabCertificateAutoenrollment -Computer -User
 Install-LabWindowsFeature -ComputerName (Get-LabVM -Role DSCPullServer, FileServer, WebServer, Tfs2018) -FeatureName RSAT-AD-Tools
