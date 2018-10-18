@@ -17,7 +17,8 @@ Write-Host "Lab is connected to the internet, continuing with customizations."
 $deployUserName = (Get-LabVm -Role WebServer).GetCredential((Get-Lab)).UserName
 $deployUserPassword = (Get-LabVm  -Role WebServer).GetCredential((Get-Lab)).GetNetworkCredential().Password
 
-Copy-LabFileItem -Path "$PSScriptRoot\LabData\LabSite.zip" -ComputerName (Get-LabVm  -Role WebServer)
+Copy-LabFileItem -Path "$PSScriptRoot\LabData\LabSite.zip" -ComputerName (Get-LabVm -Role WebServer)
+Copy-LabFileItem -Path "$PSScriptRoot\LabData\DummyService.exe" -ComputerName (Get-LabVm -Role WebServer)
 
 Invoke-LabCommand -Activity 'Setup Web Site' -ComputerName (Get-LabVm  -Role WebServer) -ScriptBlock {
 
