@@ -72,7 +72,6 @@ Add-LabMachineDefinition -Name DSCTFS01 -Memory 2GB -Roles $roles
 # Servers in Dev
 Add-LabMachineDefinition -Name DSCFile01 -Memory 1GB -OperatingSystem 'Windows Server 2016 Datacenter Evaluation' -Roles FileServer
 Add-LabMachineDefinition -Name DSCWeb01 -Memory 1GB -OperatingSystem 'Windows Server 2016 Datacenter Evaluation' -Roles WebServer
-Add-LabMachineDefinition -Name DSCFile99 -Memory 1GB -OperatingSystem 'Windows Server 2016 Datacenter Evaluation' -Roles FileServer
 
 # Servers in Pilot
 Add-LabMachineDefinition -Name DSCFile02 -Memory 1GB -OperatingSystem 'Windows Server 2016 Datacenter Evaluation' -Roles FileServer
