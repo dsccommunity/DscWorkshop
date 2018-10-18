@@ -1,10 +1,12 @@
 - Key: HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\W32Time\Parameters
   ValueName: NtpServer
   ValueData: time.windows.com,0x9;
-  ValueType: DWORD
+  ValueType: String
   Ensure: Present
+  Force: true
 - Key: HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\W32Time\Parameters
   ValueName: NtpServerTest
   ValueData: test.time.windows.com,0x9;
-  ValueType: DWORD
+  ValueType: String
   Ensure: Present
+  Force: true
