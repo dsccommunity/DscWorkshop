@@ -81,7 +81,7 @@ Add-LabMachineDefinition -Name DSCWeb02 -Memory 1GB -OperatingSystem 'Windows Se
 #Add-LabMachineDefinition -Name DSCFile03 -Memory 1GB -OperatingSystem 'Windows Server 2016 Datacenter Evaluation' -Roles FileServer
 #Add-LabMachineDefinition -Name DSCWeb03 -Memory 1GB -OperatingSystem 'Windows Server 2016 Datacenter Evaluation' -Roles WebServer
 
-#Install-Lab
+Install-Lab
 
 Enable-LabCertificateAutoenrollment -Computer -User
 Install-LabWindowsFeature -ComputerName (Get-LabVM -Role DSCPullServer, FileServer, WebServer, Tfs2018) -FeatureName RSAT-AD-Tools
