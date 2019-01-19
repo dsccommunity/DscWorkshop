@@ -4,14 +4,18 @@ Configurations:
 
 FilesAndFolders:
   Items:
-    - DestinationPath: C:\Test1.txt
+    - DestinationPath: C:\Test
+      Type: Directory
+    - DestinationPath: C:\Test\Test1File1.txt
       Type: File
       Contents: Some test data
-    - DestinationPath: C:\Test2.txt
+      DependsOn: '[File]C\Test'
+    - DestinationPath: C:\Test\Test1File2.txt
       Type: File
       Contents: Some test data
+      DependsOn: '[File]C\Test'
     - DestinationPath: C:\GpoBackup
-      SourcePath: \\dscdc01\SYSVOL\contoso.com\Policies
+      SourcePath: \\DSCDC01\SYSVOL\contoso.com\Policies
       Type: Directory
 
 RegistryValues:
