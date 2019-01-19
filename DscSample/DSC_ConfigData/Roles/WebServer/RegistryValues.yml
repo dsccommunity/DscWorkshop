@@ -1,4 +1,4 @@
-Items:
+Values:
   - Key: HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\W32Time\Parameters
     ValueName: NtpServer
     ValueData: time.windows.com,0x9;
