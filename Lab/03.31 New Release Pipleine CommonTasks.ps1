@@ -12,7 +12,7 @@ $collectionName = 'AutomatedLab'
 Write-ScreenInfo 'Creating TFS project and cloning from GitHub...' -NoNewLine
 
 New-LabReleasePipeline -ProjectName $projectName -SourceRepository $projectGitUrl -CodeUploadMethod FileCopy
-$tfsAgentQueue = Get-TfsAgentQueue -InstanceName $tfsServer -Port $tfsPort -Credential $tfsCred -ProjectName $projectName -CollectionName $collectionName -QueueName Default
+$tfsAgentQueue = Get-TfsAgentQueue -InstanceName $tfsServer -Port $tfsPort -Credential $tfsCred -ProjectName $projectName -CollectionName $collectionName -QueueName Default -UseSsl
 
 #region Build and Release Definitions
 # Create a new release pipeline
@@ -269,9 +269,9 @@ $releaseEnvironments = @(
 )
 #endregion
 
-$repo = Get-TfsGitRepository -InstanceName $tfsServer -Port 8080 -CollectionName $collectionName -ProjectName $projectName -Credential $tfsCred
-$refs = (Invoke-RestMethod -Uri "http://$($tfsServer):$tfsPort/$collectionName/_apis/git/repositories/{$($repo.id)}/refs?api-version=4.1" -Credential $tfsCred).value.name
-New-TfsBuildDefinition -ProjectName $projectName -InstanceName $tfsServer -Port $tfsPort -DefinitionName "$($projectName)Build" -CollectionName $collectionName -BuildTasks $buildSteps -Variables @{ GalleryUri = 'http://dscpull01.contoso.com/nuget/PowerShell' } -CiTriggerRefs $refs -Credential $tfsCred -ApiVersion 4.1
+$repo = Get-TfsGitRepository -InstanceName $tfsServer -Port 8080 -CollectionName $collectionName -ProjectName $projectName -Credential $tfsCred -UseSsl
+$refs = (Invoke-RestMethod -Uri "https://$($tfsServer):$tfsPort/$collectionName/_apis/git/repositories/{$($repo.id)}/refs?api-version=4.1" -Credential $tfsCred).value.name
+New-TfsBuildDefinition -ProjectName $projectName -InstanceName $tfsServer -Port $tfsPort -DefinitionName "$($projectName)Build" -CollectionName $collectionName -BuildTasks $buildSteps -Variables @{ GalleryUri = 'http://dscpull01.contoso.com/nuget/PowerShell' } -CiTriggerRefs $refs -Credential $tfsCred -ApiVersion 4.1 -UseSsl
 
-New-TfsReleaseDefinition -ProjectName $projectName -InstanceName $tfsServer -Port $tfsPort -ReleaseName "$($projectName)Release" -Environments $releaseEnvironments -Credential $tfsCred -CollectionName $collectionName
+New-TfsReleaseDefinition -ProjectName $projectName -InstanceName $tfsServer -Port $tfsPort -ReleaseName "$($projectName)Release" -Environments $releaseEnvironments -Credential $tfsCred -CollectionName $collectionName -UseSsl
 Write-ScreenInfo done
