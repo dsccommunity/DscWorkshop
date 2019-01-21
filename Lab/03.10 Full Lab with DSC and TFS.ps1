@@ -59,27 +59,27 @@ $proGetRole = Get-LabPostInstallationActivity -CustomRole ProGet5 -Properties @{
     SqlServer          = 'DSCCASQL01'
 }
 
-Add-LabMachineDefinition -Name DSCPULL01 -Memory 2GB -Roles $roles -PostInstallationActivity $proGetRole -OperatingSystem 'Windows Server 2019 Datacenter (Desktop Experience)'
+Add-LabMachineDefinition -Name DSCPULL01 -Memory 2GB -Roles $roles -IpAddress 192.168.111.60 -PostInstallationActivity $proGetRole -OperatingSystem 'Windows Server 2019 Datacenter (Desktop Experience)'
 
 # Build Server
 $roles = @(
     Get-LabMachineRoleDefinition -Role Tfs2018
     Get-LabMachineRoleDefinition -Role TfsBuildWorker
 )
-Add-LabMachineDefinition -Name DSCTFS01 -Memory 2GB -Roles $roles
+Add-LabMachineDefinition -Name DSCTFS01 -Memory 2GB -Roles $roles -IpAddress 192.168.111.70
 
 # DSC target nodes - our legacy VMs with an existing configuration
 # Servers in Dev
-Add-LabMachineDefinition -Name DSCFile01 -Memory 1GB -OperatingSystem 'Windows Server 2016 Datacenter Evaluation' -Roles FileServer
-Add-LabMachineDefinition -Name DSCWeb01 -Memory 1GB -OperatingSystem 'Windows Server 2016 Datacenter Evaluation' -Roles WebServer
+Add-LabMachineDefinition -Name DSCFile01 -Memory 1GB -OperatingSystem 'Windows Server 2016 Datacenter Evaluation' -Roles FileServer -IpAddress 192.168.111.100
+Add-LabMachineDefinition -Name DSCWeb01 -Memory 1GB -OperatingSystem 'Windows Server 2016 Datacenter Evaluation' -Roles WebServer -IpAddress 192.168.111.101
 
 # Servers in Pilot
-Add-LabMachineDefinition -Name DSCFile02 -Memory 1GB -OperatingSystem 'Windows Server 2016 Datacenter Evaluation' -Roles FileServer
-Add-LabMachineDefinition -Name DSCWeb02 -Memory 1GB -OperatingSystem 'Windows Server 2016 Datacenter Evaluation' -Roles WebServer
+Add-LabMachineDefinition -Name DSCFile02 -Memory 1GB -OperatingSystem 'Windows Server 2016 Datacenter Evaluation' -Roles FileServer -IpAddress 192.168.111.110
+Add-LabMachineDefinition -Name DSCWeb02 -Memory 1GB -OperatingSystem 'Windows Server 2016 Datacenter Evaluation' -Roles WebServer -IpAddress 192.168.111.111
 
 # Servers in Prod
-#Add-LabMachineDefinition -Name DSCFile03 -Memory 1GB -OperatingSystem 'Windows Server 2016 Datacenter Evaluation' -Roles FileServer
-#Add-LabMachineDefinition -Name DSCWeb03 -Memory 1GB -OperatingSystem 'Windows Server 2016 Datacenter Evaluation' -Roles WebServer
+Add-LabMachineDefinition -Name DSCFile03 -Memory 1GB -OperatingSystem 'Windows Server 2016 Datacenter Evaluation' -Roles FileServer -IpAddress 192.168.111.120
+Add-LabMachineDefinition -Name DSCWeb03 -Memory 1GB -OperatingSystem 'Windows Server 2016 Datacenter Evaluation' -Roles WebServer -IpAddress 192.168.111.121
 
 Install-Lab
 
