@@ -76,11 +76,11 @@ Invoke-LabCommand -ActivityName 'Create link to TFS' -ComputerName $tfsServer -S
     $shell = New-Object -ComObject WScript.Shell
     $desktopPath = [System.Environment]::GetFolderPath('Desktop')
     $shortcut = $shell.CreateShortcut("$desktopPath\DscWorkshop TFS Project.url")
-    $shortcut.TargetPath = "http://$($tfsServer):8080/AutomatedLab/DscWorkshop"
+    $shortcut.TargetPath = "https://$($tfsServer):8080/AutomatedLab/DscWorkshop"
     $shortcut.Save()
 
     $shortcut = $shell.CreateShortcut("$desktopPath\CommonTasks TFS Project.url")
-    $shortcut.TargetPath = "http://$($tfsServer):8080/AutomatedLab/CommonTasks"
+    $shortcut.TargetPath = "https://$($tfsServer):8080/AutomatedLab/CommonTasks"
     $shortcut.Save()
     
     $shortcut = $shell.CreateShortcut("$desktopPath\ProGet.url")
@@ -140,7 +140,7 @@ Restart-LabVM -ComputerName $pullServer
 
 Invoke-LabCommand -ActivityName 'Downloading required modules from PSGallery' -ComputerName $tfsServer -ScriptBlock {
 
-    $requiredModules = 'powershell-yaml', 'BuildHelpers', 'datum' , 'DscBuildHelpers', 'InvokeBuild', 'Pester', 'ProtectedData', 'PSDepend', 'PSDeploy', 'PSScriptAnalyzer', 'xDSCResourceDesigner', 'xPSDesiredStateConfiguration', 'ComputerManagementDsc', 'NetworkingDsc', 'NTFSSecurity'
+    $requiredModules = 'powershell-yaml', 'BuildHelpers', 'datum' , 'DscBuildHelpers', 'InvokeBuild', 'Pester', 'ProtectedData', 'PSDepend', 'PSDeploy', 'PSScriptAnalyzer', 'xDSCResourceDesigner', 'xPSDesiredStateConfiguration', 'ComputerManagementDsc', 'NetworkingDsc', 'NTFSSecurity', 'JeaDsc', 'XmlContentDsc'
 
     Write-Host "Installing $($requiredModules.Count) modules on $(hostname.exe) for pushing them to the lab"
     Install-Module -Name $requiredModules -Repository PSGallery -Force -AllowClobber -SkipPublisherCheck -WarningAction SilentlyContinue -ErrorAction Stop
@@ -148,7 +148,7 @@ Invoke-LabCommand -ActivityName 'Downloading required modules from PSGallery' -C
 
 Invoke-LabCommand -ActivityName 'Publishing required mofules to internal ProGet repository' -ComputerName $tfsServer -ScriptBlock {
 
-    $requiredModules =  'PackageManagement', 'PowerShellGet', 'powershell-yaml', 'BuildHelpers', 'datum' , 'DscBuildHelpers', 'InvokeBuild', 'Pester', 'ProtectedData', 'PSDepend', 'PSDeploy', 'PSScriptAnalyzer', 'xDSCResourceDesigner', 'xPSDesiredStateConfiguration', 'ComputerManagementDsc', 'NetworkingDsc', 'NTFSSecurity'
+    $requiredModules =  'PackageManagement', 'PowerShellGet', 'powershell-yaml', 'BuildHelpers', 'datum' , 'DscBuildHelpers', 'InvokeBuild', 'Pester', 'ProtectedData', 'PSDepend', 'PSDeploy', 'PSScriptAnalyzer', 'xDSCResourceDesigner', 'xPSDesiredStateConfiguration', 'ComputerManagementDsc', 'NetworkingDsc', 'NTFSSecurity', 'JeaDsc', 'XmlContentDsc'
 
     Write-Host "Publishing $($requiredModules.Count) modules to the internal gallery (loop 1)"
     foreach ($requiredModule in $requiredModules) {
@@ -164,7 +164,7 @@ Invoke-LabCommand -ActivityName 'Publishing required mofules to internal ProGet 
         $module = Get-Module $requiredModule -ListAvailable | Sort-Object -Property Version -Descending | Select-Object -First 1
         Write-Host "`t'$($module.Name) - $($module.Version)'"
         if (-not (Find-Module -Name $requiredModule -Repository PowerShell -ErrorAction SilentlyContinue)) {
-            Publish-Module -Name $requiredModule -RequiredVersion $module.Version -Repository PowerShell -NuGetApiKey 'Install@Contoso.com:Somepass1' -Force #-ErrorAction SilentlyContinue -WarningAction SilentlyContinue
+            Publish-Module -Name $requiredModule -RequiredVersion $module.Version -Repository PowerShell -NuGetApiKey 'Install@Contoso.com:Somepass1' -Force
         }
     }
     
