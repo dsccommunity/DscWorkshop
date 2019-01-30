@@ -58,7 +58,7 @@ Install-ChocolateyPackage VisualStudioCode
 [Environment]::SetEnvironmentVariable('Path',($Env:Path + ';' + 'C:\Program Files\Git\bin'),'Process')
 ```
 
-Should you want to work with the [AutomatedLab part, pull their dependencies listed here](./1.AutomatedLab.md#prerequisites).
+Should you want to work with the [AutomatedLab part, pull their dependencies listed here](./01%20AutomatedLab.md#prerequisites).
 
 For Building DSC Artefacts and composing your configurations, you should be all set.
 
@@ -82,5 +82,5 @@ Make it your own.
 
 ## Next Steps
 
-1. [AutomatedLab's DscWorkshop Lab](./1.AutomatedLab.md)
-2. [Building DSC Artefacts](./2.Building_DSC_Artefacts.md)
+1. [AutomatedLab's DscWorkshop Lab](./01%20AutomatedLab.md)
+2. [Building DSC Artefacts](./02%20Building_DSC_Artefacts.md)
