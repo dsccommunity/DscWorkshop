@@ -39,11 +39,12 @@ To do it the manual way, follow the next steps:
     ![Test results](./img/PublishTests.png)
 5. As a last step, we need to make sure that all build artifacts (MOF, meta.MOF and modules) are published. These artifacts will be used in the release and can be published on an Azure Automation DSC pull server, an on-premises pull server or actively pushed to your infrastructure.  
     Add one step for each of the following artifact types:  
-    |DisplayName|Path|Artifact name|
-    |---|---|---|
-    |MOF|$(Build.SourcesDirectory)\DscSample\BuildOutput\MOF|MOF|
-    |Meta.MOF|$(Build.SourcesDirectory)\DscSample\BuildOutput\MetaMof|MetaMof
-    |Modules|$(Build.SourcesDirectory)\DscSample\BuildOutput\CompressedModules|CompressedModules
+    
+    |DisplayName|Path|Artifact name|  
+    |---|---|---|  
+    |MOF|$(Build.SourcesDirectory)\DscSample\BuildOutput\MOF|MOF|  
+    |Meta.MOF|$(Build.SourcesDirectory)\DscSample\BuildOutput\MetaMof|MetaMof|  
+    |Modules|$(Build.SourcesDirectory)\DscSample\BuildOutput\CompressedModules|CompressedModules|  
 6. At the moment, our build has no triggers. Navigate to the Triggers tab and enable the continuous integration trigger. The branch filters should include master and dev.
 7. Once done, just select Save & queue to kick off your first infrastructure build. Click on the build number (e.g. Build #1) to jump to the build console, lie back and wait for the artifacts to be built.
 
