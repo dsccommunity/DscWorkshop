@@ -7,6 +7,26 @@ $souter = Get-LabVM -Role Routing
 $progetServer = Get-LabVM | Where-Object { $_.PostInstallationActivity.RoleName -like 'ProGet*' }
 $progetUrl = "http://$($progetServer.FQDN)/nuget/PowerShell"
 
+$requiredModules = @{
+        'powershell-yaml' = 'latest'
+        BuildHelpers = 'latest'
+        datum = '0.0.35'
+        DscBuildHelpers = 'latest'
+        InvokeBuild = 'latest'
+        Pester = 'latest'
+        ProtectedData = 'latest'
+        PSDepend = 'latest'
+        PSDeploy = 'latest'
+        PSScriptAnalyzer = 'latest'
+        xDSCResourceDesigner = 'latest'
+        xPSDesiredStateConfiguration = 'latest'
+        ComputerManagementDsc = 'latest'
+        NetworkingDsc = 'latest'
+        NTFSSecurity = 'latest'
+        JeaDsc = 'latest'
+        XmlContentDsc = 'latest'
+    }
+
 if (-not (Test-LabMachineInternetConnectivity -ComputerName $tfsServer))
 {
     Write-Error "The lab is not connected to the internet. Check the connectivity of the machine '$router' which is acting as a router." -ErrorAction Stop
@@ -140,42 +160,56 @@ Restart-LabVM -ComputerName $pullServer
 
 Invoke-LabCommand -ActivityName 'Downloading required modules from PSGallery' -ComputerName $tfsServer -ScriptBlock {
 
-    $requiredModules = 'powershell-yaml', 'BuildHelpers', 'datum' , 'DscBuildHelpers', 'InvokeBuild', 'Pester', 'ProtectedData', 'PSDepend', 'PSDeploy', 'PSScriptAnalyzer', 'xDSCResourceDesigner', 'xPSDesiredStateConfiguration', 'ComputerManagementDsc', 'NetworkingDsc', 'NTFSSecurity', 'JeaDsc', 'XmlContentDsc'
-
     Write-Host "Installing $($requiredModules.Count) modules on $(hostname.exe) for pushing them to the lab"
-    Install-Module -Name $requiredModules -Repository PSGallery -Force -AllowClobber -SkipPublisherCheck -WarningAction SilentlyContinue -ErrorAction Stop
-}
+    
+    foreach ($requiredModule in $requiredModules.GetEnumerator())
+    {
+        $installModuleParams = @{
+            Name  = $requiredModule
+            Repository  = 'PSGallery'
+            Force  = $true
+            AllowClobber = $true
+            SkipPublisherCheck = $true
+            WarningAction = 'SilentlyContinue'
+            ErrorAction = 'Stop'
+        }
+        if ($requiredModule.Value -ne 'latest')
+        {
+            $installModuleParams.Add('RequiredVersion', $requiredModule.Value)
+        }
+        Write-Host "Installing module '$($requiredModule.Key)'"
+        Install-Module @installModuleParams
+    }
+} -Variable (Get-Variable -Name requiredModules)
 
 Invoke-LabCommand -ActivityName 'Publishing required mofules to internal ProGet repository' -ComputerName $tfsServer -ScriptBlock {
 
-    $requiredModules =  'PackageManagement', 'PowerShellGet', 'powershell-yaml', 'BuildHelpers', 'datum' , 'DscBuildHelpers', 'InvokeBuild', 'Pester', 'ProtectedData', 'PSDepend', 'PSDeploy', 'PSScriptAnalyzer', 'xDSCResourceDesigner', 'xPSDesiredStateConfiguration', 'ComputerManagementDsc', 'NetworkingDsc', 'NTFSSecurity', 'JeaDsc', 'XmlContentDsc'
-
     Write-Host "Publishing $($requiredModules.Count) modules to the internal gallery (loop 1)"
-    foreach ($requiredModule in $requiredModules) {
-        $module = Get-Module $requiredModule -ListAvailable | Sort-Object -Property Version -Descending | Select-Object -First 1
+    foreach ($requiredModule in $requiredModules.GetEnumerator()) {
+        $module = Get-Module $requiredModule.Key -ListAvailable | Sort-Object -Property Version -Descending | Select-Object -First 1
         Write-Host "`t'$($module.Name) - $($module.Version)'"
-        if (-not (Find-Module -Name $requiredModule -Repository PowerShell -ErrorAction SilentlyContinue)) {
-            Publish-Module -Name $requiredModule -RequiredVersion $module.Version -Repository PowerShell -NuGetApiKey 'Install@Contoso.com:Somepass1' -Force -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
+        if (-not (Find-Module -Name $requiredModule.Key -Repository PowerShell -ErrorAction SilentlyContinue)) {
+            Publish-Module -Name $requiredModule.Key -RequiredVersion $module.Version -Repository PowerShell -NuGetApiKey 'Install@Contoso.com:Somepass1' -Force -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
         }
     }
     
     Write-Host "Publishing $($requiredModules.Count) modules to the internal gallery (loop 2)"
-    foreach ($requiredModule in $requiredModules) {
-        $module = Get-Module $requiredModule -ListAvailable | Sort-Object -Property Version -Descending | Select-Object -First 1
+    foreach ($requiredModule in $requiredModules.GetEnumerator()) {
+        $module = Get-Module $requiredModule.Key -ListAvailable | Sort-Object -Property Version -Descending | Select-Object -First 1
         Write-Host "`t'$($module.Name) - $($module.Version)'"
-        if (-not (Find-Module -Name $requiredModule -Repository PowerShell -ErrorAction SilentlyContinue)) {
-            Publish-Module -Name $requiredModule -RequiredVersion $module.Version -Repository PowerShell -NuGetApiKey 'Install@Contoso.com:Somepass1' -Force
+        if (-not (Find-Module -Name $requiredModule.Key -Repository PowerShell -ErrorAction SilentlyContinue)) {
+            Publish-Module -Name $requiredModule.Key -RequiredVersion $module.Version -Repository PowerShell -NuGetApiKey 'Install@Contoso.com:Somepass1' -Force
         }
     }
     
     Write-Host "Uninstalling $($requiredModules.Count) modules"
-    foreach ($requiredModule in $requiredModules) {
-        Uninstall-Module -Name $requiredModule -ErrorAction SilentlyContinue
+    foreach ($requiredModule in $requiredModules.GetEnumerator()) {
+        Uninstall-Module -Name $requiredModule.Key -ErrorAction SilentlyContinue
     }
-    foreach ($requiredModule in $requiredModules) {
-        Uninstall-Module -Name $requiredModule -ErrorAction SilentlyContinue
+    foreach ($requiredModule in $requiredModules.GetEnumerator()) {
+        Uninstall-Module -Name $requiredModule.Key -ErrorAction SilentlyContinue
     }
-}
+} -Variable (Get-Variable -Name requiredModules)
 
 Invoke-LabCommand -ActivityName 'Disable Git SSL Certificate Check' -ComputerName $tfsServer, $tfsWorker -ScriptBlock {
     [System.Environment]::SetEnvironmentVariable('GIT_SSL_NO_VERIFY', '1', 'Machine')
