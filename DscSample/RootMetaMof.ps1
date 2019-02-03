@@ -2,38 +2,40 @@
 Configuration RootMetaMOF {
     Node $ConfigurationData.AllNodes.GetEnumerator().NodeName {
         
-        $LcmConfig = $(Lookup 'LcmConfig\Settings' $Null)
+        $lcmConfig = Resolve-NodeProperty -PropertyPath LcmConfig\Settings -DefaultValue $null
         #If the Nodename is a GUID, use Config ID instead Named config, as per SMB Pull requirements
-        if($Node.Nodename -as [Guid]) {$LcmConfig['ConfigurationID'] = $Node.Nodename}
-        x Settings '' $LcmConfig
+        if ($Node.Nodename -as [Guid]) {
+            $lcmConfig['ConfigurationID'] = $Node.Nodename
+        }
+        Get-DscSplattedResource -ResourceName Settings -ExecutionName '' -Properties $lcmConfig
 
-        if($ConfigurationRepositoryShare = $(Lookup 'LcmConfig\ConfigurationRepositoryShare' $Null)) {
-            x ConfigurationRepositoryShare ConfigurationRepositoryShare $ConfigurationRepositoryShare
+        if ($configurationRepositoryShare = Resolve-NodeProperty -PropertyPath 'LcmConfig\ConfigurationRepositoryShare' -DefaultValue $null) {
+            Get-DscSplattedResource -ResourceName ConfigurationRepositoryShare -ExecutionName ConfigurationRepositoryShare -Properties $configurationRepositoryShare
         }
 
-        if($ResourceRepositoryShare = $(Lookup 'LcmConfig\ResourceRepositoryShare' $Null)) {
-            x ResourceRepositoryShare ResourceRepositoryShare $ResourceRepositoryShare
+        if ($resourceRepositoryShare = Resolve-NodeProperty -PropertyPath 'LcmConfig\ResourceRepositoryShare' -DefaultValue $null) {
+            Get-DscSplattedResource -ResourceName ResourceRepositoryShare -ExecutionName ResourceRepositoryShare -Properties $resourceRepositoryShare
         }
 
-        if($ConfigurationRepositoryWeb = $(Lookup 'LcmConfig\ConfigurationRepositoryWeb' $Null)) {
-            foreach($ConfigRepoName in $ConfigurationRepositoryWeb.keys) {
-                x ConfigurationRepositoryWeb $ConfigRepoName $ConfigurationRepositoryWeb[$ConfigRepoName]
+        if ($configurationRepositoryWeb = Resolve-NodeProperty -PropertyPath 'LcmConfig\ConfigurationRepositoryWeb' -DefaultValue $null) {
+            foreach ($configRepoName in $configurationRepositoryWeb.Keys) {
+                Get-DscSplattedResource -ResourceName ConfigurationRepositoryWeb -ExecutionName $configRepoName -Properties $configurationRepositoryWeb[$configRepoName]
             }
         }
 
-        if($ResourceRepositoryWeb = $(Lookup 'LcmConfig\ResourceRepositoryWeb' $Null)) {
-            foreach($ResourceRepoName in $ResourceRepositoryWeb.keys) {
-                x ResourceRepositoryWeb $ResourceRepoName $ResourceRepositoryWeb[$ResourceRepoName]
+        if ($resourceRepositoryWeb = Resolve-NodeProperty -PropertyPath 'LcmConfig\ResourceRepositoryWeb' -DefaultValue $null) {
+            foreach ($resourceRepoName in $resourceRepositoryWeb.Keys) {
+                Get-DscSplattedResource -ResourceName ResourceRepositoryWeb -ExecutionName $resourceRepoName -Properties $resourceRepositoryWeb[$resourceRepoName]
             }
         }
 
-        if($ReportServerWeb = $(Lookup 'LcmConfig\ReportServerWeb' $Null)) {
-            x ReportServerWeb ReportServerWeb $ReportServerWeb
+        if ($reportServerWeb = Resolve-NodeProperty -PropertyPath 'LcmConfig\ReportServerWeb' -DefaultValue $null) {
+            Get-DscSplattedResource -ResourceName ReportServerWeb -ExecutionName ReportServerWeb -Properties $reportServerWeb
         }
 
-        if($PartialConfiguration = $(Lookup 'LcmConfig\PartialConfiguration' $Null)) {
-            foreach($PartialConfigurationName in $PartialConfiguration.keys) {
-                x PartialConfiguration $PartialConfigurationName $PartialConfiguration[$PartialConfigurationName]
+        if ($partialConfiguration = Resolve-NodeProperty -PropertyPath 'LcmConfig\PartialConfiguration' -DefaultValue $null) {
+            foreach ($partialConfigurationName in $partialConfiguration.Keys) {
+                Get-DscSplattedResource -ResourceName PartialConfiguration -ExecutionName $partialConfigurationName -Properties $partialConfiguration[$partialConfigurationName]
             }
         }
     }
