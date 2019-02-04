@@ -13,7 +13,7 @@
     Pester            = 'latest'
     PSScriptAnalyzer  = 'latest'
     DscBuildHelpers   = 'latest'
-    Datum             = '0.0.35'
+    Datum             = '0.0.36'
     ProtectedData     = 'latest'
     'powershell-yaml' = 'latest'
 }
