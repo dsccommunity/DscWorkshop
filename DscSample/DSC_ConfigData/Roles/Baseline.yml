@@ -1,6 +1,7 @@
 Configurations:
   - SecurityBase
   - WindowsFeatures
+  - NetworkIpConfiguration
 
 WindowsFeatures:
   Name:

@@ -4,10 +4,21 @@ Role: FileServer
 Description: File Server in Pilot
 Location: Frankfurt
 
+NetworkIpConfiguration:
+  IpAddress: 192.168.111.110
+  Prefix: 24
+  Gateway: 192.168.111.50
+  DnsServer: 192.168.111.10
+  InterfaceAlias: Ethernet
+  DisableNetbios: True
+
 PSDscAllowPlainTextPassword: True
 PSDscAllowDomainUser: True
 
 LcmConfig:
+  Settings:
+    ConfigurationModeFrequencyMins: 15
+    ConfigurationMode: ApplyAndAutoCorrect
   ConfigurationRepositoryWeb:
     Server:
       ConfigurationNames: DSCFile02

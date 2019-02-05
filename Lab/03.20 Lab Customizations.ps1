@@ -7,8 +7,28 @@ $souter = Get-LabVM -Role Routing
 $progetServer = Get-LabVM | Where-Object { $_.PostInstallationActivity.RoleName -like 'ProGet*' }
 $progetUrl = "http://$($progetServer.FQDN)/nuget/PowerShell"
 
-if (-not (Test-LabMachineInternetConnectivity -ComputerName $tfsServer))
-{
+$requiredModules = @{
+    'powershell-yaml'            = 'latest'
+    BuildHelpers                 = 'latest'
+    datum                        = '0.0.35'
+    DscBuildHelpers              = 'latest'
+    InvokeBuild                  = 'latest'
+    Pester                       = 'latest'
+    ProtectedData                = 'latest'
+    PSDepend                     = 'latest'
+    PSDeploy                     = 'latest'
+    PSScriptAnalyzer             = 'latest'
+    xDSCResourceDesigner         = 'latest'
+    xPSDesiredStateConfiguration = 'latest'
+    ComputerManagementDsc        = 'latest'
+    NetworkingDsc                = 'latest'
+    NTFSSecurity                 = 'latest'
+    JeaDsc                       = 'latest'
+    XmlContentDsc                = 'latest'
+    PowerShellGet                = 'latest'
+}
+
+if (-not (Test-LabMachineInternetConnectivity -ComputerName $tfsServer)) {
     Write-Error "The lab is not connected to the internet. Check the connectivity of the machine '$router' which is acting as a router." -ErrorAction Stop
 }
 Write-Host "Lab is connected to the internet, continuing with customizations."
@@ -76,11 +96,11 @@ Invoke-LabCommand -ActivityName 'Create link to TFS' -ComputerName $tfsServer -S
     $shell = New-Object -ComObject WScript.Shell
     $desktopPath = [System.Environment]::GetFolderPath('Desktop')
     $shortcut = $shell.CreateShortcut("$desktopPath\DscWorkshop TFS Project.url")
-    $shortcut.TargetPath = "http://$($tfsServer):8080/AutomatedLab/DscWorkshop"
+    $shortcut.TargetPath = "https://$($tfsServer):8080/AutomatedLab/DscWorkshop"
     $shortcut.Save()
 
     $shortcut = $shell.CreateShortcut("$desktopPath\CommonTasks TFS Project.url")
-    $shortcut.TargetPath = "http://$($tfsServer):8080/AutomatedLab/CommonTasks"
+    $shortcut.TargetPath = "https://$($tfsServer):8080/AutomatedLab/CommonTasks"
     $shortcut.Save()
     
     $shortcut = $shell.CreateShortcut("$desktopPath\ProGet.url")
@@ -97,8 +117,7 @@ Invoke-LabCommand -ActivityName 'Create link to TFS' -ComputerName $tfsServer -S
 } -Variable (Get-Variable -Name tfsServer, sqlServer, proGetServer, pullServer)
 
 #in server 2019 there seems to be an issue with dynamic DNS registration, doing this manually
-foreach ($domain in (Get-Lab).Domains)
-{
+foreach ($domain in (Get-Lab).Domains) {
     $vms = Get-LabVM -All -IncludeLinux | Where-Object { 
         $_.DomainName -eq $domain.Name -and
         $_.OperatingSystem -like '*2019*' -or
@@ -108,10 +127,8 @@ foreach ($domain in (Get-Lab).Domains)
     $dc = Get-LabVM -Role ADDS | Where-Object DomainName -eq $domain.Name | Select-Object -First 1
     
     Invoke-LabCommand -ActivityName 'Registering DNS records' -ScriptBlock {
-        foreach ($vm in $vms)
-        {
-            if (-not (Get-DnsServerResourceRecord -Name $vm.Name -ZoneName $vm.DomainName -ErrorAction SilentlyContinue))
-            {
+        foreach ($vm in $vms) {
+            if (-not (Get-DnsServerResourceRecord -Name $vm.Name -ZoneName $vm.DomainName -ErrorAction SilentlyContinue)) {
                 "Running 'Add-DnsServerResourceRecord -ZoneName $($vm.DomainName) -IPv4Address $($vm.IpV4Address) -Name $($vm.Name) -A'"
                 Add-DnsServerResourceRecord -ZoneName $vm.DomainName -IPv4Address $vm.IpV4Address -Name $vm.Name -A
             }
@@ -140,42 +157,54 @@ Restart-LabVM -ComputerName $pullServer
 
 Invoke-LabCommand -ActivityName 'Downloading required modules from PSGallery' -ComputerName $tfsServer -ScriptBlock {
 
-    $requiredModules = 'powershell-yaml', 'BuildHelpers', 'datum' , 'DscBuildHelpers', 'InvokeBuild', 'Pester', 'ProtectedData', 'PSDepend', 'PSDeploy', 'PSScriptAnalyzer', 'xDSCResourceDesigner', 'xPSDesiredStateConfiguration', 'ComputerManagementDsc', 'NetworkingDsc', 'NTFSSecurity'
-
     Write-Host "Installing $($requiredModules.Count) modules on $(hostname.exe) for pushing them to the lab"
-    Install-Module -Name $requiredModules -Repository PSGallery -Force -AllowClobber -SkipPublisherCheck -WarningAction SilentlyContinue -ErrorAction Stop
-}
+    
+    foreach ($requiredModule in $requiredModules.GetEnumerator()) {
+        $installModuleParams = @{
+            Name               = $requiredModule.Key
+            Repository         = 'PSGallery'
+            Force              = $true
+            AllowClobber       = $true
+            SkipPublisherCheck = $true
+            WarningAction      = 'SilentlyContinue'
+            ErrorAction        = 'Stop'
+        }
+        if ($requiredModule.Value -ne 'latest') {
+            $installModuleParams.Add('RequiredVersion', $requiredModule.Value)
+        }
+        Write-Host "Installing module '$($requiredModule.Key)'"
+        Install-Module @installModuleParams
+    }
+} -Variable (Get-Variable -Name requiredModules)
 
 Invoke-LabCommand -ActivityName 'Publishing required mofules to internal ProGet repository' -ComputerName $tfsServer -ScriptBlock {
 
-    $requiredModules =  'PackageManagement', 'PowerShellGet', 'powershell-yaml', 'BuildHelpers', 'datum' , 'DscBuildHelpers', 'InvokeBuild', 'Pester', 'ProtectedData', 'PSDepend', 'PSDeploy', 'PSScriptAnalyzer', 'xDSCResourceDesigner', 'xPSDesiredStateConfiguration', 'ComputerManagementDsc', 'NetworkingDsc', 'NTFSSecurity'
-
     Write-Host "Publishing $($requiredModules.Count) modules to the internal gallery (loop 1)"
-    foreach ($requiredModule in $requiredModules) {
-        $module = Get-Module $requiredModule -ListAvailable | Sort-Object -Property Version -Descending | Select-Object -First 1
+    foreach ($requiredModule in $requiredModules.GetEnumerator()) {
+        $module = Get-Module $requiredModule.Key -ListAvailable | Sort-Object -Property Version -Descending | Select-Object -First 1
         Write-Host "`t'$($module.Name) - $($module.Version)'"
-        if (-not (Find-Module -Name $requiredModule -Repository PowerShell -ErrorAction SilentlyContinue)) {
-            Publish-Module -Name $requiredModule -RequiredVersion $module.Version -Repository PowerShell -NuGetApiKey 'Install@Contoso.com:Somepass1' -Force -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
+        if (-not (Find-Module -Name $requiredModule.Key -Repository PowerShell -ErrorAction SilentlyContinue)) {
+            Publish-Module -Name $requiredModule.Key -RequiredVersion $module.Version -Repository PowerShell -NuGetApiKey 'Install@Contoso.com:Somepass1' -Force -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
         }
     }
     
     Write-Host "Publishing $($requiredModules.Count) modules to the internal gallery (loop 2)"
-    foreach ($requiredModule in $requiredModules) {
-        $module = Get-Module $requiredModule -ListAvailable | Sort-Object -Property Version -Descending | Select-Object -First 1
+    foreach ($requiredModule in $requiredModules.GetEnumerator()) {
+        $module = Get-Module $requiredModule.Key -ListAvailable | Sort-Object -Property Version -Descending | Select-Object -First 1
         Write-Host "`t'$($module.Name) - $($module.Version)'"
-        if (-not (Find-Module -Name $requiredModule -Repository PowerShell -ErrorAction SilentlyContinue)) {
-            Publish-Module -Name $requiredModule -RequiredVersion $module.Version -Repository PowerShell -NuGetApiKey 'Install@Contoso.com:Somepass1' -Force #-ErrorAction SilentlyContinue -WarningAction SilentlyContinue
+        if (-not (Find-Module -Name $requiredModule.Key -Repository PowerShell -ErrorAction SilentlyContinue)) {
+            Publish-Module -Name $requiredModule.Key -RequiredVersion $module.Version -Repository PowerShell -NuGetApiKey 'Install@Contoso.com:Somepass1' -Force
         }
     }
     
     Write-Host "Uninstalling $($requiredModules.Count) modules"
-    foreach ($requiredModule in $requiredModules) {
-        Uninstall-Module -Name $requiredModule -ErrorAction SilentlyContinue
+    foreach ($requiredModule in $requiredModules.GetEnumerator()) {
+        Uninstall-Module -Name $requiredModule.Key -ErrorAction SilentlyContinue
     }
-    foreach ($requiredModule in $requiredModules) {
-        Uninstall-Module -Name $requiredModule -ErrorAction SilentlyContinue
+    foreach ($requiredModule in $requiredModules.GetEnumerator()) {
+        Uninstall-Module -Name $requiredModule.Key -ErrorAction SilentlyContinue
     }
-}
+} -Variable (Get-Variable -Name requiredModules)
 
 Invoke-LabCommand -ActivityName 'Disable Git SSL Certificate Check' -ComputerName $tfsServer, $tfsWorker -ScriptBlock {
     [System.Environment]::SetEnvironmentVariable('GIT_SSL_NO_VERIFY', '1', 'Machine')
@@ -210,8 +239,7 @@ Invoke-LabCommand -ActivityName 'Create Share on Pull Server' -ComputerName $pul
 
 Invoke-LabCommand -ActivityName 'Setting the worker service account to local system to be able to write to deployment path' -ComputerName $tfsWorker -ScriptBlock {
     $services = Get-CimInstance -ClassName Win32_Service -Filter 'Name like "vsts%"'
-    foreach ($service in $services)
-    {    
+    foreach ($service in $services) {    
         $service | Invoke-CimMethod -MethodName Change -Arguments @{ StartName = 'LocalSystem' } | Out-Null
     }
 }
