@@ -1,3 +1,4 @@
+Import-Module DscBuildHelpers
 $Error.Clear()
 Write-Host ------------------------------------------------------------
 $env:PSModulePath -split ';' | Write-Host
