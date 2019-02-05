@@ -1,5 +1,12 @@
 # DSC Workshop Overview
 
+Build | Status | Last Commit
+--- | --- | ---
+Develop | [![Build status dev](https://ci.appveyor.com/api/projects/status/9yynk81k3k05nasp/branch/develop?svg=true)](https://ci.appveyor.com/project/automatedlab/DscWorkshop) | [![GitHub last commit](https://img.shields.io/github/last-commit/AutomatedLab/DscWorkshop/dev.svg)](https://github.com/AutomatedLab/DscWorkshop/tree/dev/)
+Master | [![Build status](https://ci.appveyor.com/api/projects/status/9yynk81k3k05nasp/branch/master?svg=true)](https://ci.appveyor.com/project/automatedlab/DscWorkshop) | [![GitHub last commit](https://img.shields.io/github/last-commit/AutomatedLab/DscWorkshop/master.svg)](https://github.com/AutomatedLab/DscWorkshop/tree/master/)
+
+[![GitHub issues](https://img.shields.io/github/issues/AutomatedLab/DscWorkshop.svg)](https://github.com/AutomatedLab/DscWorkshop/issues)
+
 Remember to **charge your Laptop** before the Workshop!
 
 **If the build fails, please donwload the latest version of AutomatedLab and pull the repository again**
