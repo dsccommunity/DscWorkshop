@@ -1,6 +1,5 @@
 task LoadDatumConfigData {
 
-    Import-Module -Name ProtectedData -Scope Global
     Import-Module -Name PowerShell-Yaml -Scope Global
     Import-Module -Name Datum -Scope Global
 
@@ -16,7 +15,7 @@ task LoadDatumConfigData {
             Write-Error 'No nodes found in the solution'
         }
     }
-    
+
     $global:configurationData = Get-FilteredConfigurationData -Environment $Environment -Filter $Filter -Datum $datum
-    
+
 }
