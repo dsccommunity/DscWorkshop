@@ -28,8 +28,8 @@ $buildSteps = @(
             "versionSpec" = "2.*"
         }
         "inputs"          = @{
-            targetType          = "inline"
-            script              = @'
+            targetType = "inline"
+            script     = @'
 #always make sure the local PowerShell Gallery is registered correctly
 $uri = '$(GalleryUri)'
 $name = 'PowerShell'
@@ -44,82 +44,82 @@ if (-not $r -or $r.SourceLocation -ne $uri -or $r.PublishLocation -ne $uri) {
         }
     }
     @{
-        "enabled"         = $true
-        "displayName"     = "Execute Build.ps1"
-        "task"            = @{
+        "enabled"     = $true
+        "displayName" = "Execute Build.ps1"
+        "task"        = @{
             "id"          = "e213ff0f-5d5c-4791-802d-52ea3e7be1f1"
             "versionSpec" = "2.*"
         }
-        "inputs"          = @{
-            targetType          = "filePath"
-            filePath            = "Build.ps1"
-            arguments           = '-ResolveDependency -GalleryRepository PowerShell -Tasks ClearBuildOutput, Init, SetPsModulePath, CopyModule, IntegrationTest'
+        "inputs"      = @{
+            targetType = "filePath"
+            filePath   = "Build.ps1"
+            arguments  = '-ResolveDependency -GalleryRepository PowerShell -Tasks ClearBuildOutput, Init, SetPsModulePath, CopyModule, IntegrationTest'
         }
     }
     @{
-        enabled         = $true
-        displayName     = 'Publish Integration Test Results'
-        condition       = 'always()'
-        task            = @{
+        enabled     = $true
+        displayName = 'Publish Integration Test Results'
+        condition   = 'always()'
+        task        = @{
             id          = '0b0f01ed-7dde-43ff-9cbb-e48954daf9b1'
             versionSpec = '*'
         }
-        inputs          = @{
+        inputs      = @{
             testRunner       = 'NUnit'
             testResultsFiles = '**/IntegrationTestResults.xml'
-            searchFolder     =  '$(System.DefaultWorkingDirectory)'
+            searchFolder     = '$(System.DefaultWorkingDirectory)'
 
         }
     }
     @{
-        enabled         = $true
-        displayName     = 'Publish Artifact: $(Build.Repository.Name) Module'
-        task            = @{
+        enabled     = $true
+        displayName = 'Publish Artifact: $(Build.Repository.Name) Module'
+        task        = @{
             id          = '2ff763a7-ce83-4e1f-bc89-0ae63477cebe'
             versionSpec = '*'
         }
-        inputs          = @{
+        inputs      = @{
             PathtoPublish = '$(Build.SourcesDirectory)\BuildOutput\Modules\$(Build.Repository.Name)'
-            ArtifactName = '$(Build.Repository.Name)'
-            ArtifactType = 'Container'
+            ArtifactName  = '$(Build.Repository.Name)'
+            ArtifactType  = 'Container'
         }
     }
     @{
-        enabled         = $true
-        displayName     = 'Publish Artifact: BuildFolder'
-        task            = @{
+        enabled     = $true
+        displayName = 'Publish Artifact: BuildFolder'
+        task        = @{
             id          = '2ff763a7-ce83-4e1f-bc89-0ae63477cebe'
             versionSpec = '*'
         }
-        inputs          = @{
+        inputs      = @{
             PathtoPublish = '$(Build.SourcesDirectory)'
-            ArtifactName = 'SourcesDirectory'
-            ArtifactType = 'Container'
+            ArtifactName  = 'SourcesDirectory'
+            ArtifactType  = 'Container'
         }
     }
 )
 
 $releaseSteps = @(
     @{
-        taskId = '5bfb729a-a7c8-4a78-a7c3-8d717bb7c13c'
-        version = '2.*'
-        name = 'Copy Files to: Artifacte Share'
-        enabled = $true
+        taskId    = '5bfb729a-a7c8-4a78-a7c3-8d717bb7c13c'
+        version   = '2.*'
+        name      = 'Copy Files to: Artifacte Share'
+        enabled   = $true
         condition = 'succeeded()'
-        inputs = @{
+        inputs    = @{
             SourceFolder = '$(System.DefaultWorkingDirectory)/$(Build.DefinitionName)/$(Build.Repository.Name)'
-            Contents = '**'
+            Contents     = '**'
             TargetFolder = '\\dsctfs01\Artifacts\$(Build.DefinitionName)\$(Build.BuildNumber)\$(Build.Repository.Name)'
         }
     }
     @{
-        enabled         = $true
-        name     = 'Register PowerShell Gallery'        
-        taskId          = 'e213ff0f-5d5c-4791-802d-52ea3e7be1f1'
+        enabled = $true
+        name    = 'Register PowerShell Gallery'        
+        taskId  = 'e213ff0f-5d5c-4791-802d-52ea3e7be1f1'
         version = '2.*'
-        inputs          = @{
-            targetType          = 'inline'
-            script              = @'
+        inputs  = @{
+            targetType = 'inline'
+            script     = @'
 #always make sure the local PowerShell Gallery is registered correctly
 $uri = '$(GalleryUri)'
 $name = 'PowerShell'
@@ -134,23 +134,23 @@ if (-not $r -or $r.SourceLocation -ne $uri -or $r.PublishLocation -ne $uri) {
         }
     }
     @{
-        enabled         = $true
-        name     = "Print Environment Variables"
-        taskid            = 'e213ff0f-5d5c-4791-802d-52ea3e7be1f1'
+        enabled = $true
+        name    = "Print Environment Variables"
+        taskid  = 'e213ff0f-5d5c-4791-802d-52ea3e7be1f1'
         version = '2.*'
-        inputs          = @{
-            targetType          = "inline"
-            script              = 'dir -Path env:'
+        inputs  = @{
+            targetType = "inline"
+            script     = 'dir -Path env:'
         }
     }
     @{
-        enabled         = $true
-        name     = "Execute Build.ps1 for Deployment"
-        taskId            = 'e213ff0f-5d5c-4791-802d-52ea3e7be1f1'
+        enabled = $true
+        name    = "Execute Build.ps1 for Deployment"
+        taskId  = 'e213ff0f-5d5c-4791-802d-52ea3e7be1f1'
         version = '2.*'
-        inputs          = @{
-            targetType          = 'inline'
-            script              = @'
+        inputs  = @{
+            targetType = 'inline'
+            script     = @'
 Write-Host $(System.DefaultWorkingDirectory)
 cd $(System.DefaultWorkingDirectory)\$(Build.DefinitionName)\SourcesDirectory
 .\Build.ps1 -Tasks Init, SetPsModulePath, Deploy, AcceptanceTest -GalleryRepository PowerShell
@@ -158,112 +158,112 @@ cd $(System.DefaultWorkingDirectory)\$(Build.DefinitionName)\SourcesDirectory
         }
     }
     @{
-        enabled         = $true
-        name     = 'Publish Acceptance Test Results'
-        condition       = 'always()'
-        taskid          = '0b0f01ed-7dde-43ff-9cbb-e48954daf9b1'
-        version = '*'
-        inputs          = @{
+        enabled   = $true
+        name      = 'Publish Acceptance Test Results'
+        condition = 'always()'
+        taskid    = '0b0f01ed-7dde-43ff-9cbb-e48954daf9b1'
+        version   = '*'
+        inputs    = @{
             testRunner       = 'NUnit'
             testResultsFiles = '**/AcceptanceTestResults.xml'
-            searchFolder     =  '$(System.DefaultWorkingDirectory)'
+            searchFolder     = '$(System.DefaultWorkingDirectory)'
         }
     }
 )
 
 $releaseEnvironments = @(
     @{
-        id = 3
-        name = "PowerShell Repository"
-        rank = 1
-        owner = @{
+        id                  = 3
+        name                = "PowerShell Repository"
+        rank                = 1
+        owner               = @{
             displayName = 'Install'
-            id = '196672db-49dd-4968-8c52-a94e43186ffd'
-            uniqueName = 'Installer'
+            id          = '196672db-49dd-4968-8c52-a94e43186ffd'
+            uniqueName  = 'Install'
         }
-        variables = @{
+        variables           = @{
             GalleryUri = @{ value = "http://dscpull01.contoso.com/nuget/PowerShell" }
         }
-        preDeployApprovals = @{
+        preDeployApprovals  = @{
             approvals = @(
                 @{
-                    rank = 1
-                    isAutomated = $true
+                    rank             = 1
+                    isAutomated      = $true
                     isNotificationOn = $false
-                    id = 7
+                    id               = 7
                 }
             )
         }
-        deployStep = @{ id = 10 }
+        deployStep          = @{ id = 10 }
         postDeployApprovals = @{
             approvals = @(
                 @{
-                    rank = 1
-                    isAutomated = $true
+                    rank             = 1
+                    isAutomated      = $true
                     isNotificationOn = $false
-                    id = 11
+                    id               = 11
                 }
             )
         }
-        deployPhases = @(
+        deployPhases        = @(
             @{
                 deploymentInput = @{
-                    parallelExecution = @{ parallelExecutionType = 'none' }
-                    skipArtifactsDownload = $false
-                    artifactsDownloadInput = @{ downloadInputs = $() }
-                    queueId = $tfsAgentQueue.id
-                    demands = @()
-                    enableAccessToken = $false
-                    timeoutInMinutes = 0
+                    parallelExecution         = @{ parallelExecutionType = 'none' }
+                    skipArtifactsDownload     = $false
+                    artifactsDownloadInput    = @{ downloadInputs = $() }
+                    queueId                   = $tfsAgentQueue.id
+                    demands                   = @()
+                    enableAccessToken         = $false
+                    timeoutInMinutes          = 0
                     jobCancelTimeoutInMinutes = 1
-                    condition = 'succeeded()'
-                    overrideInputs = @{}
+                    condition                 = 'succeeded()'
+                    overrideInputs            = @{}
                 }
-                rank = 1
-                phaseType = 1
-                name = 'Run on agent'
-                workflowTasks = $releaseSteps
+                rank            = 1
+                phaseType       = 1
+                name            = 'Run on agent'
+                workflowTasks   = $releaseSteps
             }
         )
-        environmentOptions = @{
-            emailNotificationType = 'OnlyOnFailure'
-            emailRecipients = 'release.environment.owner;release.creator'
-            skipArtifactsDownload = $false
-            timeoutInMinutes = 0
-            enableAccessToken = $false
+        environmentOptions  = @{
+            emailNotificationType   = 'OnlyOnFailure'
+            emailRecipients         = 'release.environment.owner;release.creator'
+            skipArtifactsDownload   = $false
+            timeoutInMinutes        = 0
+            enableAccessToken       = $false
             publishDeploymentStatus = $false
-            badgeEnabled = $false
-            autoLinkWorkItems = $false
+            badgeEnabled            = $false
+            autoLinkWorkItems       = $false
         }
-        demands = @()
-        conditions = @(
+        demands             = @()
+        conditions          = @(
             @{
-                name = 'ReleaseStarted'
+                name          = 'ReleaseStarted'
                 conditionType = 1
-                value = ''
+                value         = ''
             }
         )
-        executionPolicy = @{
+        executionPolicy     = @{
             concurrencyCount = 0
-            queueDepthCount = 0
+            queueDepthCount  = 0
         }
-        schedules = @()
-        retentionPolicy = @{
-            daysToKeep = 30
+        schedules           = @()
+        retentionPolicy     = @{
+            daysToKeep     = 30
             releasesToKeep = 3
-            retainBuild = $true
+            retainBuild    = $true
         }
-        processParameters = @{}
-        properties = @{}
-        preDeploymentGates = @{
-            id = 0
+        processParameters   = @{}
+        properties          = @{}
+        preDeploymentGates  = @{
+            id           = 0
             gatesOptions = $null
-            gates = @()
+            gates        = @()
         }
         postDeploymentGates = @{
-            id = 0
+            id           = 0
             gatesOptions = $null
-            gates = @()
+            gates        = @()
         }
     }
 )

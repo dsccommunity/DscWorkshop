@@ -8,27 +8,27 @@ $progetServer = Get-LabVM | Where-Object { $_.PostInstallationActivity.RoleName 
 $progetUrl = "http://$($progetServer.FQDN)/nuget/PowerShell"
 
 $requiredModules = @{
-        'powershell-yaml' = 'latest'
-        BuildHelpers = 'latest'
-        datum = '0.0.35'
-        DscBuildHelpers = 'latest'
-        InvokeBuild = 'latest'
-        Pester = 'latest'
-        ProtectedData = 'latest'
-        PSDepend = 'latest'
-        PSDeploy = 'latest'
-        PSScriptAnalyzer = 'latest'
-        xDSCResourceDesigner = 'latest'
-        xPSDesiredStateConfiguration = 'latest'
-        ComputerManagementDsc = 'latest'
-        NetworkingDsc = 'latest'
-        NTFSSecurity = 'latest'
-        JeaDsc = 'latest'
-        XmlContentDsc = 'latest'
-    }
+    'powershell-yaml'            = 'latest'
+    BuildHelpers                 = 'latest'
+    datum                        = '0.0.35'
+    DscBuildHelpers              = 'latest'
+    InvokeBuild                  = 'latest'
+    Pester                       = 'latest'
+    ProtectedData                = 'latest'
+    PSDepend                     = 'latest'
+    PSDeploy                     = 'latest'
+    PSScriptAnalyzer             = 'latest'
+    xDSCResourceDesigner         = 'latest'
+    xPSDesiredStateConfiguration = 'latest'
+    ComputerManagementDsc        = 'latest'
+    NetworkingDsc                = 'latest'
+    NTFSSecurity                 = 'latest'
+    JeaDsc                       = 'latest'
+    XmlContentDsc                = 'latest'
+    PowerShellGet                = 'latest'
+}
 
-if (-not (Test-LabMachineInternetConnectivity -ComputerName $tfsServer))
-{
+if (-not (Test-LabMachineInternetConnectivity -ComputerName $tfsServer)) {
     Write-Error "The lab is not connected to the internet. Check the connectivity of the machine '$router' which is acting as a router." -ErrorAction Stop
 }
 Write-Host "Lab is connected to the internet, continuing with customizations."
@@ -117,8 +117,7 @@ Invoke-LabCommand -ActivityName 'Create link to TFS' -ComputerName $tfsServer -S
 } -Variable (Get-Variable -Name tfsServer, sqlServer, proGetServer, pullServer)
 
 #in server 2019 there seems to be an issue with dynamic DNS registration, doing this manually
-foreach ($domain in (Get-Lab).Domains)
-{
+foreach ($domain in (Get-Lab).Domains) {
     $vms = Get-LabVM -All -IncludeLinux | Where-Object { 
         $_.DomainName -eq $domain.Name -and
         $_.OperatingSystem -like '*2019*' -or
@@ -128,10 +127,8 @@ foreach ($domain in (Get-Lab).Domains)
     $dc = Get-LabVM -Role ADDS | Where-Object DomainName -eq $domain.Name | Select-Object -First 1
     
     Invoke-LabCommand -ActivityName 'Registering DNS records' -ScriptBlock {
-        foreach ($vm in $vms)
-        {
-            if (-not (Get-DnsServerResourceRecord -Name $vm.Name -ZoneName $vm.DomainName -ErrorAction SilentlyContinue))
-            {
+        foreach ($vm in $vms) {
+            if (-not (Get-DnsServerResourceRecord -Name $vm.Name -ZoneName $vm.DomainName -ErrorAction SilentlyContinue)) {
                 "Running 'Add-DnsServerResourceRecord -ZoneName $($vm.DomainName) -IPv4Address $($vm.IpV4Address) -Name $($vm.Name) -A'"
                 Add-DnsServerResourceRecord -ZoneName $vm.DomainName -IPv4Address $vm.IpV4Address -Name $vm.Name -A
             }
@@ -162,19 +159,17 @@ Invoke-LabCommand -ActivityName 'Downloading required modules from PSGallery' -C
 
     Write-Host "Installing $($requiredModules.Count) modules on $(hostname.exe) for pushing them to the lab"
     
-    foreach ($requiredModule in $requiredModules.GetEnumerator())
-    {
+    foreach ($requiredModule in $requiredModules.GetEnumerator()) {
         $installModuleParams = @{
-            Name  = $requiredModule
-            Repository  = 'PSGallery'
-            Force  = $true
-            AllowClobber = $true
+            Name               = $requiredModule.Key
+            Repository         = 'PSGallery'
+            Force              = $true
+            AllowClobber       = $true
             SkipPublisherCheck = $true
-            WarningAction = 'SilentlyContinue'
-            ErrorAction = 'Stop'
+            WarningAction      = 'SilentlyContinue'
+            ErrorAction        = 'Stop'
         }
-        if ($requiredModule.Value -ne 'latest')
-        {
+        if ($requiredModule.Value -ne 'latest') {
             $installModuleParams.Add('RequiredVersion', $requiredModule.Value)
         }
         Write-Host "Installing module '$($requiredModule.Key)'"
@@ -244,8 +239,7 @@ Invoke-LabCommand -ActivityName 'Create Share on Pull Server' -ComputerName $pul
 
 Invoke-LabCommand -ActivityName 'Setting the worker service account to local system to be able to write to deployment path' -ComputerName $tfsWorker -ScriptBlock {
     $services = Get-CimInstance -ClassName Win32_Service -Filter 'Name like "vsts%"'
-    foreach ($service in $services)
-    {    
+    foreach ($service in $services) {    
         $service | Invoke-CimMethod -MethodName Change -Arguments @{ StartName = 'LocalSystem' } | Out-Null
     }
 }
