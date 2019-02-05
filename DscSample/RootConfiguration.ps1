@@ -1,3 +1,4 @@
+Import-Module DscBuildHelpers
 $Error.Clear()
 Write-Host ------------------------------------------------------------
 $env:PSModulePath -split ';' | Write-Host
@@ -32,7 +33,7 @@ configuration "RootConfiguration"
             Write-Debug "`tLooking up params for $configurationName"
             $properties = Resolve-NodeProperty -PropertyPath $configurationName -DefaultValue @{}
             $dscError = [System.Collections.ArrayList]::new()
-            Get-DscSplattedResource -ResourceName $configurationName -ExecutionName $configurationName -Properties $properties
+            (Get-DscSplattedResource -ResourceName $configurationName -ExecutionName $configurationName -Properties $properties -NoInvoke).Invoke($properties)
             if($Error[0] -and $lastError -ne $Error[0]) {
                 $lastIndex = [Math]::Max(($Error.LastIndexOf($lastError) -1), -1)
                 if($lastIndex -gt 0) {
