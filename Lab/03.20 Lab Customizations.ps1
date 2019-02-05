@@ -3,14 +3,14 @@ $tfsServer = Get-LabVM -Role Tfs2018
 $tfsWorker = Get-LabVM -Role TfsBuildWorker
 $sqlServer = Get-LabVM -Role SQLServer2017
 $pullServer = Get-LabVM -Role DSCPullServer
-$souter = Get-LabVM -Role Routing
+$router = Get-LabVM -Role Routing
 $progetServer = Get-LabVM | Where-Object { $_.PostInstallationActivity.RoleName -like 'ProGet*' }
 $progetUrl = "http://$($progetServer.FQDN)/nuget/PowerShell"
 
 $requiredModules = @{
     'powershell-yaml'            = 'latest'
     BuildHelpers                 = 'latest'
-    datum                        = '0.0.35'
+    datum                        = 'latest'
     DscBuildHelpers              = 'latest'
     InvokeBuild                  = 'latest'
     Pester                       = 'latest'
