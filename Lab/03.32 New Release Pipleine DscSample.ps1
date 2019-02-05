@@ -19,15 +19,15 @@ $tfsAgentQueue = Get-TfsAgentQueue -InstanceName $tfsServer -Port $tfsPort -Cred
 # Get those build steps from Get-LabBuildStep
 $buildSteps = @(
     @{
-        "enabled"         = $true
-        "displayName"     = "Register PowerShell Gallery"
-        "task"            = @{
+        "enabled"     = $true
+        "displayName" = "Register PowerShell Gallery"
+        "task"        = @{
             "id"          = "e213ff0f-5d5c-4791-802d-52ea3e7be1f1"
             "versionSpec" = "2.*"
         }
-        "inputs"          = @{
-            targetType          = "inline"
-            script              = @'
+        "inputs"      = @{
+            targetType = "inline"
+            script     = @'
 #always make sure the local PowerShell Gallery is registered correctly
 $uri = '$(GalleryUri)'
 $name = 'PowerShell'
@@ -42,152 +42,152 @@ if (-not $r -or $r.SourceLocation -ne $uri -or $r.PublishLocation -ne $uri) {
         }
     }
     @{
-        "enabled"         = $true
-        "displayName"     = "Execute Build.ps1"
-        "task"            = @{
+        "enabled"     = $true
+        "displayName" = "Execute Build.ps1"
+        "task"        = @{
             "id"          = "e213ff0f-5d5c-4791-802d-52ea3e7be1f1"
             "versionSpec" = "2.*"
         }
-        "inputs"          = @{
-            targetType          = "inline"
-            script              = @'
+        "inputs"      = @{
+            targetType = "inline"
+            script     = @'
 cd $(Build.SourcesDirectory)\DscSample
 .\Build.ps1 -ResolveDependency -GalleryRepository PowerShell -Tasks Init, CleanBuildOutput, SetPsModulePath, TestConfigData, VersionControl, LoadDatumConfigData, CompileDatumRsop, CompileRootConfiguration, CompileRootMetaMof
 '@
         }
     }
     @{
-        enabled         = $true
-        displayName     = 'Publish Integration Test Results'
-        condition       = 'always()'
-        task            = @{
+        enabled     = $true
+        displayName = 'Publish Integration Test Results'
+        condition   = 'always()'
+        task        = @{
             id          = '0b0f01ed-7dde-43ff-9cbb-e48954daf9b1'
             versionSpec = '*'
         }
-        inputs          = @{
+        inputs      = @{
             testRunner       = 'NUnit'
             testResultsFiles = '**/IntegrationTestResults.xml'
-            searchFolder     =  '$(System.DefaultWorkingDirectory)'
+            searchFolder     = '$(System.DefaultWorkingDirectory)'
         }
     }
     @{
-        enabled         = $false
-        displayName     = 'Publish Artifact to Share: MOFs'
-        task            = @{
+        enabled     = $false
+        displayName = 'Publish Artifact to Share: MOFs'
+        task        = @{
             id          = '2ff763a7-ce83-4e1f-bc89-0ae63477cebe'
             versionSpec = '*'
         }
-        inputs          = @{
+        inputs      = @{
             PathtoPublish = '$(Build.SourcesDirectory)\DscSample\BuildOutput\MOF'
-            ArtifactName = 'MOFOnShare' 
-            ArtifactType = 'FilePath'
-            TargetPath = '$(ArtifactsShare)\$(Build.DefinitionName)\$(Build.BuildNumber)'
+            ArtifactName  = 'MOFOnShare' 
+            ArtifactType  = 'FilePath'
+            TargetPath    = '$(ArtifactsShare)\$(Build.DefinitionName)\$(Build.BuildNumber)'
         }
     }
     @{
-        enabled         = $false
-        displayName     = 'Publish Artifact to Share: Meta MOFs'
-        task            = @{
+        enabled     = $false
+        displayName = 'Publish Artifact to Share: Meta MOFs'
+        task        = @{
             id          = '2ff763a7-ce83-4e1f-bc89-0ae63477cebe'
             versionSpec = '*'
         }
-        inputs          = @{
+        inputs      = @{
             PathtoPublish = '$(Build.SourcesDirectory)\DscSample\BuildOutput\MetaMof'
-            ArtifactName = 'MetaMofOnShare'
-            ArtifactType = 'FilePath'
-            TargetPath = '$(ArtifactsShare)\$(Build.DefinitionName)\$(Build.BuildNumber)'
+            ArtifactName  = 'MetaMofOnShare'
+            ArtifactType  = 'FilePath'
+            TargetPath    = '$(ArtifactsShare)\$(Build.DefinitionName)\$(Build.BuildNumber)'
 
         }
     }
     @{
-        enabled         = $false
-        displayName     = 'Publish Artifact to Share: CompressedModules'
-        task            = @{
+        enabled     = $false
+        displayName = 'Publish Artifact to Share: CompressedModules'
+        task        = @{
             id          = '2ff763a7-ce83-4e1f-bc89-0ae63477cebe'
             versionSpec = '*'
         }
-        inputs          = @{
+        inputs      = @{
             PathtoPublish = '$(Build.SourcesDirectory)\DscSample\BuildOutput\CompressedModules'
-            ArtifactName = 'CompressedModulesOnShare'
-            ArtifactType = 'FilePath'
-            TargetPath = '$(ArtifactsShare)\$(Build.DefinitionName)\$(Build.BuildNumber)'
+            ArtifactName  = 'CompressedModulesOnShare'
+            ArtifactType  = 'FilePath'
+            TargetPath    = '$(ArtifactsShare)\$(Build.DefinitionName)\$(Build.BuildNumber)'
         }
     }
     @{
-        enabled         = $true
-        displayName     = 'Publish Artifact: MOFs'
-        task            = @{
+        enabled     = $true
+        displayName = 'Publish Artifact: MOFs'
+        task        = @{
             id          = '2ff763a7-ce83-4e1f-bc89-0ae63477cebe'
             versionSpec = '*'
         }
-        inputs          = @{
+        inputs      = @{
             PathtoPublish = '$(Build.SourcesDirectory)\DscSample\BuildOutput\MOF'
-            ArtifactName = 'MOF'
-            ArtifactType = 'Container'
+            ArtifactName  = 'MOF'
+            ArtifactType  = 'Container'
         }
     }
     @{
-        enabled         = $true
-        displayName     = 'Publish Artifact: Meta MOFs'
-        task            = @{
+        enabled     = $true
+        displayName = 'Publish Artifact: Meta MOFs'
+        task        = @{
             id          = '2ff763a7-ce83-4e1f-bc89-0ae63477cebe'
             versionSpec = '*'
         }
-        inputs          = @{
+        inputs      = @{
             PathtoPublish = '$(Build.SourcesDirectory)\DscSample\BuildOutput\MetaMof'
-            ArtifactName = 'MetaMof'
-            ArtifactType = 'Container'
+            ArtifactName  = 'MetaMof'
+            ArtifactType  = 'Container'
         }
     }
     @{
-        enabled         = $true
-        displayName     = 'Publish Artifact: CompressedModules'
-        task            = @{
+        enabled     = $true
+        displayName = 'Publish Artifact: CompressedModules'
+        task        = @{
             id          = '2ff763a7-ce83-4e1f-bc89-0ae63477cebe'
             versionSpec = '*'
         }
-        inputs          = @{
+        inputs      = @{
             PathtoPublish = '$(Build.SourcesDirectory)\DscSample\BuildOutput\CompressedModules'
-            ArtifactName = 'CompressedModules'
-            ArtifactType = 'Container'
+            ArtifactName  = 'CompressedModules'
+            ArtifactType  = 'Container'
         }
     }
     @{
-        enabled         = $true
-        displayName     = 'Publish Artifact: BuildFolder'
-        task            = @{
+        enabled     = $true
+        displayName = 'Publish Artifact: BuildFolder'
+        task        = @{
             id          = '2ff763a7-ce83-4e1f-bc89-0ae63477cebe'
             versionSpec = '*'
         }
-        inputs          = @{
+        inputs      = @{
             PathtoPublish = '$(Build.SourcesDirectory)'
-            ArtifactName = 'SourcesDirectory'
-            ArtifactType = 'Container'
+            ArtifactName  = 'SourcesDirectory'
+            ArtifactType  = 'Container'
         }
     }
 )
 
 $releaseSteps = @(
     @{
-        taskId = '5bfb729a-a7c8-4a78-a7c3-8d717bb7c13c'
-        version = '2.*'
-        name = 'Copy Files to: Artifacte Share'
-        enabled = $true
+        taskId    = '5bfb729a-a7c8-4a78-a7c3-8d717bb7c13c'
+        version   = '2.*'
+        name      = 'Copy Files to: Artifacte Share'
+        enabled   = $true
         condition = 'succeeded()'
-        inputs = @{
+        inputs    = @{
             SourceFolder = '$(System.DefaultWorkingDirectory)/$(Build.DefinitionName)'
-            Contents = '**'
+            Contents     = '**'
             TargetFolder = '\\dsctfs01\Artifacts\$(Build.DefinitionName)\$(Build.BuildNumber)\$(Build.Repository.Name)'
         }
     }
     @{
-        enabled         = $true
-        name     = 'Register PowerShell Gallery'        
-        taskId          = 'e213ff0f-5d5c-4791-802d-52ea3e7be1f1'
+        enabled = $true
+        name    = 'Register PowerShell Gallery'        
+        taskId  = 'e213ff0f-5d5c-4791-802d-52ea3e7be1f1'
         version = '2.*'
-        inputs          = @{
-            targetType          = 'inline'
-            script              = @'
+        inputs  = @{
+            targetType = 'inline'
+            script     = @'
 #always make sure the local PowerShell Gallery is registered correctly
 $uri = '$(GalleryUri)'
 $name = 'PowerShell'
@@ -202,23 +202,23 @@ if (-not $r -or $r.SourceLocation -ne $uri -or $r.PublishLocation -ne $uri) {
         }
     }
     @{
-        enabled         = $true
-        name     = "Print Environment Variables"
-        taskid            = 'e213ff0f-5d5c-4791-802d-52ea3e7be1f1'
+        enabled = $true
+        name    = "Print Environment Variables"
+        taskid  = 'e213ff0f-5d5c-4791-802d-52ea3e7be1f1'
         version = '2.*'
-        inputs          = @{
-            targetType          = "inline"
-            script              = 'dir -Path env:'
+        inputs  = @{
+            targetType = "inline"
+            script     = 'dir -Path env:'
         }
     }
     @{
-        enabled         = $true
-        name     = "Execute Build.ps1 for Deployment"
-        taskId            = 'e213ff0f-5d5c-4791-802d-52ea3e7be1f1'
+        enabled = $true
+        name    = "Execute Build.ps1 for Deployment"
+        taskId  = 'e213ff0f-5d5c-4791-802d-52ea3e7be1f1'
         version = '2.*'
-        inputs          = @{
-            targetType          = 'inline'
-            script              = @'
+        inputs  = @{
+            targetType = 'inline'
+            script     = @'
 Write-Host $(System.DefaultWorkingDirectory)
 cd $(System.DefaultWorkingDirectory)\$(Build.DefinitionName)\SourcesDirectory\DscSample
 .\Build.ps1 -Tasks Init, SetPsModulePath, Deploy, AcceptanceTest -GalleryRepository PowerShell
@@ -226,325 +226,325 @@ cd $(System.DefaultWorkingDirectory)\$(Build.DefinitionName)\SourcesDirectory\Ds
         }
     }
     @{
-        enabled         = $true
-        name     = 'Publish Acceptance Test Results'
-        condition       = 'always()'
-        taskid          = '0b0f01ed-7dde-43ff-9cbb-e48954daf9b1'
-        version = '*'
-        inputs          = @{
+        enabled   = $true
+        name      = 'Publish Acceptance Test Results'
+        condition = 'always()'
+        taskid    = '0b0f01ed-7dde-43ff-9cbb-e48954daf9b1'
+        version   = '*'
+        inputs    = @{
             testRunner       = 'NUnit'
             testResultsFiles = '**/AcceptanceTestResults.xml'
-            searchFolder     =  '$(System.DefaultWorkingDirectory)'
+            searchFolder     = '$(System.DefaultWorkingDirectory)'
         }
     }
 )
 
 $releaseEnvironments = @(
     @{
-        id = 3
-        name = "Dev"
-        rank = 1
-        owner = @{
+        id                  = 3
+        name                = "Dev"
+        rank                = 1
+        owner               = @{
             displayName = 'Install'
-            id = '196672db-49dd-4968-8c52-a94e43186ffd'
-            uniqueName = 'Installer'
+            id          = '196672db-49dd-4968-8c52-a94e43186ffd'
+            uniqueName  = 'Install'
         }
-        variables = @{
-            GalleryUri = @{ value = 'http://dscpull01.contoso.com/nuget/PowerShell' }
-            InstallUserName = @{ value = 'contoso\install' }
+        variables           = @{
+            GalleryUri          = @{ value = 'http://dscpull01.contoso.com/nuget/PowerShell' }
+            InstallUserName     = @{ value = 'contoso\install' }
             InstallUserPassword = @{ value = 'Somepass1' }
-            DscConfiguration = @{ value = '\\dscpull01\DscConfiguration' }
-            DscModules = @{ value = '\\dscpull01\DscModules' }
+            DscConfiguration    = @{ value = '\\dscpull01\DscConfiguration' }
+            DscModules          = @{ value = '\\dscpull01\DscModules' }
         }
-        preDeployApprovals = @{
+        preDeployApprovals  = @{
             approvals = @(
                 @{
-                    rank = 1
-                    isAutomated = $true
+                    rank             = 1
+                    isAutomated      = $true
                     isNotificationOn = $false
-                    id = 7
+                    id               = 7
                 }
             )
         }
-        deployStep = @{ id = 10 }
+        deployStep          = @{ id = 10 }
         postDeployApprovals = @{
             approvals = @(
                 @{
-                    rank = 1
-                    isAutomated = $true
+                    rank             = 1
+                    isAutomated      = $true
                     isNotificationOn = $false
-                    id = 11
+                    id               = 11
                 }
             )
         }
-        deployPhases = @(
+        deployPhases        = @(
             @{
                 deploymentInput = @{
-                    parallelExecution = @{ parallelExecutionType = 'none' }
-                    skipArtifactsDownload = $false
-                    artifactsDownloadInput = @{ downloadInputs = $() }
-                    queueId = $tfsAgentQueue.id
-                    demands = @()
-                    enableAccessToken = $false
-                    timeoutInMinutes = 0
+                    parallelExecution         = @{ parallelExecutionType = 'none' }
+                    skipArtifactsDownload     = $false
+                    artifactsDownloadInput    = @{ downloadInputs = $() }
+                    queueId                   = $tfsAgentQueue.id
+                    demands                   = @()
+                    enableAccessToken         = $false
+                    timeoutInMinutes          = 0
                     jobCancelTimeoutInMinutes = 1
-                    condition = 'succeeded()'
-                    overrideInputs = @{}
+                    condition                 = 'succeeded()'
+                    overrideInputs            = @{}
                 }
-                rank = 1
-                phaseType = 1
-                name = 'Run on agent'
-                workflowTasks = $releaseSteps
+                rank            = 1
+                phaseType       = 1
+                name            = 'Run on agent'
+                workflowTasks   = $releaseSteps
             }
         )
-        environmentOptions = @{
-            emailNotificationType = 'OnlyOnFailure'
-            emailRecipients = 'release.environment.owner;release.creator'
-            skipArtifactsDownload = $false
-            timeoutInMinutes = 0
-            enableAccessToken = $false
+        environmentOptions  = @{
+            emailNotificationType   = 'OnlyOnFailure'
+            emailRecipients         = 'release.environment.owner;release.creator'
+            skipArtifactsDownload   = $false
+            timeoutInMinutes        = 0
+            enableAccessToken       = $false
             publishDeploymentStatus = $true
-            badgeEnabled = $false
-            autoLinkWorkItems = $false
+            badgeEnabled            = $false
+            autoLinkWorkItems       = $false
         }
-        demands = @()
-        conditions = @(
+        demands             = @()
+        conditions          = @(
             @{
-                name = 'ReleaseStarted'
+                name          = 'ReleaseStarted'
                 conditionType = 1
             }
         )
-        executionPolicy = @{
+        executionPolicy     = @{
             concurrencyCount = 0
-            queueDepthCount = 0
+            queueDepthCount  = 0
         }
-        schedules = @()
-        retentionPolicy = @{
-            daysToKeep = 30
+        schedules           = @()
+        retentionPolicy     = @{
+            daysToKeep     = 30
             releasesToKeep = 3
-            retainBuild = $true
+            retainBuild    = $true
         }
-        processParameters = @{}
-        properties = @{}
-        preDeploymentGates = @{
-            id = 0
+        processParameters   = @{}
+        properties          = @{}
+        preDeploymentGates  = @{
+            id           = 0
             gatesOptions = $null
-            gates = @()
+            gates        = @()
         }
         postDeploymentGates = @{
-            id = 0
+            id           = 0
             gatesOptions = $null
-            gates = @()
+            gates        = @()
         }
     }
     @{
-        id = 4
-        name = "Pilot"
-        rank = 2
-        owner = @{
+        id                  = 4
+        name                = "Pilot"
+        rank                = 2
+        owner               = @{
             displayName = 'Install'
-            id = '196672db-49dd-4968-8c52-a94e43186ffd'
-            uniqueName = 'Installer'
+            id          = '196672db-49dd-4968-8c52-a94e43186ffd'
+            uniqueName  = 'Install'
         }
-        variables = @{
-            GalleryUri = @{ value = 'http://dscpull01.contoso.com/nuget/PowerShell' }
-            InstallUserName = @{ value = 'contoso\install' }
+        variables           = @{
+            GalleryUri          = @{ value = 'http://dscpull01.contoso.com/nuget/PowerShell' }
+            InstallUserName     = @{ value = 'contoso\install' }
             InstallUserPassword = @{ value = 'Somepass1' }
-            DscConfiguration = @{ value = '\\dscpull01\DscConfiguration' }
-            DscModules = @{ value = '\\dscpull01\DscModules' }
+            DscConfiguration    = @{ value = '\\dscpull01\DscConfiguration' }
+            DscModules          = @{ value = '\\dscpull01\DscModules' }
         }
-        preDeployApprovals = @{
+        preDeployApprovals  = @{
             approvals = @(
                 @{
-                    rank = 1
-                    isAutomated = $true
+                    rank             = 1
+                    isAutomated      = $true
                     isNotificationOn = $false
-                    id = 7
+                    id               = 7
                 }
             )
         }
-        deployStep = @{ id = 10 }
+        deployStep          = @{ id = 10 }
         postDeployApprovals = @{
             approvals = @(
                 @{
-                    rank = 1
-                    isAutomated = $true
+                    rank             = 1
+                    isAutomated      = $true
                     isNotificationOn = $false
-                    id = 11
+                    id               = 11
                 }
             )
         }
-        deployPhases = @(
+        deployPhases        = @(
             @{
                 deploymentInput = @{
-                    parallelExecution = @{ parallelExecutionType = 'none' }
-                    skipArtifactsDownload = $false
-                    artifactsDownloadInput = @{ downloadInputs = $() }
-                    queueId = $tfsAgentQueue.id
-                    demands = @()
-                    enableAccessToken = $false
-                    timeoutInMinutes = 0
+                    parallelExecution         = @{ parallelExecutionType = 'none' }
+                    skipArtifactsDownload     = $false
+                    artifactsDownloadInput    = @{ downloadInputs = $() }
+                    queueId                   = $tfsAgentQueue.id
+                    demands                   = @()
+                    enableAccessToken         = $false
+                    timeoutInMinutes          = 0
                     jobCancelTimeoutInMinutes = 1
-                    condition = 'succeeded()'
-                    overrideInputs = @{}
+                    condition                 = 'succeeded()'
+                    overrideInputs            = @{}
                 }
-                rank = 1
-                phaseType = 1
-                name = 'Run on agent'
-                workflowTasks = $releaseSteps
+                rank            = 1
+                phaseType       = 1
+                name            = 'Run on agent'
+                workflowTasks   = $releaseSteps
             }
         )
-        environmentOptions = @{
-            emailNotificationType = 'OnlyOnFailure'
-            emailRecipients = 'release.environment.owner;release.creator'
-            skipArtifactsDownload = $false
-            timeoutInMinutes = 0
-            enableAccessToken = $false
+        environmentOptions  = @{
+            emailNotificationType   = 'OnlyOnFailure'
+            emailRecipients         = 'release.environment.owner;release.creator'
+            skipArtifactsDownload   = $false
+            timeoutInMinutes        = 0
+            enableAccessToken       = $false
             publishDeploymentStatus = $true
-            badgeEnabled = $false
-            autoLinkWorkItems = $false
+            badgeEnabled            = $false
+            autoLinkWorkItems       = $false
         }
-        demands = @()
-        conditions = @(
+        demands             = @()
+        conditions          = @(
             @{
-                name = 'Dev'
+                name          = 'Dev'
                 conditionType = 2
-                value = ''
+                value         = ''
             }
             @{
-                name = 'DscWorkshopBuild'
+                name          = 'DscWorkshopBuild'
                 conditionType = 4
-                value = '{"sourceBranch":"master","tags":[],"useBuildDefinitionBranch":false}'
+                value         = '{"sourceBranch":"master","tags":[],"useBuildDefinitionBranch":false}'
             }
         )
-        executionPolicy = @{
+        executionPolicy     = @{
             concurrencyCount = 0
-            queueDepthCount = 0
+            queueDepthCount  = 0
         }
-        schedules = @()
-        retentionPolicy = @{
-            daysToKeep = 30
+        schedules           = @()
+        retentionPolicy     = @{
+            daysToKeep     = 30
             releasesToKeep = 3
-            retainBuild = $true
+            retainBuild    = $true
         }
-        processParameters = @{}
-        properties = @{}
-        preDeploymentGates = @{
-            id = 0
+        processParameters   = @{}
+        properties          = @{}
+        preDeploymentGates  = @{
+            id           = 0
             gatesOptions = $null
-            gates = @()
+            gates        = @()
         }
         postDeploymentGates = @{
-            id = 0
+            id           = 0
             gatesOptions = $null
-            gates = @()
+            gates        = @()
         }
     }
     @{
-        id = 5
-        name = "Prod"
-        rank = 3
-        owner = @{
+        id                  = 5
+        name                = "Prod"
+        rank                = 3
+        owner               = @{
             displayName = 'Install'
-            id = '196672db-49dd-4968-8c52-a94e43186ffd'
-            uniqueName = 'Installer'
+            id          = '196672db-49dd-4968-8c52-a94e43186ffd'
+            uniqueName  = 'Install'
         }
-        variables = @{
-            GalleryUri = @{ value = 'http://dscpull01.contoso.com/nuget/PowerShell' }
-            InstallUserName = @{ value = 'contoso\install' }
+        variables           = @{
+            GalleryUri          = @{ value = 'http://dscpull01.contoso.com/nuget/PowerShell' }
+            InstallUserName     = @{ value = 'contoso\install' }
             InstallUserPassword = @{ value = 'Somepass1' }
-            DscConfiguration = @{ value = '\\dscpull01\DscConfiguration' }
-            DscModules = @{ value = '\\dscpull01\DscModules' }
+            DscConfiguration    = @{ value = '\\dscpull01\DscConfiguration' }
+            DscModules          = @{ value = '\\dscpull01\DscModules' }
         }
-        preDeployApprovals = @{
+        preDeployApprovals  = @{
             approvals = @(
                 @{
-                    rank = 1
-                    isAutomated = $false
+                    rank             = 1
+                    isAutomated      = $false
                     isNotificationOn = $false
-                    approver = @{
+                    approver         = @{
                         displayName = "Install"
-                        id = '196672db-49dd-4968-8c52-a94e43186ffd'
-                        uniqueName = 'contoso\Install'
+                        id          = '196672db-49dd-4968-8c52-a94e43186ffd'
+                        uniqueName  = 'contoso\Install'
                     }
                 }
             )
         }
-        deployStep = @{ id = 10 }
+        deployStep          = @{ id = 10 }
         postDeployApprovals = @{
             approvals = @(
                 @{
-                    rank = 1
-                    isAutomated = $true
+                    rank             = 1
+                    isAutomated      = $true
                     isNotificationOn = $false
-                    id = 11
+                    id               = 11
                 }
             )
         }
-        deployPhases = @(
+        deployPhases        = @(
             @{
                 deploymentInput = @{
-                    parallelExecution = @{ parallelExecutionType = 'none' }
-                    skipArtifactsDownload = $false
-                    artifactsDownloadInput = @{ downloadInputs = $() }
-                    queueId = $tfsAgentQueue.id
-                    demands = @()
-                    enableAccessToken = $false
-                    timeoutInMinutes = 0
+                    parallelExecution         = @{ parallelExecutionType = 'none' }
+                    skipArtifactsDownload     = $false
+                    artifactsDownloadInput    = @{ downloadInputs = $() }
+                    queueId                   = $tfsAgentQueue.id
+                    demands                   = @()
+                    enableAccessToken         = $false
+                    timeoutInMinutes          = 0
                     jobCancelTimeoutInMinutes = 1
-                    condition = 'succeeded()'
-                    overrideInputs = @{}
+                    condition                 = 'succeeded()'
+                    overrideInputs            = @{}
                 }
-                rank = 1
-                phaseType = 1
-                name = 'Run on agent'
-                workflowTasks = $releaseSteps
+                rank            = 1
+                phaseType       = 1
+                name            = 'Run on agent'
+                workflowTasks   = $releaseSteps
             }
         )
-        environmentOptions = @{
-            emailNotificationType = 'OnlyOnFailure'
-            emailRecipients = 'release.environment.owner;release.creator'
-            skipArtifactsDownload = $false
-            timeoutInMinutes = 0
-            enableAccessToken = $false
+        environmentOptions  = @{
+            emailNotificationType   = 'OnlyOnFailure'
+            emailRecipients         = 'release.environment.owner;release.creator'
+            skipArtifactsDownload   = $false
+            timeoutInMinutes        = 0
+            enableAccessToken       = $false
             publishDeploymentStatus = $true
-            badgeEnabled = $false
-            autoLinkWorkItems = $false
+            badgeEnabled            = $false
+            autoLinkWorkItems       = $false
         }
-        demands = @()
-        conditions = @(
+        demands             = @()
+        conditions          = @(
             @{
-                name = 'Pilot'
+                name          = 'Pilot'
                 conditionType = 2
-                value = ''
+                value         = ''
             }
             @{
-                name = 'DscWorkshopBuild'
+                name          = 'DscWorkshopBuild'
                 conditionType = 4
-                value = '{"sourceBranch":"master","tags":[],"useBuildDefinitionBranch":false}'
+                value         = '{"sourceBranch":"master","tags":[],"useBuildDefinitionBranch":false}'
             }
         )
-        executionPolicy = @{
+        executionPolicy     = @{
             concurrencyCount = 0
-            queueDepthCount = 0
+            queueDepthCount  = 0
         }
-        schedules = @()
-        retentionPolicy = @{
-            daysToKeep = 30
+        schedules           = @()
+        retentionPolicy     = @{
+            daysToKeep     = 30
             releasesToKeep = 3
-            retainBuild = $true
+            retainBuild    = $true
         }
-        processParameters = @{}
-        properties = @{}
-        preDeploymentGates = @{
-            id = 0
+        processParameters   = @{}
+        properties          = @{}
+        preDeploymentGates  = @{
+            id           = 0
             gatesOptions = $null
-            gates = @()
+            gates        = @()
         }
         postDeploymentGates = @{
-            id = 0
+            id           = 0
             gatesOptions = $null
-            gates = @()
+            gates        = @()
         }
     }
 )
@@ -553,32 +553,32 @@ $releaseEnvironments = @(
 $repo = Get-TfsGitRepository -InstanceName $tfsServer -Port 8080 -CollectionName $collectionName -ProjectName $projectName -Credential $tfsCred -UseSsl
 $refs = (Invoke-RestMethod -Uri "https://$($tfsServer):$tfsPort/$collectionName/_apis/git/repositories/{$($repo.id)}/refs?api-version=4.1" -Credential $tfsCred).value.name
 $buildParameters = @{
-    ProjectName = $projectName
-    InstanceName = $tfsServer
-    Port = $tfsPort
+    ProjectName    = $projectName
+    InstanceName   = $tfsServer
+    Port           = $tfsPort
     DefinitionName = "$($projectName)Build"
     CollectionName = $collectionName
-    BuildTasks = $buildSteps
-    Variables  = @{ 
-        GalleryUri = 'http://dscpull01.contoso.com/nuget/PowerShell'
+    BuildTasks     = $buildSteps
+    Variables      = @{ 
+        GalleryUri     = 'http://dscpull01.contoso.com/nuget/PowerShell'
         ArtifactsShare = "\\$tfsServer\Artifacts"
     }
-    CiTriggerRefs = $refs
-    Credential =$tfsCred 
-    ApiVersion ='4.1'
-    UseSsl = $true
+    CiTriggerRefs  = $refs
+    Credential     = $tfsCred 
+    ApiVersion     = '4.1'
+    UseSsl         = $true
 }
 New-TfsBuildDefinition @buildParameters
 
 $releaseParameters = @{
-    ProjectName = $projectName
-    InstanceName = $tfsServer
-    Port = $tfsPort
-    ReleaseName = "$($projectName)Release"
-    Environments = $releaseEnvironments
-    Credential = $tfsCred
+    ProjectName    = $projectName
+    InstanceName   = $tfsServer
+    Port           = $tfsPort
+    ReleaseName    = "$($projectName)Release"
+    Environments   = $releaseEnvironments
+    Credential     = $tfsCred
     CollectionName = $collectionName
-    UseSsl = $true
+    UseSsl         = $true
 }
 New-TfsReleaseDefinition @releaseParameters
 

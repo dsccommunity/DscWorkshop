@@ -8,5 +8,5 @@
         }
     }
 
-    CommonTasks     = '0.2.2'
+    CommonTasks     = 'latest'
 }
