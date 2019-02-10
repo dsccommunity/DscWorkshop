@@ -148,7 +148,7 @@ You are tasked with on-boarding a new node (DSCFile04) to your environment. The 
     ```powershell
     git add .
     git commit -m "Added node DSCFile04"
-    .\Build.ps1 -Environment Pilot
+    .\Build.ps1
     ```
 4. If you now examine the contents of your BuildOutput folder, you will notice that your new node will have received an RSOP file and two MOF files.
 
@@ -160,46 +160,33 @@ It really is as simple as that. If you as a DevOps person can provide the buildi
 
 ## 1.3 Add a new role
 
-Now, your branch office in Frankfurt needs a new role for SQL servers. The business has defined the following requirements:
+Now, your branch office in Frankfurt has requested a new role for WSUS servers. This requires you to configure the WSUS feature and set a registry key.
 
-- A specific network config. The new VM needs the address 10.0.1.42/24, with its DNS servers being 10.0.1.10 and 10.0.1.11. The gateway address should be 10.0.1.1
-- The windows features NET-Framework-Core and NET-Framework-45-Core need to be installed.
+This new role should enable WSUS administrators to build on top of the basic infrastructure.
 
-This new role should enable SQL administrators to build on top of the basic infrastructure.
-
-1. Let us now create a new Role for a SQL Server in the DSC_ConfigData\Roles folder. This Role's YAML will subscribe to the configurations NetworkIpConfiguration and WindowsFeatures and will define configuration data (Settings) for each of the configurations.
+1. Let us now create a new Role for a WSUS Server in the DSC_ConfigData\Roles folder. This Role's YAML will subscribe to the configuration "WindowsFeatures" and will define configuration data (Settings) for the configuration.
 
     ```powershell
-    $SQLServerRoleYAML = @'
+    $WsusServerRoleYAML = @'
     Configurations:
-    - NetworkIpConfiguration
     - WindowsFeatures
 
-    NetworkIpConfiguration:
-    - IpAddress: 10.0.1.42
-    - Prefix: 24
-    - Gateway: 10.0.0.1
-    - DnsServer:
-        - 10.0.0.10
-        - 10.0.0.11
-
     WindowsFeatures:
-    Name:
-    - +NET-Framework-Core
-    - +NET-Framework-Core-45
+      Name:
+        - +UpdateServices
     '@
 
-    New-Item -Path .\DSc_ConfigData\Roles\SqlServer.yml -Value $SQLServerRoleYAML -ItemType File
+    New-Item -Path .\DSc_ConfigData\Roles\WsusServer.yml -Value $WsusServerRoleYAML -ItemType File
 
     ```
-2. Now let us add a new node YAML (DSCSQL01.yml) in the Pilot which is based on this Role.
+2. Now let us add a new node YAML (DSCWS01.yml) in the Pilot which is based on this Role.
 
     ```powershell
-    $DSCSQL01YAML = @'
-    NodeName: DSCSQL01
+    $DSCWS01YAML = @'
+    NodeName: DSCWS01
     Environment: Pilot
-    Role: SQLServer
-    Description: SQL Server in Pilot
+    Role: WsusServer
+    Description: WSUS Server in Pilot
     Location: Frankfurt
 
     NetworkIpConfiguration:
@@ -219,18 +206,18 @@ This new role should enable SQL administrators to build on top of the basic infr
         ConfigurationMode: ApplyAndAutoCorrect
     ConfigurationRepositoryWeb:
         Server:
-        ConfigurationNames: DSCSQL01
+        ConfigurationNames: DSCWS01
     '@
 
-    New-Item -Path .\DSC_ConfigData\AllNodes\Pilot\DSCSQL01.yml -Value $DSCSQL01YAML -ItemType File
+    New-Item -Path .\DSC_ConfigData\AllNodes\Pilot\DSCWS01.yml -Value $DSCWS01YAML -ItemType File
     ```
-Once again, it is that easy. New roles (i.e. SQLServer), environments (i.e. Pilot) and nodes (i.e. DSCSQL01) just require adding YAML files. The devil is in the details: Providing the appropriate configuration data for your configurations like the network configuration requires knowledge of the underlying infrastructure of course.
+Once again, it is that easy. New roles (i.e. WsusServer), environments (i.e. Pilot) and nodes (i.e. DSCWS01) just require adding YAML files. The devil is in the details: Providing the appropriate configuration data for your configurations like the network configuration requires knowledge of the underlying infrastructure of course.
 
 
-In order to build the new Node (DSCSQL01) which uses the SqlServer Role simply start up the build again.
+In order to build the new Node (DSCWS01) which uses the WsusServer Role simply start up the build again.
 
    ```powershell
-   .\Build.ps1 -Environment Pilot
+   .\Build.ps1
    ```
 
 After the build has completed take a look at the new nodes resulting files.
@@ -238,7 +225,7 @@ After the build has completed take a look at the new nodes resulting files.
 NOTE: YAML syntax can be tricky so if you have errors during the build it very likely due to not well formed YAML.
 
 ```powershell
-ise ((Get-ChildItem -Path .\DSC_ConfigData -Filter DSCSQL01* -recurse).fullname -join ',')
+ise ((Get-ChildItem -Path .\DSC_ConfigData -Filter DSCWS01* -recurse).fullname -join ',')
 ```
 
 ## 1.4 Modify a role
@@ -265,7 +252,7 @@ Modifying a role is as easy as modifying a node. Try changing the default time s
         ```powershell
         git add .
         git commit -m "Modified the ntpserver setting for the Fileserver role."
-        .\Build.ps1 -Environment Pilot
+        .\Build.ps1
         ```
     ```
 
