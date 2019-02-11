@@ -190,10 +190,10 @@ This new role should enable WSUS administrators to build on top of the basic inf
     Location: Frankfurt
 
     NetworkIpConfiguration:
-    IpAddress: 10.0.1.33
-    Prefix: 24
-    Gateway: 10.0.0.1
-    DnsServer:
+      IpAddress: 10.0.1.33
+      Prefix: 24
+      Gateway: 10.0.0.1
+      DnsServer:
         10.0.0.10
         10.0.0.11
 
