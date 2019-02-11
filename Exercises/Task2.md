@@ -65,6 +65,7 @@ With your CI trigger set up, every change that is committed to the repository in
     ![UI file editing](./img/CommitChange.png)
 2. Stage and commit your changes locally. No build will be started yet, until you push your changes or, if using a forked repository, raise a pull request:
     ```powershell
+    cd dscworkshop
     git add .
     git commit -m "DSCFile01 changed its location"
 
@@ -80,9 +81,11 @@ While the build process is already a first important step towards infrastructure
 If you are using our on-premises lab script to try it on your own, the environment already contains an on-premises DSC pull server. Adapting this to use Azure Automation DSC or any other DSC pull server is trivial.
 
 1. First of all, navigate to "Pipelines\Releases" on the right-hand side and select "New pipeline".
-2. The template selection will pop up. Select "Empty job". Once your pipeline is created, notice that the Artifacts are yet to be filled. Select "Add an artifact" and use the output of your build. A successful build will now trigger your pipeline.  
+The template selection will pop up. Select "Empty job".
+
+1. Once your pipeline is created, notice that the Artifacts are yet to be filled. Select "Add an artifact" and use the output of your build. A successful build will now trigger your pipeline.  
     ![This belongs in a museum](./img/AddArtifact.png)
-3. Stage 1 will be our dev environment. Add two additional stages, called pilot and production, each with an empty job.
+3. Rename 'Stage 1' to 'Dev'. Add two additional stages (environemnts), called 'pilot' and 'production', each with an empty job.
 
 The design of the pipeline depends very much on where it should operate. Your build steps might have included copying the files to an Azure blob storage instead of an on-premises file share. This would be the recommended way in case you want your Azure Automation DSC pull server to host the MOF files. The release step would be to execute New-AzAutomationModule with the URIs of your uploaded, compressed modules.
 
@@ -90,9 +93,9 @@ For now, we will only upload the MOF files to Azure Automation, but you can add 
 
 1. Open your first stage, dev, and navigate to variables. For the dev stage, we want for example to deploy to the dev automation account. Variables you add here are available as environment variables. By selecting the appropriate scope, you can control the variable contents for each stage.  
     ![Variable overview](./img/ReleaseVariables.png)
-2. Select your subscription and authorize Azure DevOps to access your subscription. For more control, select the "Manage" link  
+2. Add a new 'Azure PowerShell' task. In the task select your subscription and authorize Azure DevOps to access your subscription.
     ![Task settings](./img/AutomationDscTask.png)
-3. Add the following inline script:  
+    Add the following inline script:  
     ```powershell
     if (Get-Command Enable-AzureRmAlias -ea silentlycontinue)
     {
@@ -104,7 +107,7 @@ For now, we will only upload the MOF files to Azure Automation, but you can add 
         Import-AzureRmAutomationDscNodeConfiguration -ResourceGroupName $env:ResourceGroupname -AutomationAccountName $env:AutomationAccountName -Path $config.FullName -ConfigurationName $config.BaseName -Verbose -Force
     }
     ```  
-4. The simple script works with the artifacts from the build process and uploads them as new DSC configurations to your Azure Automation Account. This is only one of the many ways you could use your artifacts at this stage.  
+    The simple script works with the artifacts from the build process and uploads them as new DSC configurations to your Azure Automation Account. This is only one of the many ways you could use your artifacts at this stage.  
     Another approach can be to actively push configurations out to all nodes to immediately receive feedback that could be consumed by Pester tests.
 
 You can trigger a new release either manually or automatically after a build has successfully finished. If you have an automation account set up, you can try it out! Simply set up your build variables properly and observe.  
