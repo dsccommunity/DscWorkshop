@@ -194,17 +194,17 @@ This new role should enable WSUS administrators to build on top of the basic inf
       Prefix: 24
       Gateway: 10.0.0.1
       DnsServer:
-        10.0.0.10
-        10.0.0.11
+        - 10.0.0.10
+        - 10.0.0.11
 
     PSDscAllowPlainTextPassword: True
     PSDscAllowDomainUser: True
 
     LcmConfig:
-    Settings:
+      Settings:
         ConfigurationModeFrequencyMins: 15
         ConfigurationMode: ApplyAndAutoCorrect
-    ConfigurationRepositoryWeb:
+      ConfigurationRepositoryWeb:
         Server:
         ConfigurationNames: DSCWS01
     '@
