@@ -21,13 +21,15 @@ To kick off a new build, the script Build.ps1 is going to be used. Whether or no
     ```powershell
     Set-Location -Path $home
     ```
-4. If you have not yet installed git, please do so now by executing the following lines of code:
+4. **Optional**: If you have not yet installed git, please do so now by executing the following lines of code:
     ```powershell
     Install-PackageProvider -Name nuget -Force
     Install-Module Chocolatey -Force
     Install-ChocolateySoftware
     Install-ChocolateyPackage -Name git -Force
-    ```
+    ```  
+    If you do not want to install Chocolatey, you can also browse to <https://git-scm.org> and download and install git from there.
+5. Ensure that the git executable is in your path to make the next exercises work. Otherwise, please use the full or relative path to git.exe in the following steps.
 5. In this and the following exercises we will be working with the open-source DscWorkshop repository hosted at <https://github.com/automatedlab/dscworkshop>. To clone this repository, please execute:
     ```powershell
     git clone https://github.com/automatedlab/dscworkshop
@@ -50,9 +52,9 @@ To kick off a new build, the script Build.ps1 is going to be used. Whether or no
 
 9. Without modifying anything yet, start the build script by executing:
     ```powershell
-    .\Build.ps1 -ResolveDependency
+    .\DscSample\Build.ps1 -ResolveDependency
     ```
-    This command will download all dependencies that have been defined and build the entire environment.
+    This command will download all dependencies that have been defined and build the entire environment. This can take a short while.
 10. After the build process has finished, a number of artifacts have been created. Let's have a look at the dev nodes first.
     To see which nodes are part of your development environment, please execute the following command:
     ```powershell
@@ -222,7 +224,7 @@ In order to build the new Node (DSCWS01) which uses the WsusServer Role simply s
 
 After the build has completed take a look at the new nodes resulting files.
 
-NOTE: YAML syntax can be tricky so if you have errors during the build it very likely due to not well formed YAML.
+**NOTE**: YAML syntax can be tricky so if you have errors during the build it very likely due to not well formed YAML.
 
 ```powershell
 ise ((Get-ChildItem -Path .\DSC_ConfigData -Filter DSCWS01* -recurse).fullname -join ',')
@@ -242,18 +244,16 @@ Modifying a role is as easy as modifying a node. Try changing the default time s
     RegistryValues:
     Values:
         - Key: HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\W32Time\Parameters
-        ValueName: NtpServer
-        ValueData: pool.contoso.local,0x2
-        ValueType: DWORD
-        Ensure: Present
+          ValueName: NtpServer
+          ValueData: pool.contoso.local,0x2
+          ValueType: DWORD
+          Ensure: Present
     ```
 3. After committing your changes, you can restart the build again to see your results in action. All file server artifacts that have been created will now have a modified MOF, meta.MOF and RSOP.
     ```powershell
-        ```powershell
         git add .
         git commit -m "Modified the ntpserver setting for the Fileserver role."
         .\Build.ps1
-        ```
     ```
 
 
@@ -286,13 +286,13 @@ You are tasked with creating another layer that better reflects separate fire se
 6. In order for Datum to incorporate your new layer, you need to update the global lookup precedence. Depending on when you want your new layer to apply, this could look like:
     ```yaml
     ResolutionPrecedence:
-    - AllNodes\$($Node.Environment)\$($Node.NodeName)
-    - Roles\$($Node.Role)
-    - Roles\Baseline
-    - FireSections\$($Node.FireSection)
-    - Environment\$($Node.Environment)
-    - MetaConfig\LCM
-    - MetaConfig\DscTagging
+      - AllNodes\$($Node.Environment)\$($Node.NodeName)
+      - Roles\$($Node.Role)
+      - Roles\Baseline
+      - FireSections\$($Node.FireSection)
+      - Environment\$($Node.Environment)
+      - MetaConfig\LCM
+      - MetaConfig\DscTagging
     ```
     You can use node-specific settings to select the correct files to import. Here, we can add a new property called FireSection to all physical nodes for example.
 
@@ -300,7 +300,7 @@ Adding new layers is a bit more involved than adding a new role. You need to thi
 
 ## 1.6 - Create a custom Configuration (DSC Composite Resource)
 
-*This is a stretch goal, if the other tasks have been too easy.*
+***This is a stretch goal, if the other tasks have been too easy.***
 
 Extending configurations based on the customer's needs will eventually require you to develop actual DSC configurations in the form of composite resources. The guiding principle is that your composite resources should be able to take all their parameters from configuration data.
 
@@ -314,7 +314,7 @@ At your customer, this is all customer-specific code and should be collected in 
     ```powershell
     cd $home
     git clone https://github.com/automatedlab/commontasks
-    Get-ChildItem -Directory -Path  ./CommonTasks/CommonTasks/DSCResource
+    Get-ChildItem -Directory -Path  ./CommonTasks/CommonTasks/DSCResources
     ```
 2. This module contains many small DSC composite resources, or configurations, that the project uses. Try adding your own composite resource by adding the following files to the structure:
     ```code
