@@ -69,7 +69,7 @@ Install-ChocolateyPackage VisualStudioCode
 
 Should you want to work with the AutomatedLab part, pull their dependencies listed [here](./01%20AutomatedLab.md#prerequisites).
 
-For Building DSC Artifacts and composing your configurations, you should be all set.
+For Building DSC Artefacts and composing your configurations, you should be all set.
 
 ------
 
@@ -79,7 +79,7 @@ You can do any of the following:
 
 - Follow the lab, setting up your lab VMs with AutomatedLab. Deploying required services (AD, SQL, TFS...) allows you to experiment with the typical infrastructure
 
-- Only play with the DSC Pipeline locally on your machine, creating roles, nodes, and compiling artifacts.
+- Only play with the DSC Pipeline locally on your machine, creating roles, nodes, and compiling artefacts.
 
 - Browse the code and ask questions
 
