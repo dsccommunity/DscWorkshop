@@ -7,14 +7,14 @@ Master | [![Build status](https://ci.appveyor.com/api/projects/status/9yynk81k3k
 
 [![GitHub issues](https://img.shields.io/github/issues/AutomatedLab/DscWorkshop.svg)](https://github.com/AutomatedLab/DscWorkshop/issues)
 
-Remember to **charge your Laptop** before the Workshop!
+Remember to **charge your laptop** before the workshop!
 
-**If the build fails, please donwload the latest version of AutomatedLab and pull the repository again**
+**If the build fails, please download the latest version of AutomatedLab and pull the repository again**
 
 ## Goal:
-  - Introduction to the [Release Pipeline Model](https://aka.ms/TRPM) and one possible implementation using DSC
-  - Takeaway the code to setup a lab environment at work/home, to learn how to roll your own DSC Pipeline
-  - Share our experiences of rolling out DSC at scale in production environments, in highly regulated industries 
+  - Introduce the [Release Pipeline Model](https://aka.ms/TRPM) with one possible implementation using DSC
+  - Use the code to setup a lab environment at work/home and learn how to roll your own DSC Pipeline
+  - Share our experiences of rolling out DSC in production environments within highly regulated industries 
 
 
 ## Overview:
@@ -28,11 +28,11 @@ Remember to **charge your Laptop** before the Workshop!
 
 ## Before you start
 
-The best way (but not mandatory), to follow along, is to get your git and github setup.
+The best way to follow along is to get your Git and Github setup.
 
 ### 1. Fork the [AutomatedLab/DscWorkshop](https://github.com/AutomatedLab/DscWorkshop) project 
 
-Once logged in to github, create a fork of the following repository: https://github.com/AutomatedLab/DscWorkshop by clicking on the `FORK` button on the right of the page.
+Once logged into Github, fork the following repository: https://github.com/AutomatedLab/DscWorkshop by clicking on the `FORK` button on the right of the page.
 
 This will create a fork under your name: 
 i.e. `https://github.com/<your github handle>/DscWorkshop`
@@ -41,18 +41,20 @@ Where you will be able to push your changes.
 
 ### 2. Git clone your fork locally
 
-Now that you have it under your name, you can clone **your** fork on your laptop.
+Now that you have it under your name, you can clone **your** fork onto your laptop.
 
-In your github page you will have the green button 'Clone or Download' providing the page `https://github.com/<your github handle>/DscWorkshop.git`
+In your Github page you can use the green button 'Clone or Download' on your forked Github page `https://github.com/<your github handle>/DscWorkshop.git`
+
+Or use the following command in your command line:
 ```
 git clone https://github.com/<your github handle>/DscWorkshop.git
 ```
 
 ### 3. Set up your laptop
 
-You need Git in your Path (You probably guessed already from above), also have a permissive `ExecutionPolicy` set so you can run scripts, and an Internet Access so you can pull from the Gallery.
+You need Git in your path, a permissive `ExecutionPolicy` set so you can run scripts, and internet access so you can pull from the gallery.
 
-As an Administrator run the following:
+Run the following as administrator:
 ```PowerShell
 Set-ExecutionPolicy -ExecutionPolicy Bypass
 Install-Module Chocolatey
@@ -65,24 +67,24 @@ Install-ChocolateyPackage VisualStudioCode
 [Environment]::SetEnvironmentVariable('Path',($Env:Path + ';' + 'C:\Program Files\Git\bin'),'Process')
 ```
 
-Should you want to work with the [AutomatedLab part, pull their dependencies listed here](./01%20AutomatedLab.md#prerequisites).
+Should you want to work with the AutomatedLab part, pull their dependencies listed [here](./01%20AutomatedLab.md#prerequisites).
 
 For Building DSC Artefacts and composing your configurations, you should be all set.
 
 ------
 
-## How to code along with this Lab
+## How to follow along with this lab
 
-You can one, some, or all of the following:
+You can do any of the following:
 
-- Follow with the full Lab, setting up your lab VMs with AutomatedLab. Deploying required services (AD, SQL, TFS...), and allow you to experiment with a typical infrastructure
+- Follow the lab, setting up your lab VMs with AutomatedLab. Deploying required services (AD, SQL, TFS...) allows you to experiment with the typical infrastructure
 
-- Only Play with the DSC Pipeline locally on your machine, creating roles, Nodes, and compiling artefacts.
+- Only play with the DSC Pipeline locally on your machine, creating roles, nodes, and compiling artefacts.
 
 - Browse the code and ask questions
 
 
-There will be a few slides to introduce the concepts and share our tips and tricks, loads of Q&A, and you can team up to progress faster!
+There will be a few slides to introduce concepts, share our tips and tricks, and loads of Q&A, so you can work with others to progress faster!
 
 Make it your own.
 
