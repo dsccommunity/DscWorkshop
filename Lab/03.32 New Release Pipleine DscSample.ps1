@@ -391,7 +391,7 @@ $releaseEnvironments = @(
                 rank            = 1
                 phaseType       = 1
                 name            = 'Run on agent'
-                workflowTasks   = $releaseSteps
+                workflowTasks   = $releaseSteps | Select-Object -Skip 1
             }
         )
         environmentOptions  = @{
@@ -498,7 +498,7 @@ $releaseEnvironments = @(
                 rank            = 1
                 phaseType       = 1
                 name            = 'Run on agent'
-                workflowTasks   = $releaseSteps
+                workflowTasks   = $releaseSteps | Select-Object -Skip 1
             }
         )
         environmentOptions  = @{
