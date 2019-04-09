@@ -4,5 +4,5 @@ task CompressModulesWithChecksum {
         mkdir -Path $BuildOutput\CompressedModules | Out-Null
     }
     $modules = Get-ModuleFromFolder -ModuleFolder "$ProjectPath\DSC_Resources\"
-    $modules | Publish-ModuleToPullServer -OutputFolderPath $BuildOutput\CompressedModules
+    $modules | Compress-DscResourceModule -DscBuildOutputModules $BuildOutput\CompressedModules
 }
