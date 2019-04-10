@@ -36,7 +36,8 @@ To create your own build (Continuous Integration) pipeline, follow the next step
     |---|---|---|  
     |MOF|$(Build.SourcesDirectory)\DscSample\BuildOutput\MOF|MOF|  
     |Meta.MOF|$(Build.SourcesDirectory)\DscSample\BuildOutput\MetaMof|MetaMof|  
-    |Modules|$(Build.SourcesDirectory)\DscSample\BuildOutput\CompressedModules|CompressedModules|  
+    |Modules|$(Build.SourcesDirectory)\DscSample\BuildOutput\CompressedModules|CompressedModules|
+    |RSOP|$(Build.SourcesDirectory)\DscSample\BuildOutput\RSOP|RSOP|
 6. At the moment, our build has no triggers. Navigate to the Triggers tab and enable the continuous integration trigger. The branch filters should include master and dev.  
 
     Setting up a CI trigger enables your project to be built every time someone checks in changes to code. This can be a new branch, a pull request from a fork or code committed to master or dev.
