@@ -14,4 +14,5 @@
     NetworkingDsc                = '7.1.0.0'
     JeaDsc                       = '0.5.0'
     XmlContentDsc                = '0.0.1'
+    xWebAdministration           = '2.5.0.0'
 }
