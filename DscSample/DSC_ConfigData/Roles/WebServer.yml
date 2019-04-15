@@ -1,0 +1,33 @@
+Configuration:
+  - WindowsServices
+  - RegistryValues
+
+RegistryValues:
+    Values:
+    - Key: HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\W32Time\Parameters
+      ValueName: NtpServer
+      ValueData: time.windows.com,0x9;
+      ValueType: String
+      Ensure: Present
+      Force: true
+    - Key: HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\W32Time\Parameters
+      ValueName: NtpServerTest
+      ValueData: test.time.windows.com,0x9;
+      ValueType: String
+      Ensure: Present
+      Force: true
+
+SecurityBase:
+  Role: WebServer
+
+WindowsFeatures:
+  Name:
+  - +Web-Server
+  - -WoW64-Support
+
+WindowsServices:
+  Services:
+    - Name: FileDummy
+      DisplayName: Dummy Service on Web Servers
+      StartupType: Automatic
+      Path: C:\DummyService.exe
