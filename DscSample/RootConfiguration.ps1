@@ -52,7 +52,7 @@ configuration "RootConfiguration"
             }
 
             if($dscError.Count -gt 0) {
-                $warningMessage = "    $($Node.Name) : $($Node.Role) ::> $_ "
+                $warningMessage = "    $($Node.Name) : $($Node.Role) ::> $configurationName "
                 $n = [System.Math]::Max(1, 120 - $warningMessage.Length)
                 Write-Host "$warningMessage$('.' * $n)FAILED" -ForeGroundColor Yellow
                 $dscError.Foreach{
@@ -60,7 +60,7 @@ configuration "RootConfiguration"
                 }
             }
             else {
-                $okMessage = "    $($Node.Name) : $($Node.Role) ::> $_ "
+                $okMessage = "    $($Node.Name) : $($Node.Role) ::> $configurationName "
                 $n = [System.Math]::Max(1, 120 - $okMessage.Length)
                 Write-Host "$okMessage$('.' * $n)OK" -ForeGroundColor Green
             }
