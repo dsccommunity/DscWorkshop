@@ -153,7 +153,7 @@ if (-not $r -or $r.SourceLocation -ne $uri -or $r.PublishLocation -ne $uri) {
             script     = @'
 Write-Host $(System.DefaultWorkingDirectory)
 cd $(System.DefaultWorkingDirectory)\$(Build.DefinitionName)\SourcesDirectory
-.\Build.ps1 -Tasks Init, SetPsModulePath, Deploy, AcceptanceTest -GalleryRepository PowerShell
+.\Build.ps1 -Tasks Init, SetPsModulePath, Deploy, TestAcceptance -GalleryRepository PowerShell
 '@
         }
     }
