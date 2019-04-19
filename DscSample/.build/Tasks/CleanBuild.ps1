@@ -12,7 +12,7 @@ param (
 task CleanBuildOutput {
     # Synopsis: Clears the BuildOutput folder from its artefacts, but leaves the modules subfolder and its content. 
 
-    if (![System.IO.Path]::IsPathRooted($BuildOutput)) 
+    if (-not [System.IO.Path]::IsPathRooted($BuildOutput)) 
     {
         $BuildOutput = Join-Path -Path $ProjectPath.FullName -ChildPath $BuildOutput
     }
