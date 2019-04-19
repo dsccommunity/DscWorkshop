@@ -26,6 +26,7 @@ $requiredModules = @{
     JeaDsc                       = 'latest'
     XmlContentDsc                = 'latest'
     PowerShellGet                = 'latest'
+    PackageManagement            = 'latest'
 }
 
 if (-not (Test-LabMachineInternetConnectivity -ComputerName $tfsServer)) {
