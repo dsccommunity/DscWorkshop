@@ -7,6 +7,20 @@ Write-Host ------------------------------------------------------------
 Write-Host "The 'CommonTasks' module provides the following configurations (DSC Composte Resources)"
 Get-DscResource -Module CommonTasks | Out-String | Write-Host
 Write-Host ------------------------------------------------------------
+Write-Host
+Import-LocalizedData -BindingVariable requiredResources -FileName PSDepend.DSC_Resources.psd1
+$requiredResources = $requiredResources.GetEnumerator() | Where-Object { $_.Name -ne 'PSDependOptions' }
+$requiredResources.GetEnumerator() | Foreach-Object {
+    $rr = $_
+    try {
+        Get-DscResource -Module $rr.Name -WarningAction Stop
+    }
+    catch {
+        Write-Error "DSC Resource '$($rr.Name)' cannot be found" -ErrorAction Stop
+    }
+} | Group-Object -Property ModuleName, Version |
+Select-Object -Property Name, Count | Write-Host
+Write-Host ------------------------------------------------------------
 
 $buildVersion = $env:BHBuildVersion
 if (-not $buildVersion) {
