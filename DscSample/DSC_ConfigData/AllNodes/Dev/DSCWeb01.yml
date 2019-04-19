@@ -1,7 +1,7 @@
 NodeName: DSCWeb01
 Environment: Dev
 Role: WebServer
-Description: 'Web Server in Dev'
+Description: Web Server in Dev
 Location: Singapore
 
 NetworkIpConfiguration:
@@ -16,9 +16,6 @@ PSDscAllowPlainTextPassword: True
 PSDscAllowDomainUser: True
 
 LcmConfig:
-  Settings:
-    ConfigurationModeFrequencyMins: 15
-    ConfigurationMode: ApplyAndAutoCorrect
   ConfigurationRepositoryWeb:
     Server:
       ConfigurationNames: DSCWeb01

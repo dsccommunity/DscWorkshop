@@ -1,7 +1,7 @@
 NodeName: DSCFile01
 Environment: Dev
 Role: FileServer
-Description: 'File Server in Dev'
+Description: File Server in Dev
 Location: Frankfurt
 
 NetworkIpConfiguration:
@@ -16,9 +16,6 @@ PSDscAllowPlainTextPassword: True
 PSDscAllowDomainUser: True
 
 LcmConfig:
-  Settings:
-    ConfigurationModeFrequencyMins: 15
-    ConfigurationMode: ApplyAndAutoCorrect
   ConfigurationRepositoryWeb:
     Server:
       ConfigurationNames: DSCFile01

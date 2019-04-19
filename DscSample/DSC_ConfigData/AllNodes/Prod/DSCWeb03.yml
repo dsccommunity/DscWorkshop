@@ -16,9 +16,6 @@ PSDscAllowPlainTextPassword: True
 PSDscAllowDomainUser: True
 
 LcmConfig:
-  Settings:
-    ConfigurationModeFrequencyMins: 15
-    ConfigurationMode: ApplyAndAutoCorrect
   ConfigurationRepositoryWeb:
     Server:
       ConfigurationNames: DSCWeb03
