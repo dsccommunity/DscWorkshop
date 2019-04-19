@@ -66,6 +66,8 @@ param (
 Add-Type -AssemblyName System.Threading
 $m = [System.Threading.Mutex]::new($false, 'DscBuildProcess')
 
+$env:BHBuildStartTime = Get-Date
+
 #changing the path is required to make PSDepend run without internet connection. It is required to download nutget.exe once first:
 #Invoke-WebRequest -Uri 'https://aka.ms/psget-nugetexe' -OutFile C:\ProgramData\Microsoft\Windows\PowerShell\PowerShellGet\nuget.exe -ErrorAction Stop
 $pathElements = $env:Path -split ';'
@@ -85,6 +87,11 @@ $buildModulesPath = Join-Path -Path $BuildOutput -ChildPath 'Modules'
 if (-not (Test-Path -Path $buildModulesPath)) {
     $null = mkdir -Path $buildModulesPath -Force
 }
+
+$configurationPath = Join-Path -Path $ProjectPath -ChildPath $ConfigurationsFolder
+$resourcePath = Join-Path -Path $ProjectPath -ChildPath $ResourcesFolder
+$configDataPath = Join-Path -Path $ProjectPath -ChildPath $ConfigDataFolder
+$testsPath = Join-Path -Path $ProjectPath -ChildPath $TestFolder
 
 $psModulePathElemets = $env:PSModulePath -split ';'
 if ($buildModulesPath -notin $psModulePathElemets) {
@@ -205,11 +212,6 @@ else {
 }
 
 task Download_All_Dependencies -if ($DownloadResourcesAndConfigurations -or $Tasks -contains 'Download_All_Dependencies') Download_DSC_Configurations, Download_DSC_Resources -Before SetPsModulePath
-
-$configurationPath = Join-Path -Path $ProjectPath -ChildPath $ConfigurationsFolder
-$resourcePath = Join-Path -Path $ProjectPath -ChildPath $ResourcesFolder
-$configDataPath = Join-Path -Path $ProjectPath -ChildPath $ConfigDataFolder
-$testsPath = Join-Path -Path $ProjectPath -ChildPath $TestFolder
 
 task Download_DSC_Resources {
     $PSDependResourceDefinition = "$ProjectPath\PSDepend.DSC_Resources.psd1"
