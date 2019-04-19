@@ -7,6 +7,7 @@ $roleDefinitions = Get-ChildItem $here\..\..\DSC_ConfigData\Roles -Recurse -Incl
 $datum = New-DatumStructure -DefinitionFile $datumDefinitionFile
 $configurationData = Get-FilteredConfigurationData -Environment $environment -Datum $datum -Filter $filter
 $buildStartTime = [datetime]$env:BHBuildStartTime
+$buildOutput = $env:BHBuildOutput
 
 $nodeNames = [System.Collections.ArrayList]::new()
 
@@ -22,4 +23,40 @@ Describe 'Pull Server Deployment' -Tag Acceptance, PullServer {
         }
     }
 
+}
+
+Describe 'MOF Files' -Tag Acceptance {
+    BeforeAll {
+        $mofFiles = Get-ChildItem -Path "$buildOutput\MOF" -Filter *.mof
+        $metaMofFiles = Get-ChildItem -Path "$buildOutput\MetaMOF" -Filter *.mof
+        $nodes = $configurationData.AllNodes
+    }
+
+    It 'All nodes have a MOF file' {
+        Write-Verbose "MOF File Count $($mofFiles.Count)"
+        Write-Verbose "Node Count $($nodes.Count)"
+
+        $mofFiles.Count | Should -Be $nodes.Count
+    }
+
+    foreach ($node in $nodes) {
+        It "Node '$($node.NodeName)' should have a MOF file" {
+            $mofFiles | Where-Object BaseName -eq $node.NodeName | Should -BeOfType System.IO.FileSystemInfo 
+        }
+    }
+
+    if ($metaMofFiles) {
+        It 'All nodes have a Meta MOF file' {
+            Write-Verbose "Meta MOF File Count $($metaMofFiles.Count)"
+            Write-Verbose "Node Count $($nodes.Count)"
+    
+            $metaMofFiles.Count | Should -BeIn $nodes.Count
+        }
+
+        foreach ($node in $nodes) {
+            It "Node '$($node.NodeName)' should have a Meta MOF file" {       
+                $metaMofFiles | Where-Object BaseName -eq "$($node.NodeName).meta" | Should -BeOfType System.IO.FileSystemInfo 
+            }
+        }
+    }
 }
