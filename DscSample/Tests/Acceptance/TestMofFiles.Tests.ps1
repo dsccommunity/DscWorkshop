@@ -7,7 +7,7 @@ $roleDefinitions = Get-ChildItem $here\..\..\DSC_ConfigData\Roles -Recurse -Incl
 $datum = New-DatumStructure -DefinitionFile $datumDefinitionFile
 $configurationData = Get-FilteredConfigurationData -Environment $environment -Datum $datum -Filter $filter
 $buildStartTime = [datetime]$env:BHBuildStartTime
-$buildOutput = $env:BHBuildOutput
+#$buildOutput = $env:BHBuildOutput
 
 $nodeNames = [System.Collections.ArrayList]::new()
 
