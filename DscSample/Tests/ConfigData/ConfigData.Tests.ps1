@@ -9,7 +9,7 @@ $configurationData = Get-FilteredConfigurationData -Environment $environment -Da
 
 $nodeNames = [System.Collections.ArrayList]::new()
 
-Describe 'Datum Tree Definition' {
+Describe 'Datum Tree Definition' -Tag Integration {
     It 'Exists in DSC_ConfigData Folder' {
         Test-Path $datumDefinitionFile | Should -Be $true
     }
@@ -21,7 +21,7 @@ Describe 'Datum Tree Definition' {
 
 }
 
-Describe 'Node Definition Files' {
+Describe 'Node Definition Files' -Tag Integration {
     $nodeDefinitions.ForEach{
         # A Node cannot be empty
         $content = Get-Content -Path $_ -Raw
@@ -47,7 +47,7 @@ Describe 'Node Definition Files' {
 }
 
 
-Describe 'Roles Definition Files' {
+Describe 'Roles Definition Files' -Tag Integration {
     $nodes = if ($Environment) {
         $configurationData.AllNodes | Where-Object { $_.NodeName -ne '*' -and $_.Environment -eq $Environment }
     }
@@ -74,7 +74,7 @@ Describe 'Roles Definition Files' {
     }
 }
 
-Describe 'Role Composition' {
+Describe 'Role Composition' -Tag Integration {
     foreach ($environment in $environments) {
         Context "Nodes for environment $environment" {
             
