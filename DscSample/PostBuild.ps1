@@ -12,9 +12,6 @@ param (
     [string]
     $ConfigurationsFolder = 'DSC_Configurations',
 
-    [string]
-    $Environment,
-
     [Parameter(Position = 0)]
     $Tasks,
 

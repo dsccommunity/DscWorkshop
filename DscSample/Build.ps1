@@ -22,9 +22,6 @@ param (
     $MofCompilationTaskCount = 1,
 
     [string]
-    $Environment,
-
-    [string]
     $GalleryRepository = 'PSGallery',
 
     [uri]
@@ -155,7 +152,6 @@ if ($MyInvocation.ScriptName -notlike '*Invoke-Build.ps1') {
                     ConfigDataFolder        = $ConfigDataFolder
                     ConfigurationsFolder    = $ConfigurationsFolder
                     TestFolder              = $TestFolder
-                    Environment             = $Environment
                 }
             }
             Build-Parallel $mofCompilationTasks
