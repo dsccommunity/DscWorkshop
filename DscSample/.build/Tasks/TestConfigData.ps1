@@ -10,7 +10,12 @@ task TestConfigData {
     }
 
     $testResultsPath = Join-Path -Path $BuildOutput -ChildPath IntegrationTestResults.xml
+    Write-Host "testResultsPath is: $testResultsPath"
+    Write-Host "testsPath is: $testsPath"
+    Write-Host "BuildOutput is: $BuildOutput"
+    
     $testResults = Invoke-Pester -Script $testsPath -PassThru -OutputFile $testResultsPath -OutputFormat NUnitXml -Tag Integration
 
     assert ($testResults.FailedCount -eq 0)
+
 }

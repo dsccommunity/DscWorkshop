@@ -15,6 +15,9 @@ task TestAcceptance {
     }
     
     $testResultsPath = Join-Path -Path $BuildOutput -ChildPath AcceptanceTestResults.xml
+    Write-Host "testResultsPath is: $testResultsPath"
+    Write-Host "testsPath is: $testsPath"
+    Write-Host "BuildOutput is: $BuildOutput"
 
     $pesterParams = @{
         Script       = $testsPath
