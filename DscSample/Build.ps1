@@ -61,7 +61,7 @@ param (
 
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
 Add-Type -AssemblyName System.Threading
-$m = [System.Threading.Mutex]::new($false, 'DscBuildProcess')
+$m = [System.Threading.Mutex]::new($false, 'DscBuildProcessMutex')
 
 $env:BHBuildStartTime = Get-Date
 
