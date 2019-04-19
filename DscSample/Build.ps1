@@ -159,7 +159,7 @@ if ($MyInvocation.ScriptName -notlike '*Invoke-Build.ps1') {
         }
     }
 
-    if (($Tasks -contains 'CompileRootConfiguration' -and $Tasks -contains 'CompileRootMetaMof') -or -not $Tasks) {
+    if (($Tasks -contains 'CompileRootConfiguration' -or $Tasks -contains 'CompileRootMetaMof') -or -not $Tasks) {
         Invoke-Build -File "$ProjectPath\PostBuild.ps1"
     }
 
