@@ -3,11 +3,10 @@ task TestConfigData {
         Write-Build Yellow "Path for tests '$testsPath' does not exist"
         return
     }
-    
-    $buildOutput = $env:BHBuildOutput
-
-    $testResultsPath = Join-Path -Path $buildOutput -ChildPath IntegrationTestResults.xml
-    $testsPath = Join-Path -Path $testsPath -ChildPath ConfigData
+    if (-not ([System.IO.Path]::IsPathRooted($BuildOutput))) {
+        $BuildOutput = Join-Path -Path $PSScriptRoot -ChildPath $BuildOutput
+    }
+    $testResultsPath = Join-Path -Path $BuildOutput -ChildPath IntegrationTestResults.xml
     $testResults = Invoke-Pester -Script $testsPath -PassThru -OutputFile $testResultsPath -OutputFormat NUnitXml -Tag Integration
 
     assert ($testResults.FailedCount -eq 0)
