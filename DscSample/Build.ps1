@@ -64,6 +64,7 @@ Add-Type -AssemblyName System.Threading
 $m = [System.Threading.Mutex]::new($false, 'DscBuildProcessMutex')
 
 $env:BHBuildStartTime = Get-Date
+Write-Host "Current Process ID is '$PID'"
 
 #changing the path is required to make PSDepend run without internet connection. It is required to download nutget.exe once first:
 #Invoke-WebRequest -Uri 'https://aka.ms/psget-nugetexe' -OutFile C:\ProgramData\Microsoft\Windows\PowerShell\PowerShellGet\nuget.exe -ErrorAction Stop
