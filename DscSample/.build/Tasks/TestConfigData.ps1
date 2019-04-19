@@ -7,7 +7,7 @@ task TestConfigData {
         $BuildOutput = Join-Path -Path $PSScriptRoot -ChildPath $BuildOutput
     }
     $testResultsPath = Join-Path -Path $BuildOutput -ChildPath IntegrationTestResults.xml
-    $testResults = Invoke-Pester -Script $testsPath -PassThru -OutputFile $testResultsPath -OutputFormat NUnitXml
+    $testResults = Invoke-Pester -Script $testsPath -PassThru -OutputFile $testResultsPath -OutputFormat NUnitXml -Tag Integration
 
     assert ($testResults.FailedCount -eq 0)
 }
