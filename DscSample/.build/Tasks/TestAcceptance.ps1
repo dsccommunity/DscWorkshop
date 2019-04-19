@@ -5,7 +5,9 @@ task TestAcceptance {
         return
     }
 
-    $buildOutput = $env:BHBuildOutput
+    if (-not ([System.IO.Path]::IsPathRooted($BuildOutput))) {
+        $BuildOutput = Join-Path -Path $PSScriptRoot -ChildPath $BuildOutput
+    }
 
     if ($env:BHBuildSystem -in 'AppVeyor', 'Unknown') {
         #AppVoyor build are  not deploying to a pull server yet.
@@ -21,7 +23,7 @@ task TestAcceptance {
         Tag          = 'Acceptance'
         PassThru     = $true
     }
-    if ($excludeTag){
+    if ($excludeTag) {
         $pesterParams.ExcludeTag = $excludeTag
     }
     $testResults = Invoke-Pester @pesterParams
