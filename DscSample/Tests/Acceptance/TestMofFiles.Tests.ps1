@@ -11,7 +11,7 @@ $buildStartTime = [datetime]$env:BHBuildStartTime
 
 $nodeNames = [System.Collections.ArrayList]::new()
 
-Describe 'Pull Server Deployment' -Tag Acceptance, PullServer {
+Describe 'Pull Server Deployment' -Tag BuildAcceptance, PullServer {
 
     $environmentNodes = $configurationData.AllNodes | Where-Object Environment -eq $env:RELEASE_ENVIRONMENTNAME
 
@@ -25,7 +25,7 @@ Describe 'Pull Server Deployment' -Tag Acceptance, PullServer {
 
 }
 
-Describe 'MOF Files' -Tag Acceptance {
+Describe 'MOF Files' -Tag BuildAcceptance {
     BeforeAll {
         $mofFiles = Get-ChildItem -Path "$buildOutput\MOF" -Filter *.mof
         $metaMofFiles = Get-ChildItem -Path "$buildOutput\MetaMOF" -Filter *.mof

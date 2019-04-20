@@ -153,19 +153,19 @@ if (-not $r -or $r.SourceLocation -ne $uri -or $r.PublishLocation -ne $uri) {
             script     = @'
 Write-Host $(System.DefaultWorkingDirectory)
 cd $(System.DefaultWorkingDirectory)\$(Build.DefinitionName)\SourcesDirectory
-.\Build.ps1 -Tasks Init, SetPsModulePath, Deploy, TestAcceptance -GalleryRepository PowerShell
+.\Build.ps1 -Tasks Init, SetPsModulePath, Deploy, TestBuildAcceptance -GalleryRepository PowerShell
 '@
         }
     }
     @{
         enabled   = $true
-        name      = 'Publish Acceptance Test Results'
+        name      = 'Publish Build Acceptance Test Results'
         condition = 'always()'
         taskid    = '0b0f01ed-7dde-43ff-9cbb-e48954daf9b1'
         version   = '*'
         inputs    = @{
             testRunner       = 'NUnit'
-            testResultsFiles = '**/AcceptanceTestResults.xml'
+            testResultsFiles = '**/BuildAcceptanceTestResults.xml'
             searchFolder     = '$(System.DefaultWorkingDirectory)'
         }
     }

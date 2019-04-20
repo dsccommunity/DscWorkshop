@@ -1,4 +1,4 @@
-task TestAcceptance {
+task TestBuildAcceptance {
     
     if (-not (Test-Path -Path $testsPath)) {
         Write-Build Yellow "Path for tests '$testsPath' does not exist"
@@ -14,7 +14,7 @@ task TestAcceptance {
         $excludeTag = 'PullServer'
     }
     
-    $testResultsPath = Join-Path -Path $BuildOutput -ChildPath AcceptanceTestResults.xml
+    $testResultsPath = Join-Path -Path $BuildOutput -ChildPath BuildAcceptanceTestResults.xml
     Write-Host "testResultsPath is: $testResultsPath"
     Write-Host "testsPath is: $testsPath"
     Write-Host "BuildOutput is: $BuildOutput"
@@ -23,7 +23,7 @@ task TestAcceptance {
         Script       = $testsPath
         OutputFile   = $testResultsPath
         OutputFormat = 'NUnitXml'
-        Tag          = 'Acceptance'
+        Tag          = 'BuildAcceptance'
         PassThru     = $true
     }
     if ($excludeTag) {
