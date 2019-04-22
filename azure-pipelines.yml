@@ -1,4 +1,4 @@
-name: DscWorkshop Build Pipeline
+name: $(BuildID)
 
 trigger:
 - '*'
