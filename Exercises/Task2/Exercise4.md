@@ -31,7 +31,7 @@ For now, we will only upload the MOF files to Azure Automation, but you can add 
 
     |Name | Value
     |-|-|
-    ResourceGroupsName | DscWorkshop
+    ResourceGroupeName | DscWorkshop
     AutomationAccountName | DscWorkshop
     StorageAccountName | DscWorkshop
 
