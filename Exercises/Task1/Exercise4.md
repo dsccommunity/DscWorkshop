@@ -22,17 +22,19 @@ You are tasked with creating another layer that better reflects separate fire se
     ise .\DSC_ConfigData\Datum.yml
     ```
 3. Examine the current contents of Datum.yml and notice the resolution order for your files:
+
     | Name      | Description |  
-    | ----------- | ----------- |  
-    | AllNodes\$($Node.Environment)\$($Node.NodeName) | The settings unique to one node|  
-    | Roles\$($Node.Role) | The settings unique to the role of a node|  
-    | Roles\Baseline | The baseline settings that should apply to all nodes and roles|  
-    | Environment\$($Node.Environment) | The settings that are environment specific|  
-    | MetaConfig\LCM | The basic settings for the LCM|  
-    | MetaConfig\DscTagging | Version info that should apply to all nodes|  
-4. The settings get more generic the further down you go in the list. This way, your node will always win and will always be able to override settings that have been defined on a more global scale like the environment.
-5. A good place to add your new layer thus would be somewhere before the node-specific data is applied, since a separate fire section might mean different IP configurations.
-6. In order for Datum to incorporate your new layer, you need to update the global lookup precedence. Depending on when you want your new layer to apply, this could look like:
+    |-|-|
+    | AllNodes\$($Node.Environment)\$($Node.NodeName) | The settings unique to one node|
+    | Roles\$($Node.Role) | The settings unique to the role of a node|
+    | Roles\Baseline | The baseline settings that should apply to all nodes and roles|
+    | Environment\$($Node.Environment) | The settings that are environment specific|
+    | MetaConfig\LCM | The basic settings for the LCM|
+    | MetaConfig\DscTagging | Version info that should apply to all nodes|
+
+1. The settings get more generic the further down you go in the list. This way, your node will always win and will always be able to override settings that have been defined on a more global scale like the environment.
+1. A good place to add your new layer thus would be somewhere before the node-specific data is applied, since a separate fire section might mean different IP configurations.
+1. In order for Datum to incorporate your new layer, you need to update the global lookup precedence. Depending on when you want your new layer to apply, this could look like:
     ```yaml
     ResolutionPrecedence:
       - AllNodes\$($Node.Environment)\$($Node.NodeName)
