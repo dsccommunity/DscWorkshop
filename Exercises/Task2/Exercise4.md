@@ -31,7 +31,7 @@ For now, we will only upload the MOF files to Azure Automation, but you can add 
 
     |Name | Value
     |-|-|
-    ResourceGroupeName | DscWorkshop
+    ResourceGroupName | DscWorkshop
     AutomationAccountName | DscWorkshop
     StorageAccountName | DscWorkshop
 
@@ -60,7 +60,7 @@ For now, we will only upload the MOF files to Azure Automation, but you can add 
     
     foreach ($config in (Get-ChildItem -Path $path -Filter *.mof ))
     {
-        Import-AzureRmAutomationDscNodeConfiguration -ResourceGroupName $env:ResourceGroupname -AutomationAccountName $env:AutomationAccountName -Path $config.FullName -ConfigurationName $config.BaseName -Verbose -Force
+        Import-AzureRmAutomationDscNodeConfiguration -ResourceGroupName $env:ResourceGroupName -AutomationAccountName $env:AutomationAccountName -Path $config.FullName -ConfigurationName $config.BaseName -Verbose -Force
     }
     ```
 
