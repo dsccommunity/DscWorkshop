@@ -15,10 +15,12 @@ Task Deploy {
         Compress-Archive -Path $BuildOutput\MOF -DestinationPath "$BuildOutput\CompressedArtifacts\MOF.zip" -Force
         Compress-Archive -Path $BuildOutput\MetaMOF -DestinationPath "$BuildOutput\CompressedArtifacts\MetaMOF.zip" -Force
         Compress-Archive -Path $BuildOutput\RSOP -DestinationPath "$BuildOutput\CompressedArtifacts\RSOP.zip" -Force
+        Compress-Archive -Path $BuildOutput\CompressedModules -DestinationPath "$BuildOutput\CompressedArtifacts\CompressedModules.zip" -Force
 
         Push-AppVeyorArtifact "$BuildOutput\CompressedArtifacts\MOF.zip" -FileName MOF.zip -DeploymentName MOF
         Push-AppVeyorArtifact "$BuildOutput\CompressedArtifacts\MetaMOF.zip" -FileName MetaMOF.zip -DeploymentName MetaMOF
         Push-AppVeyorArtifact "$BuildOutput\CompressedArtifacts\RSOP.zip" -FileName RSOP.zip -DeploymentName RSOP
+        Push-AppVeyorArtifact "$BuildOutput\CompressedArtifacts\CompressedModules.zip" -FileName CompressedModules.zip -DeploymentName CompressedModules
     }
     elseif ($env:BUILD_REPOSITORY_PROVIDER -eq 'TfsGit' -and $env:RELEASE_ENVIRONMENTNAME) {
         Write-Host "Source Branch Name is: '$($env:BUILD_SOURCEBRANCHNAME )'"
