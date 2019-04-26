@@ -19,13 +19,15 @@ $requiredModules = @{
     PSDeploy                     = 'latest'
     PSScriptAnalyzer             = 'latest'
     xDSCResourceDesigner         = 'latest'
-    xPSDesiredStateConfiguration = 'latest'
-    ComputerManagementDsc        = 'latest'
-    NetworkingDsc                = 'latest'
+    xPSDesiredStateConfiguration = '8.6.0.0'
+    ComputerManagementDsc        = '6.3.0.0'
+    NetworkingDsc                = '7.1.0.0'
     NTFSSecurity                 = 'latest'
-    JeaDsc                       = 'latest'
-    XmlContentDsc                = 'latest'
+    JeaDsc                       = '0.6.0'
+    XmlContentDsc                = '0.0.1'
     PowerShellGet                = 'latest'
+    PackageManagement            = 'latest'
+    xWebAdministration           = '2.5.0.0'
 }
 
 if (-not (Test-LabMachineInternetConnectivity -ComputerName $tfsServer)) {
@@ -37,10 +39,10 @@ Write-Host "Lab is connected to the internet, continuing with customizations."
 $deployUserName = (Get-LabVm -Role WebServer).GetCredential((Get-Lab)).UserName
 $deployUserPassword = (Get-LabVm  -Role WebServer).GetCredential((Get-Lab)).GetNetworkCredential().Password
 
-Copy-LabFileItem -Path "$PSScriptRoot\LabData\LabSite.zip" -ComputerName (Get-LabVM -Role WebServer)
-Copy-LabFileItem -Path "$PSScriptRoot\LabData\DummyService.exe" -ComputerName (Get-LabVM -Role WebServer)
-Copy-LabFileItem -Path "$PSScriptRoot\LabData\GoToNewestArtifacts.ps1" -ComputerName $tfsServer -DestinationFolderPath C:\Users\Install.contoso\Desktop
-Copy-LabFileItem -Path "$PSScriptRoot\LabData\UpdateNodes.ps1" -ComputerName $tfsServer -DestinationFolderPath C:\Users\Install.contoso\Desktop
+Copy-LabFileItem -Path "$PSScriptRoot\..\LabData\LabSite.zip" -ComputerName (Get-LabVM -Role WebServer)
+Copy-LabFileItem -Path "$PSScriptRoot\..\LabData\DummyService.exe" -ComputerName (Get-LabVM -Role WebServer)
+Copy-LabFileItem -Path "$PSScriptRoot\..\LabData\GoToNewestArtifacts.ps1" -ComputerName $tfsServer -DestinationFolderPath C:\Users\Install.contoso\Desktop
+Copy-LabFileItem -Path "$PSScriptRoot\..\LabData\UpdateNodes.ps1" -ComputerName $tfsServer -DestinationFolderPath C:\Users\Install.contoso\Desktop
 
 Invoke-LabCommand -Activity 'Setup Web Site' -ComputerName (Get-LabVm  -Role WebServer) -ScriptBlock {
 

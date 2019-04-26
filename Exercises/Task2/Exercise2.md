@@ -21,16 +21,27 @@ In the previous exercise, you have created a new Azure DevOps project to collabo
 To create your own build (Continuous Integration) pipeline, follow the next steps:
 
 1. In your repository, click on the "Set up build" button
-2. On the "Select a template" page, select the "Empty pipeline".
-3. Our build process can run on the hosted agent. A build agent is just a small service/daemon running on a VM that is capable of executing scripts and so on. 
+1. On the "Select a template" page, select the "Empty pipeline".
+2. Our build process can run on the hosted agent. A build agent is just a small service/daemon running on a VM that is capable of executing scripts and so on. 
     
-    On premises, you might want to select a dedicated agent pool for DSC configuration compilation jobs for example. Add the first agent job by clicking the plus icon. From the list of tasks, select PowerShell.  
-    ![Build task](./img/ExecuteBuild.png)
-4. Next, we would like to publish all test results. In the last task you have triggered a manual build and saw the test cases that were executed. On each build an NUnit XML file is generated that Azure DevOps can pick up. To do so, add another agent task, this time "Publish Test Results". Make sure that it is configured to use NUnit and to pick up the correct file.  
-    ![Test results](./img/PublishTests.png)
-5. As a last step, we need to make sure that all build artifacts (MOF, meta.MOF and modules) are published. These artifacts will be used in the release and can be published on an Azure Automation DSC pull server, an on-premises pull server or actively pushed to your infrastructure.  
+    On premises, you might want to select a dedicated agent pool for DSC configuration compilation jobs for example. Add the first agent job by clicking the plus icon. From the list of tasks, select PowerShell and make sure that the following settings are correct:
+    - Display name: Execute build.ps1
+    - Type: Inline
+    - Script: .\Build.ps1 -ResolveDependency
+    - Working Directory: DscSample
 
-    Add one "Publish Artifact" step for each of the following artifact types:  
+    ![Build task](./img/ExecuteBuild.png)
+
+1. Next, we would like to publish all test results. In the last task you have triggered a manual build and saw the test cases that were executed. On each build an NUnit XML file is generated that Azure DevOps can pick up. To do so, add another agent task, this time "Publish Test Results". Make sure that it is configured to use NUnit and to pick up the correct file (**/IntegrationTestResults.xml).
+
+    ![Test results](./img/PublishTests.png)
+
+1. Now we do exacly the same like in the previous step but for the build acceptance test results. You can clone the task "Publish Interation Test Results" and adapt the fields 'Dispay name' and 'Test results files'. The name of the file this task is looking for is '**/BuildAcceptanceTestResults.xml'.
+
+    
+1. As a last step, we need to make sure that all build artifacts (MOF, meta.MOF and modules) are published. These artifacts will be used in the release and can be published on an Azure Automation DSC pull server, an on-premises pull server or actively pushed to your infrastructure.  
+
+    Add one "Publish Build Artifact" step for each of the following artifact types:  
     
     |DisplayName|Path|Artifact name|  
     |---|---|---|  
@@ -38,10 +49,10 @@ To create your own build (Continuous Integration) pipeline, follow the next step
     |Meta.MOF|$(Build.SourcesDirectory)\DscSample\BuildOutput\MetaMof|MetaMof|  
     |Modules|$(Build.SourcesDirectory)\DscSample\BuildOutput\CompressedModules|CompressedModules|
     |RSOP|$(Build.SourcesDirectory)\DscSample\BuildOutput\RSOP|RSOP|
-6. At the moment, our build has no triggers. Navigate to the Triggers tab and enable the continuous integration trigger. The branch filters should include master and dev.  
+1. At the moment, our build has no triggers. Navigate to the Triggers tab and enable the continuous integration trigger. The branch filters should include master and dev.  
 
     Setting up a CI trigger enables your project to be built every time someone checks in changes to code. This can be a new branch, a pull request from a fork or code committed to master or dev.
-7. Once done, just select "Save & queue" to kick off your first infrastructure build. Click on the build number (e.g. Build #1) to jump to the build console, lie back and wait for the artifacts to be built.
+1. Once done, just select "Save & queue" to kick off your first infrastructure build. Click on the build number (e.g. Build #1) to jump to the build console, lie back and wait for the artifacts to be built.
 
 Explore the build output a little while and move on to the next exercise once you are satisfied. You could for example have a look at the tests tab and examine the test results.
 

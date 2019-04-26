@@ -1,13 +1,13 @@
 LcmConfig:
   Settings:
     RefreshMode: Pull
-    RefreshFrequencyMins: 60
-    RebootNodeIfNeeded: false
+    RefreshFrequencyMins: 30
+    RebootNodeIfNeeded: true
     ActionAfterReboot: ContinueConfiguration
     AllowModuleOverwrite: true
     #CertificateID: ...
     ConfigurationMode: ApplyAndMonitor
-    ConfigurationModeFrequencyMins: 1440
+    ConfigurationModeFrequencyMins: 30
   ConfigurationRepositoryWeb:
     Server:
       ServerURL: https://dscpull01.contoso.com:8080/PSDSCPullServer.svc

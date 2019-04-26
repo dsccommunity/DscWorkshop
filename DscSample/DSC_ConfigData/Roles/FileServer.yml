@@ -23,7 +23,7 @@ RegistryValues:
     - Key: HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\W32Time\Parameters
       ValueName: NtpServer
       ValueData: pool.ntp.org,0x9
-      ValueType: DWORD
+      ValueType: String
       Ensure: Present
 
 SecurityBaseline:
