@@ -1,7 +1,18 @@
 ﻿$lab = Get-Lab
 $tfsServer = Get-LabVM -Role Tfs2018
+$tfsHostName = if ($lab.DefaultVirtualizationEngine -eq 'Azure') {$tfsServer.AzureConnectionInfo.DnsName} else {$tfsServer.FQDN}
+
+$role = $machine.Roles | Where-Object Name -like Tfs????
 $tfsCred = $tfsServer.GetCredential($lab)
 $tfsPort = 8080
+if ($role.Properties.ContainsKey('Port'))
+{
+    $tfsPort = $role.Properties['Port']
+}
+if ($lab.DefaultVirtualizationEngine -eq 'Azure')
+{
+    $tfsPort = (Get-LabAzureLoadBalancedPort -DestinationPort $tfsPort).Value
+}
 
 $projectName = 'DscWorkshop'
 $projectGitUrl = 'https://github.com/AutomatedLab/DscWorkshop'
@@ -12,7 +23,7 @@ $collectionName = 'AutomatedLab'
 Write-ScreenInfo 'Creating TFS project and cloning from GitHub...' -NoNewLine
 
 New-LabReleasePipeline -ProjectName $projectName -SourceRepository $projectGitUrl -CodeUploadMethod FileCopy
-$tfsAgentQueue = Get-TfsAgentQueue -InstanceName $tfsServer -Port $tfsPort -Credential $tfsCred -ProjectName $projectName -CollectionName $collectionName -QueueName Default -UseSsl
+$tfsAgentQueue = Get-TfsAgentQueue -InstanceName $tfsHostName -Port $tfsPort -Credential $tfsCred -ProjectName $projectName -CollectionName $collectionName -QueueName Default -UseSsl
 
 #region Build and Release Definitions
 # Create a new release pipeline
@@ -550,8 +561,8 @@ $releaseEnvironments = @(
 )
 #endregion Build and Release Definitions
 
-$repo = Get-TfsGitRepository -InstanceName $tfsServer -Port 8080 -CollectionName $collectionName -ProjectName $projectName -Credential $tfsCred -UseSsl
-$refs = (Invoke-RestMethod -Uri "https://$($tfsServer):$tfsPort/$collectionName/_apis/git/repositories/{$($repo.id)}/refs?api-version=4.1" -Credential $tfsCred).value.name
+$repo = Get-TfsGitRepository -InstanceName $tfsHostName -Port 8080 -CollectionName $collectionName -ProjectName $projectName -Credential $tfsCred -UseSsl
+$refs = (Invoke-RestMethod -Uri "https://$($tfsHostName):$tfsPort/$collectionName/_apis/git/repositories/{$($repo.id)}/refs?api-version=4.1" -Credential $tfsCred).value.name
 $buildParameters = @{
     ProjectName    = $projectName
     InstanceName   = $tfsServer
