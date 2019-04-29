@@ -566,7 +566,7 @@ $repo.remoteUrl = $repo.remoteUrl -replace $originalPort, $tfsPort
 $refs = (Invoke-RestMethod -Uri "https://$($tfsHostName):$tfsPort/$collectionName/_apis/git/repositories/{$($repo.id)}/refs?api-version=4.1" -Credential $tfsCred).value.name
 $buildParameters = @{
     ProjectName    = $projectName
-    InstanceName   = $tfsServer
+    InstanceName   = $tfsHostName
     Port           = $tfsPort
     DefinitionName = "$($projectName)Build"
     CollectionName = $collectionName
@@ -584,7 +584,7 @@ New-TfsBuildDefinition @buildParameters
 
 $releaseParameters = @{
     ProjectName    = $projectName
-    InstanceName   = $tfsServer
+    InstanceName   = $tfsHostName
     Port           = $tfsPort
     ReleaseName    = "$($projectName)Release"
     Environments   = $releaseEnvironments
