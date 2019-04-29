@@ -179,7 +179,7 @@ Invoke-LabCommand -ActivityName 'Downloading required modules from PSGallery' -C
     }
 } -Variable (Get-Variable -Name requiredModules)
 
-Invoke-LabCommand -ActivityName 'Publishing required mofules to internal ProGet repository' -ComputerName $tfsServer -ScriptBlock {
+Invoke-LabCommand -ActivityName 'Publishing required modules to internal ProGet repository' -ComputerName $tfsServer -ScriptBlock {
 
     Write-Host "Publishing $($requiredModules.Count) modules to the internal gallery (loop 1)"
     foreach ($requiredModule in $requiredModules.GetEnumerator()) {
@@ -214,7 +214,7 @@ Invoke-LabCommand -ActivityName 'Disable Git SSL Certificate Check' -ComputerNam
 
 Remove-LabPSSession #this is required to make use of the new version of PowerShellGet
 
-Invoke-LabCommand -ActivityName 'Create Aftifacts Share' -ComputerName $tfsServer -ScriptBlock {
+Invoke-LabCommand -ActivityName 'Create Artifacts Share' -ComputerName $tfsServer -ScriptBlock {
     $artifactsShareName = 'Artifacts'
     $artifactsSharePath = "C:\$artifactsShareName"
 

@@ -2,16 +2,16 @@
 $tfsServer = Get-LabVM -Role Tfs2018
 $tfsHostName = if ($lab.DefaultVirtualizationEngine -eq 'Azure') {$tfsServer.AzureConnectionInfo.DnsName} else {$tfsServer.FQDN}
 
-$role = $machine.Roles | Where-Object Name -like Tfs????
+$role = $tfsServer.Roles | Where-Object Name -like Tfs????
 $tfsCred = $tfsServer.GetCredential($lab)
-$tfsPort = 8080
+$tfsPort = $originalPort = 8080
 if ($role.Properties.ContainsKey('Port'))
 {
     $tfsPort = $role.Properties['Port']
 }
 if ($lab.DefaultVirtualizationEngine -eq 'Azure')
 {
-    $tfsPort = (Get-LabAzureLoadBalancedPort -DestinationPort $tfsPort).Value
+    $tfsPort = (Get-LabAzureLoadBalancedPort -DestinationPort $tfsPort -ComputerName $tfsServer).Port
 }
 
 $projectName = 'DscWorkshop'
@@ -562,6 +562,7 @@ $releaseEnvironments = @(
 #endregion Build and Release Definitions
 
 $repo = Get-TfsGitRepository -InstanceName $tfsHostName -Port 8080 -CollectionName $collectionName -ProjectName $projectName -Credential $tfsCred -UseSsl
+$repo.remoteUrl = $repo.remoteUrl -replace $originalPort, $tfsPort
 $refs = (Invoke-RestMethod -Uri "https://$($tfsHostName):$tfsPort/$collectionName/_apis/git/repositories/{$($repo.id)}/refs?api-version=4.1" -Credential $tfsCred).value.name
 $buildParameters = @{
     ProjectName    = $projectName
@@ -594,7 +595,3 @@ $releaseParameters = @{
 New-TfsReleaseDefinition @releaseParameters
 
 Write-ScreenInfo done
-
-# in case you screw something up
-Checkpoint-LabVM -All -SnapshotName AfterPipelines
-Write-Host "3. - Creating Snapshot 'AfterPipeline'" -ForegroundColor Magenta
