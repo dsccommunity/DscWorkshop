@@ -561,7 +561,7 @@ $releaseEnvironments = @(
 )
 #endregion Build and Release Definitions
 
-$repo = Get-TfsGitRepository -InstanceName $tfsHostName -Port 8080 -CollectionName $collectionName -ProjectName $projectName -Credential $tfsCred -UseSsl
+$repo = Get-TfsGitRepository -InstanceName $tfsHostName -Port $tfsPort -CollectionName $collectionName -ProjectName $projectName -Credential $tfsCred -UseSsl
 $repo.remoteUrl = $repo.remoteUrl -replace $originalPort, $tfsPort
 $refs = (Invoke-RestMethod -Uri "https://$($tfsHostName):$tfsPort/$collectionName/_apis/git/repositories/{$($repo.id)}/refs?api-version=4.1" -Credential $tfsCred).value.name
 $buildParameters = @{
