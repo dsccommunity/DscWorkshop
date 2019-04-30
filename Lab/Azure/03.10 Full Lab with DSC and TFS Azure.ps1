@@ -85,6 +85,10 @@ Install-Lab
 Enable-LabCertificateAutoenrollment -Computer -User
 Install-LabWindowsFeature -ComputerName (Get-LabVM -Role DSCPullServer, FileServer, WebServer, Tfs2018) -FeatureName RSAT-AD-Tools
 Install-LabSoftwarePackage -Path $labsources\SoftwarePackages\Notepad++.exe -CommandLine /S -ComputerName (Get-LabVM)
+
+# in case you screw something up
+Write-Host "1. - Creating Snapshot 'AfterInstall'" -ForegroundColor Magenta
+Checkpoint-LabVM -All -SnapshotName AfterInstall
 #endregion
 
 Show-LabDeploymentSummary -Detailed
