@@ -25,6 +25,7 @@ RegistryValues:
       ValueData: pool.ntp.org,0x9
       ValueType: String
       Ensure: Present
+      Force: true
 
 SecurityBaseline:
   Role: FileServer
