@@ -17,7 +17,7 @@ if (-not (Get-Module -Name ReportingServicesTools -ListAvailable)) {
 $s = New-LabPSSession -ComputerName $sqlServer
 Send-ModuleToPSSession -Module (Get-Module -Name ReportingServicesTools -ListAvailable | Select-Object -First 1) -Session $s
 
-Copy-LabFileItem -Path $PSScriptRoot\..\Reports -ComputerName $sqlServer -DestinationFolderPath C:\ -Recurse -UseAzureLabSourcesOnAzureVm $false
+Copy-LabFileItem -Path $PSScriptRoot\Reports -ComputerName $sqlServer -DestinationFolderPath C:\ -Recurse -UseAzureLabSourcesOnAzureVm $false
 
 Invoke-LabCommand -ActivityName 'Add DSC Reports to Reporting Server' -ComputerName $sqlServer -ScriptBlock {
 
