@@ -21,6 +21,10 @@ function Get-DscErrorMessage {
             'Multiple version of the same module exist'
             break
         }
+        { $_ -is [System.Management.Automation.ParentContainsErrorRecordException]} {
+            "Compilation Error: $_.Message"
+            break
+        }
         { $_.Message -match ([regex]::Escape("Cannot find path 'HKLM:\SOFTWARE\Microsoft\Powershell\3\DSC'")) } {
             if ($_.InvocationInfo.PositionMessage -match 'PSDscAllowDomainUser') {
                 # This tend to be repeated for all nodes even if only 1 is affected

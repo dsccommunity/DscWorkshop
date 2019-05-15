@@ -19,13 +19,15 @@ $requiredModules = @{
     PSDeploy                     = 'latest'
     PSScriptAnalyzer             = 'latest'
     xDSCResourceDesigner         = 'latest'
-    xPSDesiredStateConfiguration = 'latest'
-    ComputerManagementDsc        = 'latest'
-    NetworkingDsc                = 'latest'
+    xPSDesiredStateConfiguration = '8.6.0.0'
+    ComputerManagementDsc        = '6.3.0.0'
+    NetworkingDsc                = '7.1.0.0'
     NTFSSecurity                 = 'latest'
-    JeaDsc                       = 'latest'
-    XmlContentDsc                = 'latest'
+    JeaDsc                       = '0.6.2'
+    XmlContentDsc                = '0.0.1'
     PowerShellGet                = 'latest'
+    PackageManagement            = 'latest'
+    xWebAdministration           = '2.5.0.0'
 }
 
 if (-not (Test-LabMachineInternetConnectivity -ComputerName $tfsServer)) {
@@ -78,7 +80,6 @@ Invoke-LabCommand -Activity 'Creating folders and shares' -ComputerName (Get-Lab
 # TFS Server
 Get-LabInternetFile -Uri https://go.microsoft.com/fwlink/?Linkid=852157 -Path $labSources\SoftwarePackages\VSCodeSetup.exe
 Get-LabInternetFile -Uri https://github.com/git-for-windows/git/releases/download/v2.16.2.windows.1/Git-2.16.2-64-bit.exe -Path $labSources\SoftwarePackages\Git.exe
-New-Item -ItemType Directory -Path $labSources\SoftwarePackages\VSCodeExtensions -ErrorAction SilentlyContinue | Out-Null
 Get-LabInternetFile -Uri https://marketplace.visualstudio.com/_apis/public/gallery/publishers/ms-vscode/vsextensions/PowerShell/1.6.0/vspackage -Path $labSources\SoftwarePackages\VSCodeExtensions\ps.vsix
 
 Install-LabSoftwarePackage -Path $labSources\SoftwarePackages\VSCodeSetup.exe -CommandLine /SILENT -ComputerName $tfsServer
@@ -177,7 +178,7 @@ Invoke-LabCommand -ActivityName 'Downloading required modules from PSGallery' -C
     }
 } -Variable (Get-Variable -Name requiredModules)
 
-Invoke-LabCommand -ActivityName 'Publishing required mofules to internal ProGet repository' -ComputerName $tfsServer -ScriptBlock {
+Invoke-LabCommand -ActivityName 'Publishing required modules to internal ProGet repository' -ComputerName $tfsServer -ScriptBlock {
 
     Write-Host "Publishing $($requiredModules.Count) modules to the internal gallery (loop 1)"
     foreach ($requiredModule in $requiredModules.GetEnumerator()) {
@@ -212,7 +213,7 @@ Invoke-LabCommand -ActivityName 'Disable Git SSL Certificate Check' -ComputerNam
 
 Remove-LabPSSession #this is required to make use of the new version of PowerShellGet
 
-Invoke-LabCommand -ActivityName 'Create Aftifacts Share' -ComputerName $tfsServer -ScriptBlock {
+Invoke-LabCommand -ActivityName 'Create Artifacts Share' -ComputerName $tfsServer -ScriptBlock {
     $artifactsShareName = 'Artifacts'
     $artifactsSharePath = "C:\$artifactsShareName"
 

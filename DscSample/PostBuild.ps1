@@ -12,9 +12,6 @@ param (
     [string]
     $ConfigurationsFolder = 'DSC_Configurations',
 
-    [string]
-    $Environment,
-
     [Parameter(Position = 0)]
     $Tasks,
 
@@ -35,6 +32,20 @@ param (
     }
 )
 
+#cannot be a default parameter value due to https://github.com/PowerShell/PowerShell/issues/4688
+if (-not $ProjectPath) {
+    $ProjectPath = $PSScriptRoot
+}
+
+if (-not ([System.IO.Path]::IsPathRooted($BuildOutput))) {
+    $BuildOutput = Join-Path -Path $ProjectPath -ChildPath $BuildOutput
+}
+
+$configurationPath = Join-Path -Path $ProjectPath -ChildPath $ConfigurationsFolder
+$resourcePath = Join-Path -Path $ProjectPath -ChildPath $ResourcesFolder
+$configDataPath = Join-Path -Path $ProjectPath -ChildPath $ConfigDataFolder
+$testsPath = Join-Path -Path $ProjectPath -ChildPath $TestFolder
+
 #importing all resources from .build directory
 Get-ChildItem -Path "$PSScriptRoot/.build/" -Recurse -Include *.ps1 |
     ForEach-Object {
@@ -47,4 +58,5 @@ Get-ChildItem -Path "$PSScriptRoot/.build/" -Recurse -Include *.ps1 |
 
 task . NewMofChecksums,
 CompressModulesWithChecksum,
-Deploy
+Deploy,
+TestBuildAcceptance

@@ -1,7 +1,18 @@
 ﻿$lab = Get-Lab
 $tfsServer = Get-LabVM -Role Tfs2018
+$tfsHostName = if ($lab.DefaultVirtualizationEngine -eq 'Azure') {$tfsServer.AzureConnectionInfo.DnsName} else {$tfsServer.FQDN}
+
+$role = $tfsServer.Roles | Where-Object Name -like Tfs????
 $tfsCred = $tfsServer.GetCredential($lab)
-$tfsPort = 8080
+$tfsPort = $originalPort = 8080
+if ($role.Properties.ContainsKey('Port'))
+{
+    $tfsPort = $role.Properties['Port']
+}
+if ($lab.DefaultVirtualizationEngine -eq 'Azure')
+{
+    $tfsPort = (Get-LabAzureLoadBalancedPort -DestinationPort $tfsPort -ComputerName $tfsServer).Port
+}
 
 $projectName = 'DscWorkshop'
 $projectGitUrl = 'https://github.com/AutomatedLab/DscWorkshop'
@@ -12,7 +23,7 @@ $collectionName = 'AutomatedLab'
 Write-ScreenInfo 'Creating TFS project and cloning from GitHub...' -NoNewLine
 
 New-LabReleasePipeline -ProjectName $projectName -SourceRepository $projectGitUrl -CodeUploadMethod FileCopy
-$tfsAgentQueue = Get-TfsAgentQueue -InstanceName $tfsServer -Port $tfsPort -Credential $tfsCred -ProjectName $projectName -CollectionName $collectionName -QueueName Default -UseSsl
+$tfsAgentQueue = Get-TfsAgentQueue -InstanceName $tfsHostName -Port $tfsPort -Credential $tfsCred -ProjectName $projectName -CollectionName $collectionName -QueueName Default -UseSsl
 
 #region Build and Release Definitions
 # Create a new release pipeline
@@ -221,19 +232,19 @@ if (-not $r -or $r.SourceLocation -ne $uri -or $r.PublishLocation -ne $uri) {
             script     = @'
 Write-Host $(System.DefaultWorkingDirectory)
 cd $(System.DefaultWorkingDirectory)\$(Build.DefinitionName)\SourcesDirectory\DscSample
-.\Build.ps1 -Tasks Init, SetPsModulePath, Deploy, AcceptanceTest -GalleryRepository PowerShell
+.\Build.ps1 -Tasks Init, SetPsModulePath, Deploy, TestBuildAcceptance -GalleryRepository PowerShell
 '@
         }
     }
     @{
         enabled   = $true
-        name      = 'Publish Acceptance Test Results'
+        name      = 'Publish Build Acceptance Test Results'
         condition = 'always()'
         taskid    = '0b0f01ed-7dde-43ff-9cbb-e48954daf9b1'
         version   = '*'
         inputs    = @{
             testRunner       = 'NUnit'
-            testResultsFiles = '**/AcceptanceTestResults.xml'
+            testResultsFiles = '**/BuildAcceptanceTestResults.xml'
             searchFolder     = '$(System.DefaultWorkingDirectory)'
         }
     }
@@ -391,7 +402,7 @@ $releaseEnvironments = @(
                 rank            = 1
                 phaseType       = 1
                 name            = 'Run on agent'
-                workflowTasks   = $releaseSteps
+                workflowTasks   = $releaseSteps | Select-Object -Skip 1
             }
         )
         environmentOptions  = @{
@@ -498,7 +509,7 @@ $releaseEnvironments = @(
                 rank            = 1
                 phaseType       = 1
                 name            = 'Run on agent'
-                workflowTasks   = $releaseSteps
+                workflowTasks   = $releaseSteps | Select-Object -Skip 1
             }
         )
         environmentOptions  = @{
@@ -550,11 +561,12 @@ $releaseEnvironments = @(
 )
 #endregion Build and Release Definitions
 
-$repo = Get-TfsGitRepository -InstanceName $tfsServer -Port 8080 -CollectionName $collectionName -ProjectName $projectName -Credential $tfsCred -UseSsl
-$refs = (Invoke-RestMethod -Uri "https://$($tfsServer):$tfsPort/$collectionName/_apis/git/repositories/{$($repo.id)}/refs?api-version=4.1" -Credential $tfsCred).value.name
+$repo = Get-TfsGitRepository -InstanceName $tfsHostName -Port $tfsPort -CollectionName $collectionName -ProjectName $projectName -Credential $tfsCred -UseSsl
+$repo.remoteUrl = $repo.remoteUrl -replace $originalPort, $tfsPort
+$refs = (Invoke-RestMethod -Uri "https://$($tfsHostName):$tfsPort/$collectionName/_apis/git/repositories/{$($repo.id)}/refs?api-version=4.1" -Credential $tfsCred).value.name
 $buildParameters = @{
     ProjectName    = $projectName
-    InstanceName   = $tfsServer
+    InstanceName   = $tfsHostName
     Port           = $tfsPort
     DefinitionName = "$($projectName)Build"
     CollectionName = $collectionName
@@ -572,7 +584,7 @@ New-TfsBuildDefinition @buildParameters
 
 $releaseParameters = @{
     ProjectName    = $projectName
-    InstanceName   = $tfsServer
+    InstanceName   = $tfsHostName
     Port           = $tfsPort
     ReleaseName    = "$($projectName)Release"
     Environments   = $releaseEnvironments
