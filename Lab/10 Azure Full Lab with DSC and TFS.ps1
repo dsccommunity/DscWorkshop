@@ -54,7 +54,7 @@ $roles = @(
     Get-LabMachineRoleDefinition -Role WebServer
 )
 $proGetRole = Get-LabPostInstallationActivity -CustomRole ProGet5 -Properties @{
-    ProGetDownloadLink = 'https://s3.amazonaws.com/cdn.inedo.com/downloads/proget/ProGetSetup5.0.13.exe'
+    ProGetDownloadLink = 'https://s3.amazonaws.com/cdn.inedo.com/downloads/proget/ProGetSetup5.1.23.exe'
     SqlServer          = 'DSCCASQL01'
 }
 
