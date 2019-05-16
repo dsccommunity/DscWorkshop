@@ -6,7 +6,7 @@ LcmConfig:
     ActionAfterReboot: ContinueConfiguration
     AllowModuleOverwrite: true
     #CertificateID: ...
-    ConfigurationMode: ApplyAndMonitor
+    ConfigurationMode: ApplyAndAutoCorrect
     ConfigurationModeFrequencyMins: 30
   ConfigurationRepositoryWeb:
     Server:
