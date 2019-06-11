@@ -25,6 +25,7 @@ task TestBuildAcceptance {
         OutputFormat = 'NUnitXml'
         Tag          = 'BuildAcceptance'
         PassThru     = $true
+        Show         = 'Failed', 'Summary'
     }
     if ($excludeTag) {
         $pesterParams.ExcludeTag = $excludeTag
