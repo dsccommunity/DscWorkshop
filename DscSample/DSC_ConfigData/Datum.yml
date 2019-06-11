@@ -4,7 +4,8 @@ ResolutionPrecedence:
   - Locations\$($Node.Location)
   - Roles\$($Node.Role)
   - Roles\Baseline
-  - MetaConfig\LCM
+  - MetaConfig\Lcm
+  - MetaConfig\LcmController
   - MetaConfig\DscTagging
 
 default_lookup_options: MostSpecific
