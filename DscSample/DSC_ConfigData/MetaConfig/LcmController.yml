@@ -1,0 +1,23 @@
+Configurations:
+  - DscLcmController
+  - DscLcmMaintenanceWindows
+
+DscLcmMaintenanceWindows:
+  MaintenanceWindow:
+    - Name: MW-1
+      StartTime: 00:30:00
+      Timespan: 02:00:00
+    - Name: MW-2
+      StartTime: 04:00:00
+      Timespan: 01:00:00
+    - Name: MW-3
+      StartTime: 06:00:00
+      Timespan: 01:00:00
+
+DscLcmController:
+  ConsistencyCheckInterval: 02:00:00
+  ConsistencyCheckIntervalOverride: false
+  RefreshInterval: 04:00:00
+  RefreshIntervalOverride: false
+  ControllerInterval: 00:15:00
+  MaintenanceWindowOverride: false
