@@ -5,12 +5,15 @@ Configurations:
 DscLcmMaintenanceWindows:
   MaintenanceWindow:
     - Name: MW-1
+      Mode: Daily
       StartTime: 00:30:00
       Timespan: 02:00:00
     - Name: MW-2
+      Mode: Daily
       StartTime: 04:00:00
       Timespan: 01:00:00
     - Name: MW-3
+      Mode: Daily
       StartTime: 06:00:00
       Timespan: 01:00:00
 
