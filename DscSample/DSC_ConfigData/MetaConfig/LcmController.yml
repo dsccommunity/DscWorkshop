@@ -4,18 +4,18 @@ Configurations:
 
 DscLcmMaintenanceWindows:
   MaintenanceWindow:
-    - Name: MW-1
-      Mode: Daily
+    - Name: MondayNight
+      DayOfWeek: Monday
       StartTime: 00:30:00
       Timespan: 02:00:00
-    - Name: MW-2
-      Mode: Daily
-      StartTime: 04:00:00
-      Timespan: 01:00:00
-    - Name: MW-3
-      Mode: Daily
-      StartTime: 06:00:00
-      Timespan: 01:00:00
+    - Name: WednesdayNight
+      DayOfWeek: Wednesday
+      StartTime: 00:30:00
+      Timespan: 02:00:00
+    - Name: Sunday
+      DayOfWeek: Sunday
+      StartTime: 00:00:00
+      Timespan: 24:00:00
 
 DscLcmController:
   ConsistencyCheckInterval: 02:00:00
