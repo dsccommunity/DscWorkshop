@@ -141,6 +141,7 @@ if ($MyInvocation.ScriptName -notlike '*Invoke-Build.ps1') {
                 @{
                     File                    = $MyInvocation.MyCommand.Path
                     Task                    = 'WaitForMutex',
+                    'TestDscResources',
                     'LoadDatumConfigData',
                     'CompileDatumRsop',
                     'CompileRootConfiguration',
@@ -200,6 +201,7 @@ else {
         VersionControl,
         LoadDatumConfigData,
         CompileDatumRsop,
+        TestDscResources,
         CompileRootConfiguration,
         CompileRootMetaMof
     }

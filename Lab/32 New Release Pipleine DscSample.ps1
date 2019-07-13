@@ -23,7 +23,7 @@ $collectionName = 'AutomatedLab'
 Write-ScreenInfo 'Creating TFS project and cloning from GitHub...' -NoNewLine
 
 New-LabReleasePipeline -ProjectName $projectName -SourceRepository $projectGitUrl -CodeUploadMethod FileCopy
-$tfsAgentQueue = Get-TfsAgentQueue -InstanceName $tfsHostName -Port $tfsPort -Credential $tfsCred -ProjectName $projectName -CollectionName $collectionName -QueueName Default -UseSsl
+$tfsAgentQueue = Get-TfsAgentQueue -InstanceName $tfsHostName -Port $tfsPort -Credential $tfsCred -ProjectName $projectName -CollectionName $collectionName -QueueName Default -UseSsl -SkipCertificateCheck
 
 #region Build and Release Definitions
 # Create a new release pipeline
@@ -561,36 +561,48 @@ $releaseEnvironments = @(
 )
 #endregion Build and Release Definitions
 
-$repo = Get-TfsGitRepository -InstanceName $tfsHostName -Port $tfsPort -CollectionName $collectionName -ProjectName $projectName -Credential $tfsCred -UseSsl
+$repo = Get-TfsGitRepository -InstanceName $tfsHostName -Port $tfsPort -CollectionName $collectionName -ProjectName $projectName -Credential $tfsCred -UseSsl -SkipCertificateCheck
 $repo.remoteUrl = $repo.remoteUrl -replace $originalPort, $tfsPort
-$refs = (Invoke-RestMethod -Uri "https://$($tfsHostName):$tfsPort/$collectionName/_apis/git/repositories/{$($repo.id)}/refs?api-version=4.1" -Credential $tfsCred).value.name
+
+$param =  @{
+    Uri = "https://$($tfsHostName):$tfsPort/$collectionName/_apis/git/repositories/{$($repo.id)}/refs?api-version=4.1"
+    Credential = $tfsCred    
+}
+if ($PSVersionTable.PSEdition -eq 'Core')
+{
+    $param.Add('SkipCertificateCheck', $true)
+}
+$refs = (Invoke-RestMethod @param).value.name
+
 $buildParameters = @{
-    ProjectName    = $projectName
-    InstanceName   = $tfsHostName
-    Port           = $tfsPort
-    DefinitionName = "$($projectName)Build"
-    CollectionName = $collectionName
-    BuildTasks     = $buildSteps
-    Variables      = @{ 
+    ProjectName          = $projectName
+    InstanceName         = $tfsHostName
+    Port                 = $tfsPort
+    DefinitionName       = "$($projectName)Build"
+    CollectionName       = $collectionName
+    BuildTasks           = $buildSteps
+    Variables            = @{ 
         GalleryUri     = 'http://dscpull01.contoso.com/nuget/PowerShell'
         ArtifactsShare = "\\$tfsServer\Artifacts"
     }
-    CiTriggerRefs  = $refs
-    Credential     = $tfsCred 
-    ApiVersion     = '4.1'
-    UseSsl         = $true
+    CiTriggerRefs        = $refs
+    Credential           = $tfsCred 
+    ApiVersion           = '4.1'
+    UseSsl               = $true
+    SkipCertificateCheck = $true
 }
 New-TfsBuildDefinition @buildParameters
 
-$releaseParameters = @{
-    ProjectName    = $projectName
-    InstanceName   = $tfsHostName
-    Port           = $tfsPort
-    ReleaseName    = "$($projectName)Release"
-    Environments   = $releaseEnvironments
-    Credential     = $tfsCred
-    CollectionName = $collectionName
-    UseSsl         = $true
+$releaseParameters       = @{
+    ProjectName          = $projectName
+    InstanceName         = $tfsHostName
+    Port                 = $tfsPort
+    ReleaseName          = "$($projectName)Release"
+    Environments         = $releaseEnvironments
+    Credential           = $tfsCred
+    CollectionName       = $collectionName
+    UseSsl               = $true
+    SkipCertificateCheck = $true
 }
 New-TfsReleaseDefinition @releaseParameters
 
@@ -598,4 +610,4 @@ Write-ScreenInfo done
 
 # in case you screw something up
 Checkpoint-LabVM -All -SnapshotName AfterPipelines
-Write-Host "3. - Creating Snapshot 'AfterPipeline'" -ForegroundColor Magenta
+Write-Host "3. - Creating Snapshot 'AfterPipelines'" -ForegroundColor Magenta

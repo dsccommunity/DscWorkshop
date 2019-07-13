@@ -1,9 +1,11 @@
 ResolutionPrecedence:
   - AllNodes\$($Node.Environment)\$($Node.NodeName)
+  - Environment\$($Node.Environment)
+  - Locations\$($Node.Location)
   - Roles\$($Node.Role)
   - Roles\Baseline
-  - Environment\$($Node.Environment)
-  - MetaConfig\LCM
+  - MetaConfig\Lcm
+  - MetaConfig\LcmController
   - MetaConfig\DscTagging
 
 default_lookup_options: MostSpecific
@@ -23,6 +25,14 @@ lookup_options:
 
   WindowsFeatures\Name:
     merge_basetype_array: Unique
+
+  FilesAndFolders:
+    merge_hash: deep
+  FilesAndFolders\Items:
+    merge_hash_array: UniqueKeyValTuples
+    merge_options:
+      tuple_keys:
+        - DestinationPath
 
   LcmConfig:
     merge_hash: hash

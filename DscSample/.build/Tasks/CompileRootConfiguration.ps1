@@ -1,7 +1,7 @@
 task CompileRootConfiguration {
 
     $tid = [System.Threading.Thread]::CurrentThread.ManagedThreadId
-    Start-Transcript -Path "$BuildOutput\Logs\Compile_Root_Configuration$tid-Log.txt"
+    Start-Transcript -Path "$BuildOutput\Logs\CompileRootConfiguration$tid-Log.txt"
 
     try {
         $mofs = . (Join-Path -Path $ProjectPath -ChildPath 'RootConfiguration.ps1')
