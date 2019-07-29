@@ -3,10 +3,8 @@ ResolutionPrecedence:
   - Environment\$($Node.Environment)
   - Locations\$($Node.Location)
   - Roles\$($Node.Role)
-  - Roles\Baseline
-  - MetaConfig\Lcm
-  - MetaConfig\LcmController
-  - MetaConfig\DscTagging
+  - Roles\ServerBaseline
+  - Roles\DscBaseline
 
 default_lookup_options: MostSpecific
 
@@ -33,6 +31,9 @@ lookup_options:
     merge_options:
       tuple_keys:
         - DestinationPath
+
+  NetworkIpConfiguration:
+    merge_hash: deep
 
   LcmConfig:
     merge_hash: hash
