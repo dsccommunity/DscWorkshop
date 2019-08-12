@@ -1,6 +1,6 @@
 ﻿function Update-LabDscNodes
 {
-    $path = Join-Path (Get-LatestArtifactsPath) -ChildPath MOF
+    $path = Join-Path (Get-LabLatestArtifactsPath) -ChildPath MOF
     $computerNames = dir -Path $path -Filter *.mof | Select-Object -ExpandProperty BaseName
 
     Update-DscConfiguration -ComputerName $computerNames -Wait -Verbose
@@ -8,7 +8,7 @@
 
 function Set-LabDscLatestMetaMofs
 {
-    $latestBuild = Get-LatestArtifactsPath
+    $latestBuild = Get-LabLatestArtifactsPath
     $path = Join-Path -Path $latestBuild -ChildPath MetaMof
 
     Set-DscLocalConfigurationManager -Path $path -Verbose
@@ -22,12 +22,12 @@ function Update-LabDscNodes {
     Start-DscConfiguration -UseExisting -Wait -Verbose -Force -ComputerName $computers
 }
 
-function Show-LatestArtifacts {
-    $latestBuild = Get-LatestArtifactsPath
+function Show-LabLatestArtifacts {
+    $latestBuild = Get-LabLatestArtifactsPath
     start $latestBuild
 }
 
-function Get-LatestArtifactsPath
+function Get-LabLatestArtifactsPath
 {
     $latestBuild = dir -Path C:\Artifacts\DscWorkshopBuild | Sort-Object -Property { [int]$_.Name } -Descending | Select-Object -First 1
     $latestBuild = Join-Path $latestBuild.FullName -ChildPath DscWorkshop
@@ -86,7 +86,7 @@ function Get-LabDscBuildWorkers
 
 function Clear-LabDscNodes
 {
-    $path = Join-Path (Get-LatestArtifactsPath) -ChildPath MOF
+    $path = Join-Path (Get-LabLatestArtifactsPath) -ChildPath MOF
     $computerNames = dir -Path $path -Filter *.mof | Select-Object -ExpandProperty BaseName
     $buildWorkers = Get-LabDscBuildWorkers
 
@@ -100,4 +100,11 @@ function Clear-LabDscNodes
     Invoke-Command -ScriptBlock {
         dir C:\BuildWorkerSetupFiles\_work | Where-Object { $_.Name.Length -lt 3 } | Remove-Item -Recurse -Force
     } -ComputerName $buildWorkers
+}
+
+function Test-LabDscConfiguration
+{
+    $computers = Get-ADComputer -Filter { Name -like 'DSCWeb*' -or Name -like 'DSCFile*' } | Select-Object -ExpandProperty DNSHostName
+    
+    Test-DscConfiguration -ComputerName $computers -Detailed   
 }
