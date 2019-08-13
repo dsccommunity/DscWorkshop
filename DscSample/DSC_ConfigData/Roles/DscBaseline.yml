@@ -8,10 +8,11 @@ DscTagging:
 
 DscLcmMaintenanceWindows:
   MaintenanceWindow:
-    - Name: WednesdayNight
+    - Name: FirstWednesdayNight
       DayOfWeek: Wednesday
       StartTime: 00:30:00
       Timespan: 02:00:00
+      On: 1st
     - Name: SundayAllDay
       DayOfWeek: Sunday
       StartTime: 00:00:00
@@ -23,6 +24,7 @@ DscLcmController:
   RefreshInterval: 04:00:00
   RefreshIntervalOverride: false
   ControllerInterval: 00:15:00
+  PostponeInterval: 2:00:00
   MaintenanceWindowOverride: false
   WriteTranscripts: true
 
