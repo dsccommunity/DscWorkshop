@@ -6,11 +6,6 @@ Location: Singapore
 
 NetworkIpConfiguration:
   IpAddress: 192.168.111.111
-  Prefix: 24
-  Gateway: 192.168.111.50
-  DnsServer: 192.168.111.10
-  InterfaceAlias: Ethernet
-  DisableNetbios: True
 
 PSDscAllowPlainTextPassword: True
 PSDscAllowDomainUser: True

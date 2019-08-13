@@ -3,7 +3,7 @@ $nodes = 'DSCFile01.contoso.com', 'DSCFile02.contoso.com', 'DSCFile03.contoso.co
 $buildWorkers = 'DSCPULL01.contoso.com', 'DSCTFS01.contoso.com'
 
 Invoke-Command -ScriptBlock { 
-    Remove-Item HKLM:\SOFTWARE\DscLcmControl\ -Recurse -Force
+    Remove-Item HKLM:\SOFTWARE\DscLcmController\ -Recurse -Force
     Remove-DscConfigurationDocument -Stage Current, Pending, Previous
     Remove-Item -Path C:\ProgramData\Dsc -Force -Recurse
     Get-ScheduledTask | Where-Object TaskName -like *dsc* | Unregister-ScheduledTask -Confirm:$false

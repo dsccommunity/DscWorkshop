@@ -19,16 +19,16 @@ $requiredModules = @{
     PSDeploy                     = 'latest'
     PSScriptAnalyzer             = 'latest'
     xDSCResourceDesigner         = 'latest'
-    xPSDesiredStateConfiguration = '8.8.0.0'
-    ComputerManagementDsc        = '6.4.0.0'
+    xPSDesiredStateConfiguration = '8.9.0.0'
+    ComputerManagementDsc        = '6.5.0.0'
     NetworkingDsc                = '7.3.0.0'
     NTFSSecurity                 = 'latest'
     JeaDsc                       = '0.6.5'
     XmlContentDsc                = '0.0.1'
     PowerShellGet                = 'latest'
     PackageManagement            = 'latest'
-    xWebAdministration           = '2.6.0.0'
-    xActiveDirectory             = '3.0.0.0'
+    xWebAdministration           = '2.7.0.0'
+    ActiveDirectoryDsc           = '4.0.0.0'
 }
 
 if (-not (Test-LabMachineInternetConnectivity -ComputerName $tfsServer)) {
@@ -42,8 +42,7 @@ $deployUserPassword = (Get-LabVm  -Role WebServer).GetCredential((Get-Lab)).GetN
 
 Copy-LabFileItem -Path "$PSScriptRoot\LabData\LabSite.zip" -ComputerName (Get-LabVM -Role WebServer)
 Copy-LabFileItem -Path "$PSScriptRoot\LabData\DummyService.exe" -ComputerName (Get-LabVM -Role WebServer)
-Copy-LabFileItem -Path "$PSScriptRoot\LabData\GoToNewestArtifacts.ps1" -ComputerName $tfsServer -DestinationFolderPath C:\Users\Install.contoso\Desktop
-Copy-LabFileItem -Path "$PSScriptRoot\LabData\UpdateNodes.ps1" -ComputerName $tfsServer -DestinationFolderPath C:\Users\Install.contoso\Desktop
+Copy-LabFileItem -Path "$PSScriptRoot\LabData\Helpers.ps1" -ComputerName $tfsServer -DestinationFolderPath C:\Users\Install.contoso\Desktop
 
 Invoke-LabCommand -Activity 'Setup Web Site' -ComputerName (Get-LabVm  -Role WebServer) -ScriptBlock {
 
