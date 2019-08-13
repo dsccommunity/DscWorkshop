@@ -11,7 +11,7 @@ function Set-LabDscLatestMetaMofs
     $latestBuild = Get-LabLatestArtifactsPath
     $path = Join-Path -Path $latestBuild -ChildPath MetaMof
 
-    Set-DscLocalConfigurationManager -Path $path -Verbose
+    Set-DscLocalConfigurationManager -Path $path -Verbose -Force
 }
 
 function Update-LabDscNodes {
@@ -88,7 +88,6 @@ function Clear-LabDscNodes
 {
     $path = Join-Path (Get-LabLatestArtifactsPath) -ChildPath MOF
     $computerNames = dir -Path $path -Filter *.mof | Select-Object -ExpandProperty BaseName
-    $buildWorkers = Get-LabDscBuildWorkers
 
     Invoke-Command -ScriptBlock { 
         Remove-Item HKLM:\SOFTWARE\DscLcmController -Recurse -Force
@@ -96,6 +95,14 @@ function Clear-LabDscNodes
         Remove-Item -Path C:\ProgramData\Dsc -Force -Recurse
         Get-ScheduledTask | Where-Object TaskName -like *dsc* | Unregister-ScheduledTask -Confirm:$false
     } -ComputerName $computerNames
+
+    Clear-LabBuildWorkers
+
+}
+
+function Clear-LabBuildWorkers
+{
+    $buildWorkers = Get-LabDscBuildWorkers
 
     Invoke-Command -ScriptBlock {
         dir C:\BuildWorkerSetupFiles\_work | Where-Object { $_.Name.Length -lt 3 } | Remove-Item -Recurse -Force
