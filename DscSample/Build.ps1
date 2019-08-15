@@ -187,7 +187,7 @@ if ($MofCompilationTaskCount -gt 1) {
     task . Init,
     CleanBuildOutput,
     SetPsModulePath,
-    Download_All_Dependencies,
+    DownloadDependencies,
     TestConfigData,
     VersionControl,
     LoadDatumConfigData
@@ -208,39 +208,4 @@ else {
     else {
         task . $Tasks
     }
-}
-
-task Download_All_Dependencies -if ($DownloadResourcesAndConfigurations -or $Tasks -contains 'Download_All_Dependencies') Download_DSC_Configurations, Download_DSC_Resources -Before SetPsModulePath
-
-task Download_DSC_Resources {
-    $PSDependResourceDefinition = "$ProjectPath\PSDepend.DSC_Resources.psd1"
-    if (Test-Path $PSDependResourceDefinition) {
-        $psDependParams = @{
-            Path    = $PSDependResourceDefinition
-            Confirm = $false
-            Target  = $resourcePath
-        }
-        Invoke-PSDependInternal -PSDependParameters $psDependParams -Reporitory $GalleryRepository
-    }
-}
-
-task Download_DSC_Configurations {
-    $PSDependConfigurationDefinition = "$ProjectPath\PSDepend.DSC_Configurations.psd1"
-    if (Test-Path $PSDependConfigurationDefinition) {
-        Write-Build Green 'Pull dependencies from PSDepend.DSC_Configurations.psd1'
-        $psDependParams = @{
-            Path    = $PSDependConfigurationDefinition
-            Confirm = $false
-            Target  = $configurationPath
-        }
-        Invoke-PSDependInternal -PSDependParameters $psDependParams -Reporitory $GalleryRepository
-    }
-}
-
-task Clean_DSC_Resources_Folder {
-    Get-ChildItem -Path "$ResourcesFolder" -Recurse | Remove-Item -Force -Recurse -Exclude README.md
-}
-
-task Clean_DSC_Configurations_Folder {
-    Get-ChildItem -Path "$ConfigurationsFolder" -Recurse | Remove-Item -Force -Recurse -Exclude README.md
 }

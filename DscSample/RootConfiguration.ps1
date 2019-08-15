@@ -27,11 +27,17 @@ configuration "RootConfiguration"
 
     node $ConfigurationData.AllNodes.NodeName {
         Write-Host "`r`n$('-'*75)`r`n$($Node.Name) : $($Node.NodeName) : $(&$module { $Script:PSTopConfigurationName })" -ForegroundColor Yellow
-        foreach ($configurationName in (Resolve-NodeProperty -PropertyPath 'Configurations')) {
+        
+        $configurationNames = Resolve-NodeProperty -PropertyPath 'Configurations'
+        
+        foreach ($configurationName in $configurationNames) {
             Write-Debug "`tLooking up params for $configurationName"
             $properties = Resolve-NodeProperty -PropertyPath $configurationName -DefaultValue @{}
+
             $dscError = [System.Collections.ArrayList]::new()
+            
             (Get-DscSplattedResource -ResourceName $configurationName -ExecutionName $configurationName -Properties $properties -NoInvoke).Invoke($properties)
+            
             if($Error[0] -and $lastError -ne $Error[0]) {
                 $lastIndex = [Math]::Max(($Error.LastIndexOf($lastError) -1), -1)
                 if($lastIndex -gt 0) {
@@ -62,7 +68,6 @@ configuration "RootConfiguration"
                 $n = [System.Math]::Max(1, 100 - $okMessage.Length)
                 Write-Host "$okMessage$('.' * $n)OK" -ForeGroundColor Green
             }
-            $lastCount = $Error.Count
         }
     }
 }
