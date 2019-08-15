@@ -42,7 +42,7 @@ $deployUserPassword = (Get-LabVm  -Role WebServer).GetCredential((Get-Lab)).GetN
 
 Copy-LabFileItem -Path "$PSScriptRoot\LabData\LabSite.zip" -ComputerName (Get-LabVM -Role WebServer)
 Copy-LabFileItem -Path "$PSScriptRoot\LabData\DummyService.exe" -ComputerName (Get-LabVM -Role WebServer)
-Copy-LabFileItem -Path "$PSScriptRoot\LabData\Helpers.ps1" -ComputerName $tfsServer -DestinationFolderPath C:\Users\Install.contoso\Desktop
+Copy-LabFileItem -Path "$PSScriptRoot\LabData\Helpers.psm1" -ComputerName $tfsServer -DestinationFolderPath C:\Users\Install.contoso\Desktop
 
 Invoke-LabCommand -Activity 'Setup Web Site' -ComputerName (Get-LabVm  -Role WebServer) -ScriptBlock {
 
