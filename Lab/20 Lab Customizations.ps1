@@ -6,7 +6,8 @@ $pullServer = Get-LabVM -Role DSCPullServer
 $router = Get-LabVM -Role Routing
 $progetServer = Get-LabVM | Where-Object { $_.PostInstallationActivity.RoleName -like 'ProGet*' }
 $progetUrl = "http://$($progetServer.FQDN)/nuget/PowerShell"
-
+$firstDomain  = (Get-Lab).Domains[0]
+ 
 $requiredModules = @{
     'powershell-yaml'            = 'latest'
     BuildHelpers                 = 'latest'
@@ -181,11 +182,13 @@ Invoke-LabCommand -ActivityName 'Downloading required modules from PSGallery' -C
 Invoke-LabCommand -ActivityName 'Publishing required modules to internal ProGet repository' -ComputerName $tfsServer -ScriptBlock {
 
     Write-Host "Publishing $($requiredModules.Count) modules to the internal gallery (loop 1)"
+    $nuGetApiKey = "$($firstDomain.Administrator.UserName)@$($firstDomain.Name):$($firstDomain.Administrator.Password)"
+    
     foreach ($requiredModule in $requiredModules.GetEnumerator()) {
         $module = Get-Module $requiredModule.Key -ListAvailable | Sort-Object -Property Version -Descending | Select-Object -First 1
         Write-Host "`t'$($module.Name) - $($module.Version)'"
         if (-not (Find-Module -Name $requiredModule.Key -Repository PowerShell -ErrorAction SilentlyContinue)) {
-            Publish-Module -Name $requiredModule.Key -RequiredVersion $module.Version -Repository PowerShell -NuGetApiKey 'Install@Contoso.com:Somepass1' -Force -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
+            Publish-Module -Name $requiredModule.Key -RequiredVersion $module.Version -Repository PowerShell -NuGetApiKey $nuGetApiKey -Force -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
         }
     }
     
@@ -194,7 +197,7 @@ Invoke-LabCommand -ActivityName 'Publishing required modules to internal ProGet 
         $module = Get-Module $requiredModule.Key -ListAvailable | Sort-Object -Property Version -Descending | Select-Object -First 1
         Write-Host "`t'$($module.Name) - $($module.Version)'"
         if (-not (Find-Module -Name $requiredModule.Key -Repository PowerShell -ErrorAction SilentlyContinue)) {
-            Publish-Module -Name $requiredModule.Key -RequiredVersion $module.Version -Repository PowerShell -NuGetApiKey 'Install@Contoso.com:Somepass1' -Force
+            Publish-Module -Name $requiredModule.Key -RequiredVersion $module.Version -Repository PowerShell -NuGetApiKey $nuGetApiKey -Force
         }
     }
     
