@@ -19,12 +19,13 @@ DscLcmMaintenanceWindows:
       Timespan: 24:00:00
 
 DscLcmController:
-  ConsistencyCheckInterval: 02:00:00
-  ConsistencyCheckIntervalOverride: false
-  RefreshInterval: 04:00:00
+  MaintenanceWindowMode: AutoCorrect #Monitor
+  MonitorInterval: 00:05:00
+  AutoCorrectInterval: 00:10:00
+  AutoCorrectIntervalOverride: false  
+  RefreshInterval: 00:20:00
   RefreshIntervalOverride: false
-  ControllerInterval: 00:15:00
-  PostponeInterval: 2:00:00
+  ControllerInterval: 00:01:00
   MaintenanceWindowOverride: false
   WriteTranscripts: true
 
@@ -36,7 +37,7 @@ LcmConfig:
     ActionAfterReboot: ContinueConfiguration
     AllowModuleOverwrite: true
     #CertificateID: ...
-    ConfigurationMode: ApplyAndAutoCorrect
+    ConfigurationMode: ApplyAndMonitor
     ConfigurationModeFrequencyMins: 30
   ConfigurationRepositoryWeb:
     Server:
