@@ -6,7 +6,9 @@ $pullServer = Get-LabVM -Role DSCPullServer
 $router = Get-LabVM -Role Routing
 $progetServer = Get-LabVM | Where-Object { $_.PostInstallationActivity.RoleName -like 'ProGet*' }
 $progetUrl = "http://$($progetServer.FQDN)/nuget/PowerShell"
-
+$firstDomain  = (Get-Lab).Domains[0]
+$nuGetApiKey = "$($firstDomain.Administrator.UserName)@$($firstDomain.Name):$($firstDomain.Administrator.Password)"
+ 
 $requiredModules = @{
     'powershell-yaml'            = 'latest'
     BuildHelpers                 = 'latest'
@@ -42,7 +44,7 @@ $deployUserPassword = (Get-LabVm  -Role WebServer).GetCredential((Get-Lab)).GetN
 
 Copy-LabFileItem -Path "$PSScriptRoot\LabData\LabSite.zip" -ComputerName (Get-LabVM -Role WebServer)
 Copy-LabFileItem -Path "$PSScriptRoot\LabData\DummyService.exe" -ComputerName (Get-LabVM -Role WebServer)
-Copy-LabFileItem -Path "$PSScriptRoot\LabData\Helpers.ps1" -ComputerName $tfsServer -DestinationFolderPath C:\Users\Install.contoso\Desktop
+Copy-LabFileItem -Path "$PSScriptRoot\LabData\Helpers.psm1" -ComputerName $tfsServer -DestinationFolderPath C:\Users\Install.contoso\Desktop
 
 Invoke-LabCommand -Activity 'Setup Web Site' -ComputerName (Get-LabVm  -Role WebServer) -ScriptBlock {
 
@@ -181,11 +183,12 @@ Invoke-LabCommand -ActivityName 'Downloading required modules from PSGallery' -C
 Invoke-LabCommand -ActivityName 'Publishing required modules to internal ProGet repository' -ComputerName $tfsServer -ScriptBlock {
 
     Write-Host "Publishing $($requiredModules.Count) modules to the internal gallery (loop 1)"
+    
     foreach ($requiredModule in $requiredModules.GetEnumerator()) {
         $module = Get-Module $requiredModule.Key -ListAvailable | Sort-Object -Property Version -Descending | Select-Object -First 1
         Write-Host "`t'$($module.Name) - $($module.Version)'"
         if (-not (Find-Module -Name $requiredModule.Key -Repository PowerShell -ErrorAction SilentlyContinue)) {
-            Publish-Module -Name $requiredModule.Key -RequiredVersion $module.Version -Repository PowerShell -NuGetApiKey 'Install@Contoso.com:Somepass1' -Force -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
+            Publish-Module -Name $requiredModule.Key -RequiredVersion $module.Version -Repository PowerShell -NuGetApiKey $nuGetApiKey -Force -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
         }
     }
     
@@ -194,7 +197,7 @@ Invoke-LabCommand -ActivityName 'Publishing required modules to internal ProGet 
         $module = Get-Module $requiredModule.Key -ListAvailable | Sort-Object -Property Version -Descending | Select-Object -First 1
         Write-Host "`t'$($module.Name) - $($module.Version)'"
         if (-not (Find-Module -Name $requiredModule.Key -Repository PowerShell -ErrorAction SilentlyContinue)) {
-            Publish-Module -Name $requiredModule.Key -RequiredVersion $module.Version -Repository PowerShell -NuGetApiKey 'Install@Contoso.com:Somepass1' -Force
+            Publish-Module -Name $requiredModule.Key -RequiredVersion $module.Version -Repository PowerShell -NuGetApiKey $nuGetApiKey -Force
         }
     }
     
@@ -205,7 +208,7 @@ Invoke-LabCommand -ActivityName 'Publishing required modules to internal ProGet 
     foreach ($requiredModule in $requiredModules.GetEnumerator()) {
         Uninstall-Module -Name $requiredModule.Key -ErrorAction SilentlyContinue
     }
-} -Variable (Get-Variable -Name requiredModules)
+} -Variable (Get-Variable -Name requiredModules, nuGetApiKey)
 
 Invoke-LabCommand -ActivityName 'Disable Git SSL Certificate Check' -ComputerName $tfsServer, $tfsWorker -ScriptBlock {
     [System.Environment]::SetEnvironmentVariable('GIT_SSL_NO_VERIFY', '1', 'Machine')
