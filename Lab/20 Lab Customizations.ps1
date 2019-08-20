@@ -6,7 +6,7 @@ $pullServer = Get-LabVM -Role DSCPullServer
 $router = Get-LabVM -Role Routing
 $progetServer = Get-LabVM | Where-Object { $_.PostInstallationActivity.RoleName -like 'ProGet*' }
 $progetUrl = "http://$($progetServer.FQDN)/nuget/PowerShell"
-$firstDomain  = (Get-Lab).Domains[0]
+$firstDomain = (Get-Lab).Domains[0]
 $nuGetApiKey = "$($firstDomain.Administrator.UserName)@$($firstDomain.Name):$($firstDomain.Administrator.Password)"
  
 $requiredModules = @{
@@ -31,6 +31,7 @@ $requiredModules = @{
     PackageManagement            = 'latest'
     xWebAdministration           = '2.7.0.0'
     ActiveDirectoryDsc           = '4.0.0.0'
+    SecurityPolicyDsc            = '2.9.0.0'
 }
 
 if (-not (Test-LabMachineInternetConnectivity -ComputerName $tfsServer)) {
@@ -73,7 +74,7 @@ Invoke-LabCommand -Activity 'Creating folders and shares' -ComputerName (Get-Lab
 
     New-Item -ItemType Directory -Path C:\GroupData
 
-    'Accounting', 'Legal', 'HR', 'Janitorial' | ForEach-Object {New-Item -ItemType Directory -Path C:\GroupData -Name $_}
+    'Accounting', 'Legal', 'HR', 'Janitorial' | ForEach-Object { New-Item -ItemType Directory -Path C:\GroupData -Name $_ }
 
     New-SmbShare -Name Home -Path C:\UserHome
     New-SmbShare -Name Department -Path C:\GroupData
