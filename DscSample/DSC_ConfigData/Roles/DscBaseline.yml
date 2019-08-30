@@ -8,26 +8,29 @@ DscTagging:
 
 DscLcmMaintenanceWindows:
   MaintenanceWindow:
-    - Name: FirstWednesdayNight
-      DayOfWeek: Wednesday
-      StartTime: 00:30:00
-      Timespan: 02:00:00
-      On: 1st
-    - Name: SundayAllDay
-      DayOfWeek: Sunday
+    - Name: Always
       StartTime: 00:00:00
       Timespan: 24:00:00
+    #- Name: FirstWednesdayNight
+    #  DayOfWeek: Wednesday
+    #  StartTime: 00:30:00
+    #  Timespan: 02:00:00
+    #  On: 1st
+    #- Name: SundayAllDay
+    #  DayOfWeek: Sunday
+    #  StartTime: 00:00:00
+    #  Timespan: 24:00:00
 
 DscLcmController:
-  MaintenanceWindowMode: AutoCorrect #Monitor
-  MonitorInterval: 00:05:00
-  AutoCorrectInterval: 00:10:00
-  AutoCorrectIntervalOverride: false  
-  RefreshInterval: 00:20:00
-  RefreshIntervalOverride: false
-  ControllerInterval: 00:01:00
-  MaintenanceWindowOverride: false
-  WriteTranscripts: true
+  MaintenanceWindowMode: AutoCorrect # or Monitor. In Monitor mode the LCM won't do changes in maintenance window.
+  MonitorInterval: 00:05:00          #  
+  AutoCorrectInterval: 00:10:00      #
+  AutoCorrectIntervalOverride: false #   THESE VALUES ARE VERY LOW FOR EASY TESTING AND DEMONSTRATIONS
+  RefreshInterval: 00:20:00          #
+  RefreshIntervalOverride: false     #   PLEASE INCREASE THE VALUES TO PREVENT OVERLOADING THE PULL SERVER
+  ControllerInterval: 00:01:00       #   AS WELL AS THE NODES. ALSO THE SQL DATABASE GROWS PRETTY FAST IF A
+  MaintenanceWindowOverride: false   #   REPORT IS SENT EVERY 5 MINUTES.
+  WriteTranscripts: true             #
 
 LcmConfig:
   Settings:
