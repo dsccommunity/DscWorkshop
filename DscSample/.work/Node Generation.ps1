@@ -1,4 +1,4 @@
-﻿$d = New-DatumStructure -DefinitionFile $env:BHProjectPath\DSC_ConfigData\Datum.yml
+﻿$d = New-DatumStructure -DefinitionFile $env:BHProjectPath\DscConfigData\Datum.yml
 $roles = $d.Roles | Get-Member -MemberType ScriptProperty | Select-Object -ExpandProperty Name | Where-Object { $_ -notin 'LCM' }
 
 $yaml = @"
@@ -28,5 +28,5 @@ LcmConfig:
 1..100 | ForEach-Object {
     $nodeName = 'DSCFile{0:D4}' -f $_
     $newYaml = $yaml -f $nodeName, $_, ($roles | Get-Random)
-    $newYaml | Out-File -FilePath "$PSScriptRoot\..\DSC_ConfigData\AllNodes\Dev\$nodeName.yml"
+    $newYaml | Out-File -FilePath "$PSScriptRoot\..\DscConfigData\AllNodes\Dev\$nodeName.yml"
 }

@@ -1,5 +1,5 @@
 Push-Location
-Set-Location -Path $env:BHProjectPath\DSC_ConfigData\AllNodes
+Set-Location -Path $env:BHProjectPath\DscConfigData\AllNodes
 $files = dir -Recurse -Filter *.yml
 
 foreach ($file in $files) {

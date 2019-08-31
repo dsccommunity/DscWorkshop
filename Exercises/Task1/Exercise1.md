@@ -60,7 +60,7 @@ To kick off a new build, the script Build.ps1 is going to be used. Whether or no
 10. After the build process has finished, a number of artifacts have been created. Let's have a look at the dev nodes first.
     To see which nodes are part of your development environment, please execute the following command:
     ```powershell
-    ise ((Get-ChildItem .\DSC_ConfigData\AllNodes\Dev).FullName -join ',')
+    ise ((Get-ChildItem .\DscConfigData\AllNodes\Dev).FullName -join ',')
     ```
 11. The previous command should have opened two files: DSCFile01.yml and DSCWeb01.yml. Both files are in the YAML format. YAML, like JSON, has been around since 2000/2001 and can be used to serialize data.
 

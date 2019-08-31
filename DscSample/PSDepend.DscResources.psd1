@@ -1,7 +1,7 @@
 @{
     PSDependOptions              = @{
         AddToPath      = $true
-        Target         = 'DSC_Resources'
+        Target         = 'DscResources'
         DependencyType = 'PSGalleryModule'
         Parameters     = @{
             Repository = 'PSGallery'

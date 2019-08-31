@@ -17,7 +17,7 @@ function Get-DscErrorMessage {
         { $_.Message -match 'A second CIM class definition'} {
             # This happens when several versions of same module are available. 
             # Mainly a problem when when $Env:PSModulePath is polluted or 
-            # DSC_Resources or DSC_Configuration are not clean
+            # DscResources or DSC_Configuration are not clean
             'Multiple version of the same module exist'
             break
         }

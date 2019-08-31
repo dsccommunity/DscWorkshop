@@ -12,7 +12,7 @@ Now, your branch office in Frankfurt has requested a new role for WSUS servers. 
 
 This new role should enable WSUS administrators to build on top of the basic infrastructure.
 
-1. Let us now create a new Role for a WSUS Server in the DSC_ConfigData\Roles folder. This Role's YAML will subscribe to the configuration "WindowsFeatures" and will define configuration data (Settings) for the configuration.
+1. Let us now create a new Role for a WSUS Server in the DscConfigData\Roles folder. This Role's YAML will subscribe to the configuration "WindowsFeatures" and will define configuration data (Settings) for the configuration.
 
     ```powershell
     $WsusServerRoleYAML = @'
@@ -24,7 +24,7 @@ This new role should enable WSUS administrators to build on top of the basic inf
         - +UpdateServices
     '@
 
-    New-Item -Path .\DSc_ConfigData\Roles\WsusServer.yml -Value $WsusServerRoleYAML -ItemType File
+    New-Item -Path .\DscConfigData\Roles\WsusServer.yml -Value $WsusServerRoleYAML -ItemType File
 
     ```
 2. Now let us add a new node YAML (DSCWS01.yml) in the Pilot which is based on this Role.
@@ -57,7 +57,7 @@ This new role should enable WSUS administrators to build on top of the basic inf
         ConfigurationNames: DSCWS01
     '@
 
-    New-Item -Path .\DSC_ConfigData\AllNodes\Pilot\DSCWS01.yml -Value $DSCWS01YAML -ItemType File
+    New-Item -Path .\DscConfigData\AllNodes\Pilot\DSCWS01.yml -Value $DSCWS01YAML -ItemType File
     ```
 Once again, it is that easy. New roles (i.e. WsusServer), environments (i.e. Pilot) and nodes (i.e. DSCWS01) just require adding YAML files. The devil is in the details: Providing the appropriate configuration data for your configurations like the network configuration requires knowledge of the underlying infrastructure of course.
 
@@ -73,7 +73,7 @@ After the build has completed take a look at the new nodes resulting files.
 **NOTE**: YAML syntax can be tricky so if you have errors during the build it very likely due to not well formed YAML.
 
 ```powershell
-ise ((Get-ChildItem -Path .\DSC_ConfigData -Filter DSCWS01* -recurse).fullname -join ',')
+ise ((Get-ChildItem -Path .\DscConfigData -Filter DSCWS01* -recurse).fullname -join ',')
 ```
 
 ## Modify a role
@@ -83,7 +83,7 @@ Modifying a role is as easy as modifying a node. Try changing the default time s
 1. Open the FileServer.yml from your Roles directory. We are modifying an already existing role definition now.
 
     ```powershell
-    ise .\DSC_ConfigData\Roles\FileServer.yml
+    ise .\DscConfigData\Roles\FileServer.yml
     ```
 2. In order to change a configuration item, just modify or add to your YAML file:
     ```yaml

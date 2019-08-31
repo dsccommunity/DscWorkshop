@@ -13,13 +13,13 @@ You are tasked with creating another layer that better reflects separate fire se
 1. To create a new layer, you need to find an appropriate structure. Since the file system is already quite good when it comes to displaying hierarchical data, we can add a subfolder called FireSections which should contain for example Section1.yml and Section2.yml.
 
     ```powershell
-    New-Item -Path .\DSC_ConfigData\FireSections\Section1.yml -ItemType File -Force
-    New-Item -Path .\DSC_ConfigData\FireSections\Section2.yml -ItemType File -Force
+    New-Item -Path .\DscConfigData\FireSections\Section1.yml -ItemType File -Force
+    New-Item -Path .\DscConfigData\FireSections\Section2.yml -ItemType File -Force
     ```
 2. In order to add completely new layers to your configuration, you need to modify the lookup precedence. This is done in the global configuration file called Datum.yml.
 
     ```powershell
-    ise .\DSC_ConfigData\Datum.yml
+    ise .\DscConfigData\Datum.yml
     ```
 3. Examine the current contents of Datum.yml and notice the resolution order for your files:
 

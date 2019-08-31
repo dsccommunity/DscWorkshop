@@ -16,8 +16,8 @@ With your CI trigger set up from the previous exercise, every change that is com
     ```powershell
     cd $home
     git clone https://dev.azure.com/<YourAccountNameHere>/<YourProjectNameHere/dscworkshop
-    (Get-Content ./dscworkshop/dscsample/dsc_configdata/allnodes/dev/dscfile01.yml) -replace 'Location.*','Location: Buxtehude' |
-    Set-Content -Path ./dscworkshop/dscsample/dsc_configdata/allnodes/dev/dscfile01.yml
+    (Get-Content ./dscworkshop/dscsample/DscConfigData/allnodes/dev/dscfile01.yml) -replace 'Location.*','Location: Buxtehude' |
+    Set-Content -Path ./dscworkshop/dscsample/DscConfigData/allnodes/dev/dscfile01.yml
     ```  
     or if your prefer:  
     ![UI file editing](./img/CommitChange.png)

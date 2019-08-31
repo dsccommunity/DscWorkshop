@@ -4,13 +4,13 @@ param (
     $BuildOutput = 'BuildOutput',
 
     [string]
-    $ResourcesFolder = 'DSC_Resources',
+    $ResourcesFolder = 'DscResources',
 
     [string]
-    $ConfigDataFolder = 'DSC_ConfigData',
+    $ConfigDataFolder = 'DscConfigData',
 
     [string]
-    $ConfigurationsFolder = 'DSC_Configurations',
+    $ConfigurationsFolder = 'DscConfigurations',
 
     [string]
     $TestFolder = 'Tests',

@@ -10,17 +10,17 @@ To kick off a new build, the script Build.ps1 is going to be used. Whether or no
 
 You are tasked with on-boarding a new node (DSCFile04) to your environment. The node should be a file server (Role) in your branch office in Singapore (Location). You also know that it should be part of the Pilot servers or canaries that receive new DSC configurations before other production servers.
 
-1. Make a copy of DSCFile02.yml (use as a template) to the folder DSC_ConfigData\AllNodes\Pilot and call it DSCFile04.yml. This new yml will represent your new node.
+1. Make a copy of DSCFile02.yml (use as a template) to the folder DscConfigData\AllNodes\Pilot and call it DSCFile04.yml. This new yml will represent your new node.
 
     ```powershell
-    Copy-Item -Path .\DSC_ConfigData\AllNodes\Pilot\DSCFile02.yml -Destination .\DSC_ConfigData\AllNodes\Pilot\DscFile04.yml
+    Copy-Item -Path .\DscConfigData\AllNodes\Pilot\DSCFile02.yml -Destination .\DscConfigData\AllNodes\Pilot\DscFile04.yml
     ```
 
 2. Open the newly created file and modify the properties NodeName, Location, Description and ConfigurationNames with the below values.
   *Please note that outside of a workshop environment, this step can easily be scripted to e.g. use a CMDB as the source for new nodes*
 
     ```powershell
-    ise .\DSC_ConfigData\AllNodes\Pilot\DscFile04.yml
+    ise .\DscConfigData\AllNodes\Pilot\DscFile04.yml
     ```
 
     ```yaml
