@@ -54,7 +54,7 @@ To kick off a new build, the script Build.ps1 is going to be used. Whether or no
 
 9. Without modifying anything yet, start the build script by executing:
     ```powershell
-    .\DscSample\Build.ps1 -ResolveDependency
+    .\DSC\Build.ps1 -ResolveDependency
     ```
     This command will download all dependencies that have been defined and build the entire environment. This can take a short while.
 10. After the build process has finished, a number of artifacts have been created. Let's have a look at the dev nodes first.

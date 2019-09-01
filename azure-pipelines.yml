@@ -8,7 +8,7 @@ pool:
 
 steps:
 - powershell: '.\Build.ps1 -ResolveDependency'
-  workingDirectory: DscSample
+  workingDirectory: DSC
   displayName: 'Execute build.ps1'
 
 - task: PublishTestResults@2
@@ -21,25 +21,25 @@ steps:
 - task: PublishBuildArtifacts@1
   displayName: MOF
   inputs:
-    PathtoPublish: '$(Build.SourcesDirectory)\DscSample\BuildOutput\MOF'
+    PathtoPublish: '$(Build.SourcesDirectory)\DSC\BuildOutput\MOF'
     ArtifactName: MOF
 
 - task: PublishBuildArtifacts@1
   displayName: 'Meta MOF'
   inputs:
-    PathtoPublish: '$(Build.SourcesDirectory)\DscSample\BuildOutput\MetaMOF'
+    PathtoPublish: '$(Build.SourcesDirectory)\DSC\BuildOutput\MetaMOF'
     ArtifactName: 'Meta MOF'
 
 - task: PublishBuildArtifacts@1
   displayName: RSOP
   inputs:
-    PathtoPublish: '$(Build.SourcesDirectory)\DscSample\BuildOutput\RSOP'
+    PathtoPublish: '$(Build.SourcesDirectory)\DSC\BuildOutput\RSOP'
     ArtifactName: RSOP
 
 - task: PublishBuildArtifacts@1
   displayName: 'Compressed Modules'
   inputs:
-    PathtoPublish: '$(Build.SourcesDirectory)\DscSample\BuildOutput\CompressedModules'
+    PathtoPublish: '$(Build.SourcesDirectory)\DSC\BuildOutput\CompressedModules'
     ArtifactName: 'Compressed Modules'
 
 - task: PublishTestResults@2

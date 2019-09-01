@@ -8,17 +8,17 @@
             "type": "PowerShell",
             "request": "launch",
             "name": "Launch DSC Build",
-            "script": "${workspaceRoot}/DscSample/Build.ps1",
+            "script": "${workspaceRoot}/DSC/Build.ps1",
             "args": [],
-            "cwd": "${workspaceRoot}/DscSample/"
+            "cwd": "${workspaceRoot}/DSC/"
         },
         {
             "type": "PowerShell",
             "request": "launch",
             "name": "Launch DSC Build -ResolveDependency",
-            "script": "${workspaceRoot}/DscSample/Build.ps1",
+            "script": "${workspaceRoot}/DSC/Build.ps1",
             "args": ["-ResolveDependency"],
-            "cwd": "${workspaceRoot}/DscSample/"
+            "cwd": "${workspaceRoot}/DSC/"
         },
         {
             "type": "PowerShell",

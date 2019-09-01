@@ -62,7 +62,7 @@ if (-not $r -or $r.SourceLocation -ne $uri -or $r.PublishLocation -ne $uri) {
         "inputs"      = @{
             targetType = "inline"
             script     = @'
-cd $(Build.SourcesDirectory)\DscSample
+cd $(Build.SourcesDirectory)\DSC
 .\Build.ps1 -ResolveDependency -GalleryRepository PowerShell -Tasks Init, CleanBuildOutput, SetPsModulePath, TestConfigData, VersionControl, LoadDatumConfigData, CompileDatumRsop, CompileRootConfiguration, CompileRootMetaMof
 '@
         }
@@ -89,7 +89,7 @@ cd $(Build.SourcesDirectory)\DscSample
             versionSpec = '*'
         }
         inputs      = @{
-            PathtoPublish = '$(Build.SourcesDirectory)\DscSample\BuildOutput\MOF'
+            PathtoPublish = '$(Build.SourcesDirectory)\DSC\BuildOutput\MOF'
             ArtifactName  = 'MOFOnShare' 
             ArtifactType  = 'FilePath'
             TargetPath    = '$(ArtifactsShare)\$(Build.DefinitionName)\$(Build.BuildNumber)'
@@ -103,7 +103,7 @@ cd $(Build.SourcesDirectory)\DscSample
             versionSpec = '*'
         }
         inputs      = @{
-            PathtoPublish = '$(Build.SourcesDirectory)\DscSample\BuildOutput\MetaMof'
+            PathtoPublish = '$(Build.SourcesDirectory)\DSC\BuildOutput\MetaMof'
             ArtifactName  = 'MetaMofOnShare'
             ArtifactType  = 'FilePath'
             TargetPath    = '$(ArtifactsShare)\$(Build.DefinitionName)\$(Build.BuildNumber)'
@@ -118,7 +118,7 @@ cd $(Build.SourcesDirectory)\DscSample
             versionSpec = '*'
         }
         inputs      = @{
-            PathtoPublish = '$(Build.SourcesDirectory)\DscSample\BuildOutput\CompressedModules'
+            PathtoPublish = '$(Build.SourcesDirectory)\DSC\BuildOutput\CompressedModules'
             ArtifactName  = 'CompressedModulesOnShare'
             ArtifactType  = 'FilePath'
             TargetPath    = '$(ArtifactsShare)\$(Build.DefinitionName)\$(Build.BuildNumber)'
@@ -132,7 +132,7 @@ cd $(Build.SourcesDirectory)\DscSample
             versionSpec = '*'
         }
         inputs      = @{
-            PathtoPublish = '$(Build.SourcesDirectory)\DscSample\BuildOutput\MOF'
+            PathtoPublish = '$(Build.SourcesDirectory)\DSC\BuildOutput\MOF'
             ArtifactName  = 'MOF'
             ArtifactType  = 'Container'
         }
@@ -145,7 +145,7 @@ cd $(Build.SourcesDirectory)\DscSample
             versionSpec = '*'
         }
         inputs      = @{
-            PathtoPublish = '$(Build.SourcesDirectory)\DscSample\BuildOutput\MetaMof'
+            PathtoPublish = '$(Build.SourcesDirectory)\DSC\BuildOutput\MetaMof'
             ArtifactName  = 'MetaMof'
             ArtifactType  = 'Container'
         }
@@ -158,7 +158,7 @@ cd $(Build.SourcesDirectory)\DscSample
             versionSpec = '*'
         }
         inputs      = @{
-            PathtoPublish = '$(Build.SourcesDirectory)\DscSample\BuildOutput\CompressedModules'
+            PathtoPublish = '$(Build.SourcesDirectory)\DSC\BuildOutput\CompressedModules'
             ArtifactName  = 'CompressedModules'
             ArtifactType  = 'Container'
         }
@@ -231,7 +231,7 @@ if (-not $r -or $r.SourceLocation -ne $uri -or $r.PublishLocation -ne $uri) {
             targetType = 'inline'
             script     = @'
 Write-Host $(System.DefaultWorkingDirectory)
-cd $(System.DefaultWorkingDirectory)\$(Build.DefinitionName)\SourcesDirectory\DscSample
+cd $(System.DefaultWorkingDirectory)\$(Build.DefinitionName)\SourcesDirectory\DSC
 .\Build.ps1 -Tasks Init, SetPsModulePath, Deploy, TestBuildAcceptance -GalleryRepository PowerShell
 '@
         }
