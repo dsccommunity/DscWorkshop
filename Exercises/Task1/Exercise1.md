@@ -49,18 +49,18 @@ After completing this task, you have a gone through the build process for all ar
 
 6. In this and the following exercises we will be working with the open-source DscWorkshop repository hosted at <https://github.com/automatedlab/dscworkshop>. To clone this repository, please execute:
 
-> PLease make sure you are in the C:\Git folder or wherever you want to store project.
+> Note: Please make sure you are in the 'C:\Git' folder or wherever you want to store project.
 
-    ```powershell
-    git clone https://github.com/automatedlab/dscworkshop
-    ```
+  ```powershell
+  git clone https://github.com/automatedlab/dscworkshop
+  ```
 
 7. Change into the newly cloned repository and checkout the dev branch to move into the development environment:
 
-```powershell
-Set-Location -Path .\dscworkshop
-git checkout dev
-```
+  ```powershell
+  Set-Location -Path .\dscworkshop
+  git checkout dev
+  ```
 
 8. Open the DscWorkshop folder in VSCode and examine the repository contents. The shortcut in VSCode to open a folder is ```CTRL+K CTRL+O```. You can also press F1 and type in the command you are looking for. And there is the classical way using the file menu.
 
@@ -73,10 +73,10 @@ git checkout dev
 
 > Note: It is important to go into the DSC folder and start the build script form there. Don't invoke it like ```.\DSC\Build.ps1```.
 
-```powershell
-cd DSC
-.\Build.ps1 -ResolveDependency
-```
+  ```powershell
+  cd DSC
+  .\Build.ps1 -ResolveDependency
+  ```
 
     This command will download all dependencies that have been defined and build the entire environment. This can take a short while.
 
