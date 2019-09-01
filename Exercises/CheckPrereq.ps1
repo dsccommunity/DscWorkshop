@@ -25,8 +25,8 @@ describe "Prerequisite check" {
             (Get-Module -List Az.*).Count | Should -BeGreaterOrEqual 45 -Because "We need the module Az installed with all its components"
         }
 
-        it "Should be logged in to Azure" {
-            {Get-AzContext} | Should -Not -Throw
+        it "Should be logged in to Azure (use Login-AzAccount)" {
+            { Get-AzContext } | Should -Not -Throw
             Get-AzContext | Should -Not -Be $null
         }
     }
