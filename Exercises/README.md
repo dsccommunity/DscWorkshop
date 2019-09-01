@@ -4,7 +4,7 @@ These small exercises should get you started with this repository and the projec
 
 Before starting any exercise, please execute the [prerequisite check](CheckPrereq.ps1) in Windows PowerShell.
 
-***Please not that this test requires Pester > 4 to run.***
+> ***Please not that this test requires Pester > 4 to run.***
 
 ## Prerequisites
 
