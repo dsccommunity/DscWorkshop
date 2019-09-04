@@ -2,13 +2,17 @@
 
 *Estimated time to completion: 30-60 minutes*
 
-To kick off a new build, the script Build.ps1 is going to be used. Whether or not you are in a build pipeline, the build script will create all artifacts in your current environment.
+This task is about building the solution locally. For that, no infrastructure or service is required. All you need is having cloned the public DscWorkshop repository to your machine.
+
+To kick off a new build, the script ```/DSC/Build.ps1``` is going to be used. Whether or not you are in a build pipeline, the build script will create all artifacts in your current environment.
 
 After completing this task, you have a gone through the build process for all artifacts that are required for a DSC pull server scenario (on-prem or Azure).
 
 > ## Note: Remember to check the [prerequisites](..\CheckPrereq.ps1) first
 
-## 1.1 Running a manual build
+---
+
+## 1.1 Running a manual build locally
 
 1. Open Windows PowerShell as elevated Admin. Do this by pressing the Windows and then typing ```powershell.exe``` and then right-click select 'Run As Administrator'
 2. Execute the ```Get-ExecutionPolicy``` cmdlet. The resulting execution policy should be either RemoteSigned, Unrestricted or Bypass:
@@ -146,6 +150,8 @@ After completing this task, you have a gone through the build process for all ar
 
 
 16. The usable artifacts are your MOF, meta.MOF files and compressed modules - these files will be part of your release pipeline.
+
+---
 
 Congratulations. You have just built the entire development environment! Want to test this, but don't have the infrastructure (Azure DevOps Server, SQL, AD, PKI, target nodes)? Try <https://github.com/automatedlab/automatedlab>, the module that helps you with rapid prototyping of your apps ;) Included in this repository is [the entire lab script](../../Lab/03.10%20Full%20Lab%20with%20DSC%20and%20TFS.ps1).
 

@@ -10,12 +10,25 @@ To kick off a new build, the script Build.ps1 is going to be used. Whether or no
 
 You are tasked with creating another layer that better reflects separate fire sections for your locations. All locations have two fire sections that are physically kept apart from each other.
 
-1. To create a new layer, you need to find an appropriate structure. Since the file system is already quite good when it comes to displaying hierarchical data, we can add a subfolder called FireSections which should contain for example Section1.yml and Section2.yml.
+1. To create a new layer, you need to find an appropriate structure. Since the file system is already quite good when it comes to displaying hierarchical data, we can add a subfolder called FireSections which should contain for example Section1.yml and Section2.yml. You may either use VSCode to create the folder and the files or run the following commands:
 
     ```powershell
-    New-Item -Path .\DscConfigData\FireSections\Section1.yml -ItemType File -Force
+    @'
+Configurations:
+  - RegistryValues
+
+RegistryValues:
+    Values:
+    - Key: HKEY_LOCAL_MACHINE\SOFTWARE\Dsc
+      ValueName: FireSection
+      ValueData: 2
+      ValueType: DWORD
+      Ensure: Present
+      Force: true
+'@ | Set-Content -Path .\DSC\DscConfigData\FireSections\Section2.yml -Force
     New-Item -Path .\DscConfigData\FireSections\Section2.yml -ItemType File -Force
     ```
+
 2. In order to add completely new layers to your configuration, you need to modify the lookup precedence. This is done in the global configuration file called Datum.yml.
 
     ```powershell
