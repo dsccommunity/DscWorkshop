@@ -6,7 +6,9 @@ To kick off a new build, the script 'Build.ps1' is going to be used. Whether or 
 
 ***Remember to check the [prerequisites](..\CheckPrereq.ps1)!***
 
-## Add a new node
+---
+
+## 1.2 Add a new node
 
 You are tasked with on-boarding a new node (DSCFile04) to your environment. The node should be a file server (Role) in your branch office in Singapore (Location). You also know that it should be part of the Pilot servers or canaries that receive new DSC configurations before other production servers.
 
