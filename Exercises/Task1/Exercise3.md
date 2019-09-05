@@ -2,11 +2,13 @@
 
 *Estimated time to completion: 30-60 minutes*
 
-To kick off a new build, the script Build.ps1 is going to be used. Whether or not you are in a build pipeline, the build script will create all artifacts in your current environment.
+To kick off a new build, the script 'Build.ps1' is going to be used. Whether or not you are in a build pipeline, the build script will create all artifacts in your current environment.
 
 ***Remember to check the [prerequisites](..\CheckPrereq.ps1)!***
 
-## Add a new role
+---
+
+## 1.3 Add a new role
 
 Now, your branch office in Frankfurt has requested a new role for WSUS servers. This requires you to configure the WSUS feature and set a registry key.
 
@@ -60,7 +62,7 @@ After the build has completed take a look at the new nodes resulting files.
 
 > **NOTE: YAML syntax can be tricky so if you have errors during the build it very likely due to not well formed YAML.**
 
-## Modify a role
+## 1.4 Modify a role
 
 Modifying a role is even easier as adding a new one. Let's try changing the default time server for all the file servers. If the setting effect all time servers, it must be defined in the 'FileServer' role
 
