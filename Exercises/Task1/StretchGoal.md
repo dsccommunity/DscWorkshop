@@ -2,29 +2,33 @@
 
 *Estimated time to completion: 30-60 minutes*
 
-To kick off a new build, the script Build.ps1 is going to be used. Whether or not you are in a build pipeline, the build script will create all artifacts in your current environment.
+To kick off a new build, the script 'Build.ps1' is going to be used. Whether or not you are in a build pipeline, the build script will create all artifacts in your current environment.
 
 ***Remember to check the [prerequisites](..\CheckPrereq.ps1)!***
 
-## 1.6 - Create a custom Configuration (DSC Composite Resource)
+---
+
+## 1.5 - Create a custom Configuration (DSC Composite Resource)
 
 ***This is a stretch goal, if the other tasks have been too easy.***
 
 Extending configurations based on the customer's needs will eventually require you to develop actual DSC configurations in the form of composite resources. The guiding principle is that your composite resources should be able to take all their parameters from configuration data.
 
-There should rarely be the need for hardcoded values in your composite resources. Keep in mind though that they should abstract some of the complexity of DSC. A composite resource that requires massive amounts of configuration data is probably not the best choice.
+There should rarely be the need for hard-coded values in your composite resources. Keep in mind though that they should abstract some of the complexity of DSC. A composite resource that requires massive amounts of configuration data is probably not the best choice.
 
 We cannot give you a blueprint that covers all your needs. However, the repository <https://github.com/automatedlab/commontasks> can serve as a starting point again. The CommonTasks module is our trusted module in the build and release pipeline and collects commonly used DSC composite resources.
 
 At your customer, this is all customer-specific code and should be collected in one or more separate PowerShell modules with their own build and release pipeline. This pipeline is trusted and will always deliver tested and working code to an internal gallery, for example [ProGet](https://inedo.com/proget), [Azure DevOps](https://dev.azure.com) or the free and open-source [NuGet](https://nuget.org).
 
-1. Clone the repository CommonTasks
-    ```powershell
-    cd $home
-    git clone https://github.com/automatedlab/commontasks
-    Get-ChildItem -Directory -Path  ./CommonTasks/CommonTasks/DSCResources
-    ```
-2. This module contains many small DSC composite resources, or configurations, that the project uses. Try adding your own composite resource by adding the following files to the structure:
+1. To start we have to clone the repository 'CommonTasks' like we have cloned the 'DscWorkshop' project right at the beginning.
+
+> Note: Before cloning, please switch to the same directory you cloned the 'DscWorkshop' project into.
+
+        ```powershell
+        git clone https://github.com/automatedlab/commontasks        
+        ```
+
+2. This module contains many small DSC composite resources, or configurations, that the 'DscWorkshop' project uses. Try adding your own composite resource by adding the following files to the structure:
     ```code
     CommonTasks\
     DscResources\
