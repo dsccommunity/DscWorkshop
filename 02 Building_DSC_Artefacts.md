@@ -39,7 +39,7 @@ You can compare this build to the latest from AppVeyor: https://ci.appveyor.com/
 ### Pulling Dependencies from PSGallery
 
 Have a look at what is pulled from those files:
-- [Modules used during the Build process](./DscSample/PSDepend.build.psd1)
+- [Modules used during the Build process](./DscSample/PSDepend.Build.psd1)
 - [Modules containing the DSC Configurations (DSC Composite Resource)](./DscSample/PSDepend.DscConfigurations.psd1)
 - [Modules containing the DSC Resources](./DscSample/PSDepend.DscResources.psd1)
 
