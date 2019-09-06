@@ -32,7 +32,7 @@ $requiredModules = @{
     xWebAdministration           = '2.7.0.0'
     ActiveDirectoryDsc           = '4.0.0.0'
     SecurityPolicyDsc            = '2.9.0.0'
-    StorgeDsc                    = '4.8.0.0'
+    StorageDsc                    = '4.8.0.0'
 }
 
 if (-not (Test-LabMachineInternetConnectivity -ComputerName $tfsServer)) {
