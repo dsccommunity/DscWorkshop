@@ -16,5 +16,6 @@
     XmlContentDsc                = '0.0.1'
     xWebAdministration           = '2.7.0.0'
     SecurityPolicyDsc            = '2.9.0.0'
+    StorgeDsc                    = '4.8.0.0' 
     
 }
