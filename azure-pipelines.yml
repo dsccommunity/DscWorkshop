@@ -6,6 +6,9 @@ trigger:
 pool:
   name: Hosted VS2017
 
+workspace:
+    clean: all
+
 steps:
 - powershell: '.\Build.ps1 -ResolveDependency'
   workingDirectory: DSC
