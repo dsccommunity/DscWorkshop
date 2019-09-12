@@ -22,36 +22,65 @@ At your customer, this is all customer-specific code and should be collected in 
 
 1. To start we have to clone the repository 'CommonTasks' like we have cloned the 'DscWorkshop' project right at the beginning.
 
-> Note: Before cloning, please switch to the same directory you cloned the 'DscWorkshop' project into.
+    > Note: Before cloning, please switch to the same directory you cloned the 'DscWorkshop' project into.
 
-        ```powershell
-        git clone https://github.com/automatedlab/commontasks        
-        ```
+    ```powershell
+    git clone https://github.com/automatedlab/commontasks
+    ```
 
-2. This module contains many small DSC composite resources, or configurations, that the 'DscWorkshop' project uses. Try adding your own composite resource by adding the following files to the structure:
+    After cloning, please open the 'CommonTasks' repository in VSCode. You may want to open a new VSCode window so you can switch between both projects.
+
+2. This module contains many small DSC composite resources (in this context we call them configurations), that the 'DscWorkshop' project uses. Please open the folder 'CommonTasks\DscResources' and have a look at the composite resources defined there.
+
+    You can get a list of all resources also with this comand:
+
+    ```powershell
+    Get-ChildItem -Directory -Path  ./CommonTasks/CommonTasks/DSCResources
+    ```
+
+3. Now let's add your own composite resource / configuration by adding the following files to the structure:
+
+    > Note: You can choose whatever name you like, but here are some recommendations. PowerShell function, cmdlet and parameter names are always in singular. To prevent conflicts, all the DSC composite resources in 'CommonTasks' are named in plural if they can effect one or multiple objects.
+
+    As we are going to create a composite resource that is configuring disks, you may want to name this resource just 'Disks'.
+
     ```code
     CommonTasks\
     DscResources\
-        <YourResourceName>\
-        <YourResourceName>.psd1
-        <YourResourceName>.schema.psm1
+        Disks\
+        Disks.psd1
+        Disks.schema.psm1
     ```
-3. Either copy the module manifest content from another resource or add your own minimal content, describing which DSC resource is exposed:
+
+    > Note: Some people find it easier to duplicate an existing composite resource and replacing the content in the files. That's up to you.
+
+4. Either copy the module manifest content from another resource or add your own minimal content, describing which DSC resource is exposed:
+
     ```powershell
     @{
-        RootModule           = '<YourResourceName>.schema.psm1'
+        RootModule           = 'Disks.schema.psm1'
         ModuleVersion        = '0.0.1'
         GUID                 = '27238df7-8c89-4acf-8eef-80750b964380'
         Author               = 'NA'
         CompanyName          = 'NA'
         Copyright            = 'NA'
-        DscResourcesToExport = @('<YourResourceName>')
+        DscResourcesToExport = @('Disks')
     }
     ```
-4. Your psm1 file now should only contain your DSC configuration element, the composite resource. Depending on the DSC resources that you use in this composite, you can make use of Datum's cmdlet Gt-DscSplattedResource or its alias x to pass parameter values to the resource in a single, beautiful line of code.
-    The following code for example uses the Disk resource to configure disk layouts. The parameters can be passed to your resource in the YAML file.
+
+5. Your psm1 file now should only contain your DSC configuration element, the composite resource. Depending on the DSC resources that you use in this composite, you can make use of Datum's cmdlet ```Get-DscSplattedResource``` or its alias ```x``` to pass parameter values to the resource in a single, beautiful line of code.
+
+
+Remove-Item -Path .\DscWorkshopFork\DSC\DscConfigurations\CommonTasks\ -Recurse -Force
+
+Copy-Item -Path .\CommonTasks\BuildOutput\Modules\CommonTasks\ -Destination .\DscWorkshopFork\DSC\DscConfigurations\ -Recurse
+
+    > Note: If you want to read more about how PowerShell supports splatting, have a look at [About Splatting](https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_splatting?view=powershell-6). DSC does not support splatting out-of-the-box, but Datum adds that very usful feature.
+   
+    The following code uses the 'Disks' resource to configure disk layouts. The parameters can be passed to your resource in the YAML file.
+
     ```powershell
-    Configuration <YourResourceName>
+    configuration Disks
     {
         param
         (
@@ -60,20 +89,21 @@ At your customer, this is all customer-specific code and should be collected in 
             $DiskLayout
         )
 
-        Import-DscResource -ModuleName StorageDsc -ModuleVersion 4.4.0.0
+        Import-DscResource -ModuleName StorageDsc -ModuleVersion 4.8.0.0
 
-        foreach ($disk in $DiskLayout.GetEnumerator())
-        {
+        foreach ($disk in $DiskLayout.GetEnumerator()) {
             (Get-DscSplattedResource -ResourceName Disk -ExecutionName $disk.DiskId -Properties $disk -NoInvoke).Invoke($disk)
         }
     }
     ```
-5. Your YAML file, for example the file server role, can now easily use the new configuration by subscribing to it and configuring it:
+
+6. Your YAML file, for example the file server role, can now easily use the new configuration by subscribing to it and configuring it:
+
     ```yaml
     Configurations:
-    - <YourResourceName>
+    - Disks
 
-    <YourResourceName> :
+    Disks:
     DiskLayout:
         - DiskId: 0
         DiskIdType: Number
