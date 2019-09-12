@@ -15,8 +15,12 @@ describe "Prerequisite check" {
             Get-Command code.cmd -ErrorAction SilentlyContinue | Should -Not -Be $null
         }
 
-        it "Should have PowerShell and yaml extension installed" {
-            (Get-ChildItem -Path $home\.vscode\extensions).Name -Match "ms-vscode\.powershell|redhat\.vscode-yaml" | Should -Not -Be $null
+        it "Should have the PowerShell extension installed" {
+            (Get-ChildItem -Path $home\.vscode\extensions).Name -Match "ms-vscode\.powershell" | Should -Not -Be $null
+        }
+
+        it "Should have the yaml extension installed" {
+            (Get-ChildItem -Path $home\.vscode\extensions).Name -Match "redhat\.vscode-yaml" | Should -Not -Be $null
         }
     }
 

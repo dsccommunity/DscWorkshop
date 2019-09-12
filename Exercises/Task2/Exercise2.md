@@ -28,7 +28,7 @@ To create your own build (Continuous Integration) pipeline, follow the next step
     - Display name: Execute build.ps1
     - Type: Inline
     - Script: .\Build.ps1 -ResolveDependency
-    - Working Directory: DscSample
+    - Working Directory: DSC
 
     ![Build task](./img/ExecuteBuild.png)
 
@@ -45,10 +45,10 @@ To create your own build (Continuous Integration) pipeline, follow the next step
     
     |DisplayName|Path|Artifact name|  
     |---|---|---|  
-    |MOF|$(Build.SourcesDirectory)\DscSample\BuildOutput\MOF|MOF|  
-    |Meta.MOF|$(Build.SourcesDirectory)\DscSample\BuildOutput\MetaMof|MetaMof|  
-    |Modules|$(Build.SourcesDirectory)\DscSample\BuildOutput\CompressedModules|CompressedModules|
-    |RSOP|$(Build.SourcesDirectory)\DscSample\BuildOutput\RSOP|RSOP|
+    |MOF|$(Build.SourcesDirectory)\DSC\BuildOutput\MOF|MOF|  
+    |Meta.MOF|$(Build.SourcesDirectory)\DSC\BuildOutput\MetaMof|MetaMof|  
+    |Modules|$(Build.SourcesDirectory)\DSC\BuildOutput\CompressedModules|CompressedModules|
+    |RSOP|$(Build.SourcesDirectory)\DSC\BuildOutput\RSOP|RSOP|
 1. At the moment, our build has no triggers. Navigate to the Triggers tab and enable the continuous integration trigger. The branch filters should include master and dev.  
 
     Setting up a CI trigger enables your project to be built every time someone checks in changes to code. This can be a new branch, a pull request from a fork or code committed to master or dev.
