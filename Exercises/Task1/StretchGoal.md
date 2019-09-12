@@ -94,34 +94,67 @@ At your customer, this is all customer-specific code and should be collected in 
     }
     ```
 
-    Great, you have greated the first composite resource that serves as a configuration. But this resource only exists in the 'CommonTasks' project. We want to use it in the 'Dscworkshop' project. In a real-life environment the build pipeline of the 'DscWorkshop' project will download the 'CommonTasks' module from an interal gallery. In case of this exercise the build pipleine downloads the 'CommonTasks' module from the [PowerShell Gallery](https://www.powershellgallery.com/packages/CommonTasks). To skip this step and inject your modified version that has the new 'Disks' resource, run the following commands:
+    Great, you have greated the first composite resource that serves as a configuration. But this resource only exists in the 'CommonTasks' project. We want to use it in the 'Dscworkshop' project. In a real-life environment the build pipeline of the 'DscWorkshop' project would pull the 'CommonTasks' module from an interal gallery. In case of this exercise the build pipeline downloads the 'CommonTasks' module from the [PowerShell Gallery](https://www.powershellgallery.com/packages/CommonTasks), which of course doesn't know about the code that you want to add. To skip this step and inject your modified version which has the new 'Disks' resource directory, run the following commands:
 
     > Note: Please make sure you are in the directory you have cloned the repositories into. If you are not in the right location, these commands will fail.
 
     ```powershell
-    Remove-Item -Path .\DscWorkshopFork\DSC\DscConfigurations\CommonTasks\ -Recurse -Force
+    Remove-Item -Path .\DscWorkshop\DSC\DscConfigurations\CommonTasks\ -Recurse -Force
 
-    Copy-Item -Path .\CommonTasks\BuildOutput\Modules\CommonTasks\ -Destination .\DscWorkshopFork\DSC\DscConfigurations\ -Recurse
+    Copy-Item -Path .\CommonTasks\BuildOutput\Modules\CommonTasks\ -Destination .\DscWorkshop\DSC\DscConfigurations\ -Recurse
     ```
+    The folder 'C:\Git\DscWorkshopFork\DSC\DscConfigurations\CommonTasks\DscResources' should now contain your new 'Disks' composite resource.
+
 
 ## 1.6 - Use a custom Configuration (DSC Composite Resource)
-1. Your YAML file, for example the file server role, can now easily use the new configuration by subscribing to it and configuring it:
+1. Let's suppose you want to manage the disk layout of all file servers with DSC. In this case the new config goes into the 'FileServer.yml' file. Please open it. The full path is '\DSC\DscConfigData\Roles\FileServer.yml'.
+
+    At the top of the file you have the configurations mapped to the file server role. Please add the new 'Disks' configuration:
 
     ```yaml
     Configurations:
+    - FilesAndFolders
+    - RegistryValues
     - Disks
-
-    Disks:
-    DiskLayout:
-        - DiskId: 0
-        DiskIdType: Number
-        DriveLetter: C
-        FSLabel: System
-        - DiskId: 1
-        DiskIdType: Number
-        DriveLetter: D
-        FSLabel: Data
-
     ```
+
+    After saving the file, please start a new build using the script 'DSC\Build.ps1'. The build will not fail but wait for further input like this:
+
+    ```code
+    DSCFile01 : DSCFile01 : MOF__0.0.0 NA
+        DSCFile01 : FileServer ::> FilesAndFolders .....................................................OK
+        DSCFile01 : FileServer ::> RegistryValues ......................................................OK
+    cmdlet Disks at command pipeline position 1
+    Supply values for the following parameters:
+    DiskLayout[0]:
+    ```
+
+    So why does the build require additional data? Adding the 'Disks' resource to the configurations makes the build script calls it when commpiling the MOF files. The resource has a mandatory parameter but no argument for this mandatory parameter
+
+    ```powershell
+    param
+    (
+        [Parameter(Mandatory)]
+        [hashtable[]]
+        $DiskLayout
+    )
+    ```
+
+2. So let's add the config data so the 'Disks' resource knows what to do. Please add the following section to the 
+
+    ```yaml
+    Disks:
+      DiskLayout:
+        - DiskId: 0
+          DiskIdType: Number
+          DriveLetter: C
+          FSLabel: System
+        - DiskId: 1
+          DiskIdType: Number
+          DriveLetter: D
+          FSLabel: Data
+    ```
+
+    If the build has finished, examine the MOF files in the 'BuildOutput' folder. You should see the config you have made reflected there.
 
 Congratulations! You have walked through the entire process of making this repository your own! We hope you are successful with this concept - we certainly are.
