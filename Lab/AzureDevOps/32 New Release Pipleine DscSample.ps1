@@ -1,6 +1,8 @@
 ﻿$lab = Get-Lab
 $tfsServer = Get-LabVM -Role AzDevOps
 $tfsHostName = if ($lab.DefaultVirtualizationEngine -eq 'Azure') {$tfsServer.AzureConnectionInfo.DnsName} else {$tfsServer.FQDN}
+$proGetServer = Get-LabVM | Where-Object { $_.PostInstallationActivity.RoleName -contains 'ProGet5' }
+$pullServer = Get-LabVM -Role DSCPullServer
 
 $role = $tfsServer.Roles | Where-Object Name -like AzDevOps
 $tfsCred = $tfsServer.GetCredential($lab)
@@ -188,7 +190,7 @@ $releaseSteps = @(
         inputs    = @{
             SourceFolder = '$(System.DefaultWorkingDirectory)/$(Build.DefinitionName)'
             Contents     = '**'
-            TargetFolder = '\\dsctfs01\Artifacts\$(Build.DefinitionName)\$(Build.BuildNumber)\$(Build.Repository.Name)'
+            TargetFolder = '\\{0}\Artifacts\$(Build.DefinitionName)\$(Build.BuildNumber)\$(Build.Repository.Name)' -f $tfsServer.FQDN
         }
     }
     @{
@@ -261,11 +263,11 @@ $releaseEnvironments = @(
             uniqueName  = 'Install'
         }
         variables           = @{
-            GalleryUri          = @{ value = 'http://dscpull01.contoso.com/nuget/PowerShell' }
+            GalleryUri          = @{ value = "http://$($proGetServer.FQDN)/nuget/PowerShell" }
             InstallUserName     = @{ value = 'contoso\install' }
             InstallUserPassword = @{ value = 'Somepass1' }
-            DscConfiguration    = @{ value = '\\dscpull01\DscConfiguration' }
-            DscModules          = @{ value = '\\dscpull01\DscModules' }
+            DscConfiguration    = @{ value = "\\$($pullServer.FQDN)\DscConfiguration" }
+            DscModules          = @{ value = "\\$($pullServer.FQDN)\DscModules" }
         }
         preDeployApprovals  = @{
             approvals = @(
@@ -358,11 +360,11 @@ $releaseEnvironments = @(
             uniqueName  = 'Install'
         }
         variables           = @{
-            GalleryUri          = @{ value = 'http://dscpull01.contoso.com/nuget/PowerShell' }
+            GalleryUri          = @{ value = "http://$($pullServer.FQDN)/nuget/PowerShell" }
             InstallUserName     = @{ value = 'contoso\install' }
             InstallUserPassword = @{ value = 'Somepass1' }
-            DscConfiguration    = @{ value = '\\dscpull01\DscConfiguration' }
-            DscModules          = @{ value = '\\dscpull01\DscModules' }
+            DscConfiguration    = @{ value = "\\$($pullServer.FQDN)\DscConfiguratio" }
+            DscModules          = @{ value = "\\$($pullServer.FQDN)\DscModules" }
         }
         preDeployApprovals  = @{
             approvals = @(
@@ -461,11 +463,11 @@ $releaseEnvironments = @(
             uniqueName  = 'Install'
         }
         variables           = @{
-            GalleryUri          = @{ value = 'http://dscpull01.contoso.com/nuget/PowerShell' }
+            GalleryUri          = @{ value = "http://$($pullServer.FQDN).contoso.com/nuget/PowerShell" }
             InstallUserName     = @{ value = 'contoso\install' }
             InstallUserPassword = @{ value = 'Somepass1' }
-            DscConfiguration    = @{ value = '\\dscpull01\DscConfiguration' }
-            DscModules          = @{ value = '\\dscpull01\DscModules' }
+            DscConfiguration    = @{ value = "\\$($pullServer.FQDN)\DscConfiguration" }
+            DscModules          = @{ value = "\\$($pullServer.FQDN)\DscModules" }
         }
         preDeployApprovals  = @{
             approvals = @(
@@ -582,7 +584,7 @@ $buildParameters = @{
     CollectionName       = $collectionName
     BuildTasks           = $buildSteps
     Variables            = @{ 
-        GalleryUri     = 'http://dscpull01.contoso.com/nuget/PowerShell'
+        GalleryUri     = "http://$($pullServer.FQDN)/nuget/PowerShell"
         ArtifactsShare = "\\$tfsServer\Artifacts"
     }
     CiTriggerRefs        = $refs
