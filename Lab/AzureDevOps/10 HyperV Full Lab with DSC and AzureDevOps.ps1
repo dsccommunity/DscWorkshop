@@ -38,7 +38,7 @@ $PSDefaultParameterValues = @{
 $postInstallActivity = @()
 $postInstallActivity += Get-LabPostInstallationActivity -ScriptFileName 'New-ADLabAccounts 2.0.ps1' -DependencyFolder $labSources\PostInstallationActivities\PrepareFirstChildDomain
 $postInstallActivity += Get-LabPostInstallationActivity -ScriptFileName PrepareRootDomain.ps1 -DependencyFolder $labSources\PostInstallationActivities\PrepareRootDomain
-Add-LabMachineDefinition -Name ADC01 -Memory 512MB -Roles RootDC -IpAddress 192.168.112.10 -PostInstallationActivity $postInstallActivity
+Add-LabMachineDefinition -Name ADC01 -Memory 1GB -Roles RootDC -IpAddress 192.168.112.10 -PostInstallationActivity $postInstallActivity
 
 #file server and router
 $netAdapter = @()
@@ -70,7 +70,7 @@ $roles = @(
     Get-LabMachineRoleDefinition -Role AzDevOps
     Get-LabMachineRoleDefinition -Role TfsBuildWorker
 )
-Add-LabMachineDefinition -Name ATFS01 -Memory 2GB -Roles $roles -IpAddress 192.168.112.70
+Add-LabMachineDefinition -Name ATFS01 -Memory 4GB -Roles $roles -IpAddress 192.168.112.70
 
 # DSC target nodes - our legacy VMs with an existing configuration
 # Servers in Dev
