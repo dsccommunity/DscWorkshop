@@ -68,16 +68,13 @@ At your customer, this is all customer-specific code and should be collected in 
     }
     ```
 
-5. Your psm1 file now should only contain your DSC configuration element, the composite resource. Depending on the DSC resources that you use in this composite, you can make use of Datum's cmdlet ```Get-DscSplattedResource``` or its alias ```x``` to pass parameter values to the resource in a single, beautiful line of code.
+5. Your .psm1 file now should only contain your DSC configuration element, the composite resource. Depending on the DSC resources that you use in this composite, you can make use of Datum's cmdlet ```Get-DscSplattedResource``` or its alias ```x``` to pass parameter values to the resource in a single, beautiful line of code.
 
-
-Remove-Item -Path .\DscWorkshopFork\DSC\DscConfigurations\CommonTasks\ -Recurse -Force
-
-Copy-Item -Path .\CommonTasks\BuildOutput\Modules\CommonTasks\ -Destination .\DscWorkshopFork\DSC\DscConfigurations\ -Recurse
-
-    > Note: If you want to read more about how PowerShell supports splatting, have a look at [About Splatting](https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_splatting?view=powershell-6). DSC does not support splatting out-of-the-box, but Datum adds that very usful feature.
+    > Note: The ['WindowsServices'](https://github.com/AutomatedLab/CommonTasks/blob/master/CommonTasks/DscResources/WindowsServices/WindowsServices.schema.psm1) composite resource in 'CommonTasks' shows the difference of splatting vs. passing the parameters in the classical way. If you want to read more about how PowerShell supports splatting, have a look at [About Splatting](https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_splatting?view=powershell-6). DSC does not support splatting out-of-the-box, but Datum adds that very usful feature.
    
-    The following code uses the 'Disks' resource to configure disk layouts. The parameters can be passed to your resource in the YAML file.
+    The following code uses the 'Disk' resource published in the 'StorageDsc' module to configure disk layouts. The '$DiskLayout' hashtable must have a pattern that matches exactly the parameter pattern defined in the 'StorageDsc\Disk' resource.
+
+    Please put this code into the file 'Disks.schema.psm1'.
 
     ```powershell
     configuration Disks
@@ -89,7 +86,7 @@ Copy-Item -Path .\CommonTasks\BuildOutput\Modules\CommonTasks\ -Destination .\Ds
             $DiskLayout
         )
 
-        Import-DscResource -ModuleName StorageDsc -ModuleVersion 4.8.0.0
+        Import-DscResource -ModuleName StorageDsc
 
         foreach ($disk in $DiskLayout.GetEnumerator()) {
             (Get-DscSplattedResource -ResourceName Disk -ExecutionName $disk.DiskId -Properties $disk -NoInvoke).Invoke($disk)
@@ -97,7 +94,18 @@ Copy-Item -Path .\CommonTasks\BuildOutput\Modules\CommonTasks\ -Destination .\Ds
     }
     ```
 
-6. Your YAML file, for example the file server role, can now easily use the new configuration by subscribing to it and configuring it:
+    Great, you have greated the first composite resource that serves as a configuration. But this resource only exists in the 'CommonTasks' project. We want to use it in the 'Dscworkshop' project. In a real-life environment the build pipeline of the 'DscWorkshop' project will download the 'CommonTasks' module from an interal gallery. In case of this exercise the build pipleine downloads the 'CommonTasks' module from the [PowerShell Gallery](https://www.powershellgallery.com/packages/CommonTasks). To skip this step and inject your modified version that has the new 'Disks' resource, run the following commands:
+
+    > Note: Please make sure you are in the directory you have cloned the repositories into. If you are not in the right location, these commands will fail.
+
+    ```powershell
+    Remove-Item -Path .\DscWorkshopFork\DSC\DscConfigurations\CommonTasks\ -Recurse -Force
+
+    Copy-Item -Path .\CommonTasks\BuildOutput\Modules\CommonTasks\ -Destination .\DscWorkshopFork\DSC\DscConfigurations\ -Recurse
+    ```
+
+## 1.6 - Use a custom Configuration (DSC Composite Resource)
+1. Your YAML file, for example the file server role, can now easily use the new configuration by subscribing to it and configuring it:
 
     ```yaml
     Configurations:
