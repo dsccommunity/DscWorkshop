@@ -1,6 +1,7 @@
 ﻿$lab = Get-Lab
 $tfsServer = Get-LabVM -Role AzDevOps
 $tfsHostName = if ($lab.DefaultVirtualizationEngine -eq 'Azure') {$tfsServer.AzureConnectionInfo.DnsName} else {$tfsServer.FQDN}
+$proGetServer = Get-LabVM | Where-Object { $_.PostInstallationActivity.RoleName -contains 'ProGet5' }
 
 $role = $tfsServer.Roles | Where-Object Name -eq AzDevOps
 $tfsCred = $tfsServer.GetCredential($lab)
@@ -120,7 +121,7 @@ $releaseSteps = @(
         inputs    = @{
             SourceFolder = '$(System.DefaultWorkingDirectory)/$(Build.DefinitionName)/$(Build.Repository.Name)'
             Contents     = '**'
-            TargetFolder = '\\dsctfs01\Artifacts\$(Build.DefinitionName)\$(Build.BuildNumber)\$(Build.Repository.Name)'
+            TargetFolder = '\\{0}\Artifacts\$(Build.DefinitionName)\$(Build.BuildNumber)\$(Build.Repository.Name)' -f $tfsServer.FQDN
         }
     }
     @{
@@ -193,7 +194,7 @@ $releaseEnvironments = @(
             uniqueName  = 'Install'
         }
         variables           = @{
-            GalleryUri = @{ value = "http://dscpull01.contoso.com/nuget/PowerShell" }
+            GalleryUri = @{ value = "http://$($proGetServer.FQDN)/nuget/PowerShell" }
         }
         preDeployApprovals  = @{
             approvals = @(
@@ -293,7 +294,8 @@ if ($PSVersionTable.PSEdition -eq 'Core')
 }
 $refs = (Invoke-RestMethod @param).value.name
 
-New-TfsBuildDefinition -ProjectName $projectName -InstanceName $tfsHostName -Port $tfsPort -DefinitionName "$($projectName)Build" -CollectionName $collectionName -BuildTasks $buildSteps -Variables @{ GalleryUri = 'http://dscpull01.contoso.com/nuget/PowerShell' } -CiTriggerRefs $refs -Credential $tfsCred -ApiVersion 4.1 -UseSsl -SkipCertificateCheck
+#Build is taken care of by the yaml build pipeline definition
+#New-TfsBuildDefinition -ProjectName $projectName -InstanceName $tfsHostName -Port $tfsPort -DefinitionName "$($projectName)Build" -CollectionName $collectionName -BuildTasks $buildSteps -Variables @{ GalleryUri = "http://$($proGetServer.FQDN)/nuget/PowerShell" } -CiTriggerRefs $refs -Credential $tfsCred -ApiVersion 4.1 -UseSsl -SkipCertificateCheck
 
 New-TfsReleaseDefinition -ProjectName $projectName -InstanceName $tfsHostName -Port $tfsPort -ReleaseName "$($projectName)Release" -Environments $releaseEnvironments -Credential $tfsCred -CollectionName $collectionName -UseSsl -SkipCertificateCheck
 Write-ScreenInfo done
