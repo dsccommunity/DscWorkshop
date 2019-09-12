@@ -2,10 +2,12 @@
 
 These small exercises should get you started with this repository and the project. Use these little tasks as a guideline, and be sure to replace settings with your own ones to improve your learning experience.
 
+## Prerequisites
+
 Before starting any exercise, please make sure you have met the following requirements:
 
 - Create a free account on Azure DevOps if you don't have one yet: <https://dev.azure.com/>
-- Create a free Azure test account if you don't have one yet with enough credits left: <https://azure.microsoft.com/en-us/free/>. You may want to create a new email address if you already have one and used all your credits already.
+- Create a free Azure test account if you don't have one yet with enough credits left: <https://azure.microsoft.com/en-us/free/>. You may want to create a new email address if you already have one and used all your credits already (required to test Azure Automation DSC in a release pipeline)
 - Create one or two virtual machines in the test subscription and don’t forget to turn them off. The machine must have the status "deallocated", otherwise they are eating up your credits.
 - Have a notebook computer (ideally Windows 10) with you that has the following software installed:
   - git: https://git-scm.com/downloads
@@ -18,14 +20,6 @@ Before starting any exercise, please make sure you have met the following requir
 Please execute the [prerequisite check](CheckPrereq.ps1) in Windows PowerShell to check if verything is configured correctly on you computer.
 
 > ***Please not that this test requires Pester > 4 to run.***
-
-## Prerequisites
-
-- [git](https://git-scm.org)
-- [VSCode](https://code.visualstudio.com)
-- [Azure DevOps account (free)](https://dev.azure.com)
-- Optional: Access to an [Azure](https://portal.azure.com) subscription
-  - required to test Azure Automation DSC in a release pipeline
 
 ## Task 1
 
