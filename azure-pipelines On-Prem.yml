@@ -4,7 +4,7 @@ trigger:
 - '*'
 
 pool:
-  name: default
+  name: Default
 
 workspace:
     clean: all
@@ -74,7 +74,7 @@ steps:
     displayName: 'Build Folder'
     inputs:
       PathtoPublish: '$(Build.SourcesDirectory)'
-      ArtifactName: 'Build Folder'
+      ArtifactName: 'SourcesDirectory'
 
   - task: PublishTestResults@2
     displayName: 'Publish Build Acceptance Test Results'
