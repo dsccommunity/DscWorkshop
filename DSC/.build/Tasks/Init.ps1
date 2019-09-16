@@ -2,7 +2,7 @@ Task Init {
 
     if (-not $env:BHProjectName) {
         try {
-            Set-BuildEnvironment -Path $ProjectPath
+            Set-BuildEnvironment -Path "$ProjectPath"
             
         }
         catch {

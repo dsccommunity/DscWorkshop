@@ -1,30 +1,31 @@
 ﻿$lab = Get-Lab
-$tfsServer = Get-LabVM -Role AzDevOps
-$tfsHostName = if ($lab.DefaultVirtualizationEngine -eq 'Azure') {$tfsServer.AzureConnectionInfo.DnsName} else {$tfsServer.FQDN}
+$domain = $lab.Domains[0]
+$devOpsServer = Get-LabVM -Role AzDevOps
+$devOpsHostName = if ($lab.DefaultVirtualizationEngine -eq 'Azure') { $devOpsServer.AzureConnectionInfo.DnsName } else { $devOpsServer.FQDN }
 $proGetServer = Get-LabVM | Where-Object { $_.PostInstallationActivity.RoleName -contains 'ProGet5' }
 
-$role = $tfsServer.Roles | Where-Object Name -eq AzDevOps
-$tfsCred = $tfsServer.GetCredential($lab)
-$tfsPort = $originalPort = 8080
+$role = $devOpsServer.Roles | Where-Object Name -eq AzDevOps
+$devOpsCred = $devOpsServer.GetCredential($lab)
+$devOpsPort = $originalPort = 8080
 if ($role.Properties.ContainsKey('Port'))
 {
-    $tfsPort = $role.Properties['Port']
+    $devOpsPort = $role.Properties['Port']
 }
 if ($lab.DefaultVirtualizationEngine -eq 'Azure')
 {
-    $tfsPort = (Get-LabAzureLoadBalancedPort -DestinationPort $tfsPort -ComputerName $tfsServer).Port
+    $devOpsPort = (Get-LabAzureLoadBalancedPort -DestinationPort $devOpsPort -ComputerName $devOpsServer).Port
 }
 
 $projectName = 'CommonTasks'
 $projectGitUrl = 'https://github.com/AutomatedLab/CommonTasks'
 $collectionName = 'AutomatedLab'
 
-# Which will make use of TFS, clone the stuff, add the necessary build step, publish the test results and so on
-# You will see two remotes, Origin (Our code on GitHub) and TFS (Our code pushed to your lab)
-Write-ScreenInfo 'Creating TFS project and cloning from GitHub...' -NoNewLine
+# Which will make use of Azure DevOps, clone the stuff, add the necessary build step, publish the test results and so on
+# You will see two remotes, Origin (Our code on GitHub) and Azure DevOps (Our code pushed to your lab)
+Write-ScreenInfo 'Creating Azure DevOps project and cloning from GitHub...' -NoNewLine
 
 New-LabReleasePipeline -ProjectName $projectName -SourceRepository $projectGitUrl -CodeUploadMethod FileCopy
-$tfsAgentQueue = Get-TfsAgentQueue -InstanceName $tfsHostName -Port $tfsPort -Credential $tfsCred -ProjectName $projectName -CollectionName $collectionName -QueueName Default -UseSsl -SkipCertificateCheck
+$tfsAgentQueue = Get-TfsAgentQueue -InstanceName $devOpsHostName -Port $devOpsPort -Credential $devOpsCred -ProjectName $projectName -CollectionName $collectionName -QueueName Default -UseSsl -SkipCertificateCheck
 
 #region Build and Release Definitions
 # Create a new release pipeline
@@ -110,7 +111,6 @@ if (-not $r -or $r.SourceLocation -ne $uri -or $r.PublishLocation -ne $uri) {
         }
     }
 )
-
 $releaseSteps = @(
     @{
         taskId    = '5bfb729a-a7c8-4a78-a7c3-8d717bb7c13c'
@@ -121,7 +121,7 @@ $releaseSteps = @(
         inputs    = @{
             SourceFolder = '$(System.DefaultWorkingDirectory)/$(Build.DefinitionName)/$(Build.Repository.Name)'
             Contents     = '**'
-            TargetFolder = '\\{0}\Artifacts\$(Build.DefinitionName)\$(Build.BuildNumber)\$(Build.Repository.Name)' -f $tfsServer.FQDN
+            TargetFolder = '\\{0}\Artifacts\$(Build.DefinitionName)\$(Build.BuildNumber)\$(Build.Repository.Name)' -f $devOpsServer.FQDN
         }
     }
     @{
@@ -163,9 +163,9 @@ if (-not $r -or $r.SourceLocation -ne $uri -or $r.PublishLocation -ne $uri) {
         inputs  = @{
             targetType = 'inline'
             script     = @'
-Write-Host $(System.DefaultWorkingDirectory)
-cd $(System.DefaultWorkingDirectory)\$(Build.DefinitionName)\SourcesDirectory
-.\Build.ps1 -Tasks Init, SetPsModulePath, Deploy, TestBuildAcceptance -GalleryRepository PowerShell
+Write-Host "$(System.DefaultWorkingDirectory)"
+Set-Location -Path "$(System.DefaultWorkingDirectory)\$(Build.DefinitionName)\SourcesDirectory"
+.\Build.ps1 -Tasks Init, SetPsModulePath, Deploy, TestReleaseAcceptance -GalleryRepository PowerShell
 '@
         }
     }
@@ -177,7 +177,7 @@ cd $(System.DefaultWorkingDirectory)\$(Build.DefinitionName)\SourcesDirectory
         version   = '*'
         inputs    = @{
             testRunner       = 'NUnit'
-            testResultsFiles = '**/BuildAcceptanceTestResults.xml'
+            testResultsFiles = '**/AcceptanceTestResults.xml'
             searchFolder     = '$(System.DefaultWorkingDirectory)'
         }
     }
@@ -195,6 +195,7 @@ $releaseEnvironments = @(
         }
         variables           = @{
             GalleryUri = @{ value = "http://$($proGetServer.FQDN)/nuget/PowerShell" }
+            NugetApiKey = @{ value = "{0}@{1}:{2}" -f $domain.Administrator.UserName, $domain.Name, $domain.Administrator.Password }
         }
         preDeployApprovals  = @{
             approvals = @(
@@ -281,12 +282,12 @@ $releaseEnvironments = @(
 )
 #endregion
 
-$repo = Get-TfsGitRepository -InstanceName $tfsHostName -Port $tfsPort -CollectionName $collectionName -ProjectName $projectName -Credential $tfsCred -UseSsl -SkipCertificateCheck
-$repo.remoteUrl = $repo.remoteUrl -replace $originalPort, $tfsPort
+$repo = Get-TfsGitRepository -InstanceName $devOpsHostName -Port $devOpsPort -CollectionName $collectionName -ProjectName $projectName -Credential $devOpsCred -UseSsl -SkipCertificateCheck
+$repo.remoteUrl = $repo.remoteUrl -replace $originalPort, $devOpsPort
 
 $param =  @{
-    Uri = "https://$($tfsHostName):$tfsPort/$collectionName/_apis/git/repositories/{$($repo.id)}/refs?api-version=4.1"
-    Credential = $tfsCred    
+    Uri = "https://$($devOpsHostName):$devOpsPort/$collectionName/_apis/git/repositories/{$($repo.id)}/refs?api-version=4.1"
+    Credential = $devOpsCred    
 }
 if ($PSVersionTable.PSEdition -eq 'Core')
 {
@@ -295,7 +296,8 @@ if ($PSVersionTable.PSEdition -eq 'Core')
 $refs = (Invoke-RestMethod @param).value.name
 
 #Build is taken care of by the yaml build pipeline definition
-#New-TfsBuildDefinition -ProjectName $projectName -InstanceName $tfsHostName -Port $tfsPort -DefinitionName "$($projectName)Build" -CollectionName $collectionName -BuildTasks $buildSteps -Variables @{ GalleryUri = "http://$($proGetServer.FQDN)/nuget/PowerShell" } -CiTriggerRefs $refs -Credential $tfsCred -ApiVersion 4.1 -UseSsl -SkipCertificateCheck
+New-TfsBuildDefinition -ProjectName $projectName -InstanceName $tfsHostName -Port $tfsPort -DefinitionName "$($projectName)Build" -CollectionName $collectionName -BuildTasks $buildSteps -Variables @{ GalleryUri = "http://$($proGetServer.FQDN)/nuget/PowerShell" } -CiTriggerRefs $refs -Credential $tfsCred -ApiVersion 4.1 -UseSsl -SkipCertificateCheck
 
-New-TfsReleaseDefinition -ProjectName $projectName -InstanceName $tfsHostName -Port $tfsPort -ReleaseName "$($projectName)Release" -Environments $releaseEnvironments -Credential $tfsCred -CollectionName $collectionName -UseSsl -SkipCertificateCheck
+New-TfsReleaseDefinition -ProjectName $projectName -InstanceName $devOpsHostName -Port $devOpsPort -ReleaseName "$($projectName) CD" -Environments $releaseEnvironments -Credential $devOpsCred -CollectionName $collectionName -UseSsl -SkipCertificateCheck
+
 Write-ScreenInfo done
