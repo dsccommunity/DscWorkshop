@@ -15,11 +15,17 @@ This task assumes that you have access to dev.azure.com in order to create your 
 Whether you work with a test environment or at a customer location, you will need a repository for your infrastructure definitions - a project. Let's see how that works.
 
 1. Navigate to <https://dev.azure.com> in a browser of your choice and log in.
-2. Click on the "Create project" button in the upper right corner and fill out the basics. It does not matter if it is a public or private repository for this lab.  
-    *New projects automatically use git as version control system.*
-3. On the left-hand side, select Repos -> Files and then at the top menu, select your repository and click on "Import repository". As the clone url, use <https://github.com/automatedlab/dscworkshop> without authorization.  
+
+2. Click on the "New project" button in the upper right corner and fill out the basics. It does not matter if it is a public or private repository for this lab.
+   
+    >Note: New projects automatically use git as version control system.*
+
+3. On the left-hand side, select Repos -> Files. The page says the project is empty. The easiest way to start is importing the project from GitHub.
+   
+   Click on "Import" button. As the clone url, use <https://github.com/AutomatedLab/DscWorkshop> without authorization.  
     ![Repo import](./img/ImportRepo.png)
-4. Wait for a couple of seconds and navigate to your code. All project branches, most notably master and dev, have been imported. You should already be familiar with the structure from [task 1](../Task1/Exercise1.md)
+
+4. Wait for a couple of seconds. The page will automatically refresh once the import job is done. All project branches, most notably 'master' and 'dev', have been imported. You should already be familiar with the structure from [Task 1](../Task1/Exercise1.md).
 
 At the moment, this project does not do anything. However, you have started with one important component: Source code control for your infrastructure. From now on, every change to an infrastructure component needs to be committed, and every change can be accounted for.
 
