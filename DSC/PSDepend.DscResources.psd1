@@ -9,7 +9,6 @@
     }
 
     xPSDesiredStateConfiguration = '8.9.0.0'
-    xDSCResourceDesigner         = '1.12.0.0'
     ComputerManagementDsc        = '6.5.0.0'
     NetworkingDsc                = '7.3.0.0'
     JeaDsc                       = '0.6.5'
