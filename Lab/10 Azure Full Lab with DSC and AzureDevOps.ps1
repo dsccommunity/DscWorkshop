@@ -1,4 +1,5 @@
-$labName = 'AllianzDscWorkshop'
+$labName = "DscWorkshop_$((1..6 | ForEach-Object { [char[]](97..122) | Get-Random }) -join '')"
+$azureLocation = 'West Europe'
 
 #region Lab setup
 #--------------------------------------------------------------------------------------------------------------------
@@ -8,52 +9,45 @@ $labName = 'AllianzDscWorkshop'
 #--------------------------------------------------------------------------------------------------------------------
 
 #create an empty lab template and define where the lab XML files and the VMs will be stored
-New-LabDefinition -Name $labName -DefaultVirtualizationEngine HyperV
+New-LabDefinition -Name $labName -DefaultVirtualizationEngine Azure
+Add-LabAzureSubscription -DefaultLocationName $azureLocation
 
 #make the network definition
-Add-LabVirtualNetworkDefinition -Name $labName -AddressSpace 192.168.112.0/24
-Add-LabVirtualNetworkDefinition -Name 'Default Switch' -HyperVProperties @{ SwitchType = 'External'; AdapterName = 'Wi-Fi' }
+Add-LabVirtualNetworkDefinition -Name $labName -AddressSpace 192.168.111.0/24
 
 #and the domain definition with the domain admin account
-Add-LabDomainDefinition -Name contoso.com -AdminUser Install -AdminPassword Somepass1
+Add-LabDomainDefinition -Name contoso.com -AdminUser Install -AdminPassword Somepass1!
 
 #these credentials are used for connecting to the machines. As this is a lab we use clear-text passwords
-Set-LabInstallationCredential -Username Install -Password Somepass1
+Set-LabInstallationCredential -Username Install -Password Somepass1!
 
 # Add the reference to our necessary ISO files
 Add-LabIsoImageDefinition -Name AzDevOps -Path $labSources\ISOs\azuredevopsserver2019.1.iso #from https://visualstudio.microsoft.com/downloads/
-Add-LabIsoImageDefinition -Name SQLServer2017 -Path $labsources\ISOs\SQLServer2017-x64-ENU.iso #from https://www.microsoft.com/en-us/evalcenter/evaluate-sql-server-2017-rtm. The EXE downloads the ISO.
 
 #defining default parameter values, as these ones are the same for all the machines
 $PSDefaultParameterValues = @{
     'Add-LabMachineDefinition:Network'         = $labName
     'Add-LabMachineDefinition:ToolsPath'       = "$labSources\Tools"
     'Add-LabMachineDefinition:DomainName'      = 'contoso.com'
-    'Add-LabMachineDefinition:DnsServer1'      = '192.168.112.10'
-    'Add-LabMachineDefinition:OperatingSystem' = 'Windows Server 2016 Datacenter Evaluation (Desktop Experience)'
-    'Add-LabMachineDefinition:Gateway'         = '192.168.112.50'
+    'Add-LabMachineDefinition:DnsServer1'      = '192.168.111.10'
+    'Add-LabMachineDefinition:OperatingSystem' = 'Windows Server 2016 Datacenter (Desktop Experience)'
 }
 
 #The PostInstallationActivity is just creating some users
 $postInstallActivity = @()
 $postInstallActivity += Get-LabPostInstallationActivity -ScriptFileName 'New-ADLabAccounts 2.0.ps1' -DependencyFolder $labSources\PostInstallationActivities\PrepareFirstChildDomain
 $postInstallActivity += Get-LabPostInstallationActivity -ScriptFileName PrepareRootDomain.ps1 -DependencyFolder $labSources\PostInstallationActivities\PrepareRootDomain
-Add-LabMachineDefinition -Name ADC01 -Memory 1GB -Roles RootDC -IpAddress 192.168.112.10 -PostInstallationActivity $postInstallActivity
+Add-LabMachineDefinition -Name DSCDC01 -Memory 512MB -Roles RootDC -IpAddress 192.168.111.10 -PostInstallationActivity $postInstallActivity
 
-#file server and router
-$netAdapter = @()
-$netAdapter += New-LabNetworkAdapterDefinition -VirtualSwitch $labName -Ipv4Address 192.168.112.50
-$netAdapter += New-LabNetworkAdapterDefinition -VirtualSwitch 'Default Switch' -UseDhcp
+# SQL and PKI
+Add-LabMachineDefinition -Name DSCCASQL01 -Memory 3GB -Roles CaRoot, SQLServer2017
 
-# The good, the bad and the ugly
-Add-LabMachineDefinition -Name ACASQL01 -Memory 3GB -Roles CaRoot, SQLServer2017, Routing -NetworkAdapter $netAdapter
-
-# DSC Pull Server with SQL server backing, Azure DevOps Build Worker
+# DSC Pull Server with SQL server backing, TFS Build Worker
 $roles = @(
     Get-LabMachineRoleDefinition -Role DSCPullServer -Properties @{
         DoNotPushLocalModules = 'true'
         DatabaseEngine        = 'sql'
-        SqlServer             = 'ACASQL01'
+        SqlServer             = 'DSCCASQL01'
         DatabaseName          = 'DSC'
     }
     Get-LabMachineRoleDefinition -Role TfsBuildWorker
@@ -61,37 +55,36 @@ $roles = @(
 )
 $proGetRole = Get-LabPostInstallationActivity -CustomRole ProGet5 -Properties @{
     ProGetDownloadLink = 'https://s3.amazonaws.com/cdn.inedo.com/downloads/proget/ProGetSetup5.2.8.exe'
-    SqlServer          = 'ACASQL01'
+    SqlServer          = 'DSCCASQL01'
 }
-Add-LabMachineDefinition -Name APULL01 -Memory 2GB -Roles $roles -IpAddress 192.168.112.60 -PostInstallationActivity $proGetRole -OperatingSystem 'Windows Server 2019 Datacenter (Desktop Experience)'
+
+Add-LabMachineDefinition -Name DSCPULL01 -Memory 2GB -Roles $roles -IpAddress 192.168.111.60 -PostInstallationActivity $proGetRole -OperatingSystem 'Windows Server 2019 Datacenter (Desktop Experience)'
 
 # Build Server
 $roles = @(
     Get-LabMachineRoleDefinition -Role AzDevOps
     Get-LabMachineRoleDefinition -Role TfsBuildWorker
 )
-Add-LabMachineDefinition -Name ADO01 -Memory 4GB -Roles $roles -IpAddress 192.168.112.70
+Add-LabMachineDefinition -Name DSCDO01 -Memory 2GB -Roles $roles -IpAddress 192.168.111.70
 
 # DSC target nodes - our legacy VMs with an existing configuration
 # Servers in Dev
-Add-LabMachineDefinition -Name AFile01 -Memory 1GB -Roles FileServer -IpAddress 192.168.112.100
-Add-LabMachineDefinition -Name AWeb01 -Memory 1GB -Roles WebServer -IpAddress 192.168.112.101
+Add-LabMachineDefinition -Name DSCFile01 -Memory 1GB -Roles FileServer -IpAddress 192.168.111.100
+Add-LabMachineDefinition -Name DSCWeb01 -Memory 1GB -Roles WebServer -IpAddress 192.168.111.101
 
 # Servers in Pilot
-Add-LabMachineDefinition -Name AFile02 -Memory 1GB -Roles FileServer -IpAddress 192.168.112.110
-Add-LabMachineDefinition -Name AWeb02 -Memory 1GB -Roles WebServer -IpAddress 192.168.112.111
+Add-LabMachineDefinition -Name DSCFile02 -Memory 1GB -Roles FileServer -IpAddress 192.168.111.110
+Add-LabMachineDefinition -Name DSCWeb02 -Memory 1GB -Roles WebServer -IpAddress 192.168.111.111
 
 # Servers in Prod
-Add-LabMachineDefinition -Name AFile03 -Memory 1GB -Roles FileServer -IpAddress 192.168.112.120
-Add-LabMachineDefinition -Name AWeb03 -Memory 1GB -Roles WebServer -IpAddress 192.168.112.121
+Add-LabMachineDefinition -Name DSCFile03 -Memory 1GB -Roles FileServer -IpAddress 192.168.111.120
+Add-LabMachineDefinition -Name DSCWeb03 -Memory 1GB -Roles WebServer -IpAddress 192.168.111.121
 
 Install-Lab
 
 Enable-LabCertificateAutoenrollment -Computer -User
 Install-LabWindowsFeature -ComputerName (Get-LabVM -Role DSCPullServer, FileServer, WebServer, AzDevOps) -FeatureName RSAT-AD-Tools
 Install-LabSoftwarePackage -Path $labsources\SoftwarePackages\Notepad++.exe -CommandLine /S -ComputerName (Get-LabVM)
-
-Invoke-LabCommand -ActivityName 'Disable Windows Update service' -ComputerName (Get-LabVM) -ScriptBlock { Stop-Service -Name wuauserv; Set-Service -Name wuauserv -StartupType Disabled }
 
 # in case you screw something up
 Write-Host "1. - Creating Snapshot 'AfterInstall'" -ForegroundColor Magenta

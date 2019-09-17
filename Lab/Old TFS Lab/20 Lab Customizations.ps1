@@ -1,6 +1,6 @@
 ﻿#region Lab customizations
-$devOpsServer = Get-LabVM -Role AzDevOps
-$buildWorkers = Get-LabVM -Role TfsBuildWorker
+$tfsServer = Get-LabVM -Role Tfs2018
+$tfsWorker = Get-LabVM -Role TfsBuildWorker
 $sqlServer = Get-LabVM -Role SQLServer2017
 $pullServer = Get-LabVM -Role DSCPullServer
 $router = Get-LabVM -Role Routing
@@ -35,7 +35,7 @@ $requiredModules = @{
     StorageDsc                    = '4.8.0.0'
 }
 
-if (-not (Test-LabMachineInternetConnectivity -ComputerName $devOpsServer)) {
+if (-not (Test-LabMachineInternetConnectivity -ComputerName $tfsServer)) {
     Write-Error "The lab is not connected to the internet. Check the connectivity of the machine '$router' which is acting as a router." -ErrorAction Stop
 }
 Write-Host "Lab is connected to the internet, continuing with customizations."
@@ -46,8 +46,8 @@ $deployUserPassword = (Get-LabVm  -Role WebServer).GetCredential((Get-Lab)).GetN
 
 Copy-LabFileItem -Path "$PSScriptRoot\LabData\LabSite.zip" -ComputerName (Get-LabVM -Role WebServer)
 Copy-LabFileItem -Path "$PSScriptRoot\LabData\DummyService.exe" -ComputerName (Get-LabVM -Role WebServer)
-$desktopPath = Invoke-LabCommand -ComputerName $devOpsServer -ScriptBlock { [System.Environment]::GetFolderPath('Desktop') } -PassThru
-Copy-LabFileItem -Path "$PSScriptRoot\LabData\Helpers.psm1" -ComputerName $devOpsServer -DestinationFolderPath $desktopPath
+$desktopPath = Invoke-LabCommand -ComputerName $tfsServer -ScriptBlock { [System.Environment]::GetFolderPath('Desktop') } -PassThru
+Copy-LabFileItem -Path "$PSScriptRoot\LabData\Helpers.psm1" -ComputerName $tfsServer -DestinationFolderPath $desktopPath
 
 Invoke-LabCommand -Activity 'Setup Web Site' -ComputerName (Get-LabVm  -Role WebServer) -ScriptBlock {
 
@@ -82,31 +82,31 @@ Invoke-LabCommand -Activity 'Creating folders and shares' -ComputerName (Get-Lab
     New-SmbShare -Name Department -Path C:\GroupData
 }
 
-# Azure DevOps Server
+# TFS Server
 Get-LabInternetFile -Uri https://go.microsoft.com/fwlink/?Linkid=852157 -Path $labSources\SoftwarePackages\VSCodeSetup.exe
 Get-LabInternetFile -Uri https://github.com/git-for-windows/git/releases/download/v2.16.2.windows.1/Git-2.16.2-64-bit.exe -Path $labSources\SoftwarePackages\Git.exe
 Get-LabInternetFile -Uri https://marketplace.visualstudio.com/_apis/public/gallery/publishers/ms-vscode/vsextensions/PowerShell/1.6.0/vspackage -Path $labSources\SoftwarePackages\VSCodeExtensions\ps.vsix
 
-Install-LabSoftwarePackage -Path $labSources\SoftwarePackages\VSCodeSetup.exe -CommandLine /SILENT -ComputerName $devOpsServer
-Install-LabSoftwarePackage -Path $labSources\SoftwarePackages\Git.exe -CommandLine /SILENT -ComputerName ((@($devOpsServer) + $buildWorkers) | Select-Object -Unique)
-Restart-LabVM -ComputerName $devOpsServer #somehow required to finish all parts of the VSCode installation
+Install-LabSoftwarePackage -Path $labSources\SoftwarePackages\VSCodeSetup.exe -CommandLine /SILENT -ComputerName $tfsServer
+Install-LabSoftwarePackage -Path $labSources\SoftwarePackages\Git.exe -CommandLine /SILENT -ComputerName ((@($tfsServer) + $tfsWorker) | Select-Object -Unique)
+Restart-LabVM -ComputerName $tfsServer #somehow required to finish all parts of the VSCode installation
 
-Copy-LabFileItem -Path $labSources\SoftwarePackages\VSCodeExtensions -ComputerName $devOpsServer
-Invoke-LabCommand -ActivityName 'Install VSCode Extensions' -ComputerName $devOpsServer -ScriptBlock {
+Copy-LabFileItem -Path $labSources\SoftwarePackages\VSCodeExtensions -ComputerName $tfsServer
+Invoke-LabCommand -ActivityName 'Install VSCode Extensions' -ComputerName $tfsServer -ScriptBlock {
     dir -Path C:\VSCodeExtensions | ForEach-Object {
         code --install-extension $_.FullName 2>$null #suppressing errors
     }
 } -NoDisplay
 
-Invoke-LabCommand -ActivityName 'Create link on AzureDevOps desktop' -ComputerName $devOpsServer -ScriptBlock {
+Invoke-LabCommand -ActivityName 'Create link to TFS' -ComputerName $tfsServer -ScriptBlock {
     $shell = New-Object -ComObject WScript.Shell
     $desktopPath = [System.Environment]::GetFolderPath('Desktop')
-    $shortcut = $shell.CreateShortcut("$desktopPath\DscWorkshop Project.url")
-    $shortcut.TargetPath = "https://$($devOpsServer):8080/AutomatedLab/DscWorkshop"
+    $shortcut = $shell.CreateShortcut("$desktopPath\DscWorkshop TFS Project.url")
+    $shortcut.TargetPath = "https://$($tfsServer):8080/AutomatedLab/DscWorkshop"
     $shortcut.Save()
 
-    $shortcut = $shell.CreateShortcut("$desktopPath\CommonTasks Project.url")
-    $shortcut.TargetPath = "https://$($devOpsServer):8080/AutomatedLab/CommonTasks"
+    $shortcut = $shell.CreateShortcut("$desktopPath\CommonTasks TFS Project.url")
+    $shortcut.TargetPath = "https://$($tfsServer):8080/AutomatedLab/CommonTasks"
     $shortcut.Save()
     
     $shortcut = $shell.CreateShortcut("$desktopPath\ProGet.url")
@@ -120,7 +120,7 @@ Invoke-LabCommand -ActivityName 'Create link on AzureDevOps desktop' -ComputerNa
     $shortcut = $shell.CreateShortcut("$desktopPath\Pull Server Endpoint.url")
     $shortcut.TargetPath = "https://$($pullServer.FQDN):8080/PSDSCPullServer.svc/"
     $shortcut.Save()
-} -Variable (Get-Variable -Name devOpsServer, sqlServer, proGetServer, pullServer)
+} -Variable (Get-Variable -Name tfsServer, sqlServer, proGetServer, pullServer)
 
 #in server 2019 there seems to be an issue with dynamic DNS registration, doing this manually
 foreach ($domain in (Get-Lab).Domains) {
@@ -161,7 +161,7 @@ Remove-LabPSSession #this is required to make use of the new version of PowerShe
 
 Restart-LabVM -ComputerName $pullServer
 
-Invoke-LabCommand -ActivityName 'Downloading required modules from PSGallery' -ComputerName $devOpsServer -ScriptBlock {
+Invoke-LabCommand -ActivityName 'Downloading required modules from PSGallery' -ComputerName $tfsServer -ScriptBlock {
 
     Write-Host "Installing $($requiredModules.Count) modules on $(hostname.exe) for pushing them to the lab"
     
@@ -183,7 +183,7 @@ Invoke-LabCommand -ActivityName 'Downloading required modules from PSGallery' -C
     }
 } -Variable (Get-Variable -Name requiredModules)
 
-Invoke-LabCommand -ActivityName 'Publishing required modules to internal ProGet repository' -ComputerName $devOpsServer -ScriptBlock {
+Invoke-LabCommand -ActivityName 'Publishing required modules to internal ProGet repository' -ComputerName $tfsServer -ScriptBlock {
 
     Write-Host "Publishing $($requiredModules.Count) modules to the internal gallery (loop 1)"
     
@@ -213,13 +213,13 @@ Invoke-LabCommand -ActivityName 'Publishing required modules to internal ProGet 
     }
 } -Variable (Get-Variable -Name requiredModules, nuGetApiKey)
 
-Invoke-LabCommand -ActivityName 'Disable Git SSL Certificate Check' -ComputerName $devOpsServer, $buildWorkers -ScriptBlock {
+Invoke-LabCommand -ActivityName 'Disable Git SSL Certificate Check' -ComputerName $tfsServer, $tfsWorker -ScriptBlock {
     [System.Environment]::SetEnvironmentVariable('GIT_SSL_NO_VERIFY', '1', 'Machine')
 }
 
 Remove-LabPSSession #this is required to make use of the new version of PowerShellGet
 
-Invoke-LabCommand -ActivityName 'Create Artifacts Share' -ComputerName $devOpsServer -ScriptBlock {
+Invoke-LabCommand -ActivityName 'Create Artifacts Share' -ComputerName $tfsServer -ScriptBlock {
     $artifactsShareName = 'Artifacts'
     $artifactsSharePath = "C:\$artifactsShareName"
 
@@ -244,14 +244,14 @@ Invoke-LabCommand -ActivityName 'Create Share on Pull Server' -ComputerName $pul
 
 }
 
-Invoke-LabCommand -ActivityName 'Setting the worker service account to local system to be able to write to deployment path' -ComputerName $buildWorkers -ScriptBlock {
+Invoke-LabCommand -ActivityName 'Setting the worker service account to local system to be able to write to deployment path' -ComputerName $tfsWorker -ScriptBlock {
     $services = Get-CimInstance -ClassName Win32_Service -Filter 'Name like "vsts%"'
     foreach ($service in $services) {    
         $service | Invoke-CimMethod -MethodName Change -Arguments @{ StartName = 'LocalSystem' } | Out-Null
     }
 }
 
-Restart-LabVM -ComputerName $devOpsServer, $buildWorkers -Wait
+Restart-LabVM -ComputerName $tfsServer, $tfsWorker -Wait
 
 Write-Host "2. - Creating Snapshot 'AfterCustomizations'" -ForegroundColor Magenta
 Checkpoint-LabVM -All -SnapshotName AfterCustomizations
