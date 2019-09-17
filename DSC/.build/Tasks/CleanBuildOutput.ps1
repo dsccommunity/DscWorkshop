@@ -18,17 +18,17 @@ task CleanBuildOutput {
     }
     if (Test-Path $BuildOutput) 
     {
-        "Removing $BuildOutput\*"
-        Get-ChildItem -Path $BuildOutput -Exclude Modules, README.md | Remove-Item -Force -Recurse
+        Write-Host "Removing $BuildOutput\*"
+        Get-ChildItem -Path $BuildOutput -Exclude Modules | Remove-Item -Force -Recurse
     }
 }
 
 task CleanModule {
     # Synopsis: Clears the content of the BuildOutput folder INCLUDING the modules folder
-    if (![System.IO.Path]::IsPathRooted($BuildOutput)) 
+    if (-not [System.IO.Path]::IsPathRooted($BuildOutput)) 
     {
         $BuildOutput = Join-Path -Path $ProjectPath.FullName -ChildPath $BuildOutput
     }
-    "Removing $BuildOutput\*"
+    Write-Host "Removing $BuildOutput\*"
     Get-ChildItem -Path .\BuildOutput\ | Remove-Item -Force -Recurse -Verbose -ErrorAction Stop
 }
