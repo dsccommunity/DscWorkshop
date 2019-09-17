@@ -26,10 +26,7 @@ param (
 
     [uri]
     $GalleryProxy,
-
-    [Switch]
-    $ForceEnvironmentVariables = $true,
-
+    
     [Parameter(Position = 0)]
     $Tasks,
 
@@ -98,7 +95,7 @@ if ($buildModulesPath -notin $psModulePathElemets) {
 }
 
 #importing all resources from .build directory
-Get-ChildItem -Path "$PSScriptRoot/.build/" -Recurse -Include *.ps1 |
+Get-ChildItem -Path "$PSScriptRoot/.build" -Recurse -Include *.ps1 |
     ForEach-Object {
     Write-Verbose "Importing file $($_.BaseName)"
     try {
@@ -209,3 +206,7 @@ else {
         task . $Tasks
     }
 }
+
+Write-Host "Running the folling tasks:" -ForegroundColor Magenta
+${*}.All[-1].Jobs | ForEach-Object { "`t$_" } | Write-Host
+Write-Host

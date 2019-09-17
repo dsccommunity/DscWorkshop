@@ -48,7 +48,7 @@ $netAdapter += New-LabNetworkAdapterDefinition -VirtualSwitch 'Default Switch' -
 # The good, the bad and the ugly
 Add-LabMachineDefinition -Name ACASQL01 -Memory 3GB -Roles CaRoot, SQLServer2017, Routing -NetworkAdapter $netAdapter
 
-# DSC Pull Server with SQL server backing, TFS Build Worker
+# DSC Pull Server with SQL server backing, Azure DevOps Build Worker
 $roles = @(
     Get-LabMachineRoleDefinition -Role DSCPullServer -Properties @{
         DoNotPushLocalModules = 'true'
@@ -60,7 +60,7 @@ $roles = @(
     Get-LabMachineRoleDefinition -Role WebServer
 )
 $proGetRole = Get-LabPostInstallationActivity -CustomRole ProGet5 -Properties @{
-    ProGetDownloadLink = 'https://s3.amazonaws.com/cdn.inedo.com/downloads/proget/ProGetSetup5.1.23.exe'
+    ProGetDownloadLink = 'https://s3.amazonaws.com/cdn.inedo.com/downloads/proget/ProGetSetup5.2.8.exe'
     SqlServer          = 'ACASQL01'
 }
 Add-LabMachineDefinition -Name APULL01 -Memory 2GB -Roles $roles -IpAddress 192.168.112.60 -PostInstallationActivity $proGetRole -OperatingSystem 'Windows Server 2019 Datacenter (Desktop Experience)'
@@ -70,7 +70,7 @@ $roles = @(
     Get-LabMachineRoleDefinition -Role AzDevOps
     Get-LabMachineRoleDefinition -Role TfsBuildWorker
 )
-Add-LabMachineDefinition -Name ATFS01 -Memory 4GB -Roles $roles -IpAddress 192.168.112.70
+Add-LabMachineDefinition -Name ADO01 -Memory 4GB -Roles $roles -IpAddress 192.168.112.70
 
 # DSC target nodes - our legacy VMs with an existing configuration
 # Servers in Dev
@@ -88,7 +88,7 @@ Add-LabMachineDefinition -Name AWeb03 -Memory 1GB -Roles WebServer -IpAddress 19
 Install-Lab
 
 Enable-LabCertificateAutoenrollment -Computer -User
-Install-LabWindowsFeature -ComputerName (Get-LabVM -Role DSCPullServer, FileServer, WebServer, Tfs2018) -FeatureName RSAT-AD-Tools
+Install-LabWindowsFeature -ComputerName (Get-LabVM -Role DSCPullServer, FileServer, WebServer, AzDevOps) -FeatureName RSAT-AD-Tools
 Install-LabSoftwarePackage -Path $labsources\SoftwarePackages\Notepad++.exe -CommandLine /S -ComputerName (Get-LabVM)
 
 Invoke-LabCommand -ActivityName 'Disable Windows Update service' -ComputerName (Get-LabVM) -ScriptBlock { Stop-Service -Name wuauserv; Set-Service -Name wuauserv -StartupType Disabled }

@@ -7,7 +7,7 @@
 
 function Set-LabDscLatestMetaMofs {
     $latestBuild = Get-LabLatestArtifactsPath
-    $path = Join-Path -Path $latestBuild -ChildPath MetaMof
+    $path = Join-Path -Path $latestBuild -ChildPath 'Meta MOF'
 
     Set-DscLocalConfigurationManager -Path $path -Verbose -Force
 }
@@ -26,7 +26,7 @@ function Show-LabLatestArtifacts {
 }
 
 function Get-LabLatestArtifactsPath {
-    $latestBuild = dir -Path C:\Artifacts\DscWorkshopBuild | Sort-Object -Property { [int]$_.Name } -Descending | Select-Object -First 1
+    $latestBuild = dir -Path 'C:\Artifacts\DscWorkshop CI' | Sort-Object -Property { [int]$_.Name } -Descending | Select-Object -First 1
     $latestBuild = Join-Path $latestBuild.FullName -ChildPath DscWorkshop
     $latestBuild
 }
@@ -108,4 +108,3 @@ function Test-LabDscConfiguration {
     
     Test-DscConfiguration -ComputerName $computers -Detailed   
 }
- 

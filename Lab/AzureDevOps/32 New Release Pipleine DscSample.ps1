@@ -1,185 +1,33 @@
 ﻿$lab = Get-Lab
-$tfsServer = Get-LabVM -Role AzDevOps
-$tfsHostName = if ($lab.DefaultVirtualizationEngine -eq 'Azure') {$tfsServer.AzureConnectionInfo.DnsName} else {$tfsServer.FQDN}
+$devOpsServer = Get-LabVM -Role AzDevOps
+$devOpsHostName = if ($lab.DefaultVirtualizationEngine -eq 'Azure') { $devOpsServer.AzureConnectionInfo.DnsName } else { $devOpsServer.FQDN }
 $proGetServer = Get-LabVM | Where-Object { $_.PostInstallationActivity.RoleName -contains 'ProGet5' }
 $pullServer = Get-LabVM -Role DSCPullServer
 
-$role = $tfsServer.Roles | Where-Object Name -like AzDevOps
-$tfsCred = $tfsServer.GetCredential($lab)
-$tfsPort = $originalPort = 8080
+$role = $devOpsServer.Roles | Where-Object Name -like AzDevOps
+$devOpsCred = $devOpsServer.GetCredential($lab)
+$devOpsPort = $originalPort = 8080
 if ($role.Properties.ContainsKey('Port'))
 {
-    $tfsPort = $role.Properties['Port']
+    $devOpsPort = $role.Properties['Port']
 }
 if ($lab.DefaultVirtualizationEngine -eq 'Azure')
 {
-    $tfsPort = (Get-LabAzureLoadBalancedPort -DestinationPort $tfsPort -ComputerName $tfsServer).Port
+    $devOpsPort = (Get-LabAzureLoadBalancedPort -DestinationPort $devOpsPort -ComputerName $devOpsServer).Port
 }
 
 $projectName = 'DscWorkshop'
-$projectGitUrl = 'https://github.com/AutomatedLab/DscWorkshop'
+$projectGitUrl = 'https://github.com/raandree/DscWorkshop'
 $collectionName = 'AutomatedLab'
 
-# Which will make use of TFS, clone the stuff, add the necessary build step, publish the test results and so on
-# You will see two remotes, Origin (Our code on GitHub) and TFS (Our code pushed to your lab)
-Write-ScreenInfo 'Creating TFS project and cloning from GitHub...' -NoNewLine
+# Which will make use of Azure DevOps, clone the stuff, add the necessary build step, publish the test results and so on
+# You will see two remotes, Origin (Our code on GitHub) and Azure DevOps (Our code pushed to your lab)
+Write-ScreenInfo 'Creating Azure DevOps project and cloning from GitHub...' -NoNewLine
 
 New-LabReleasePipeline -ProjectName $projectName -SourceRepository $projectGitUrl -CodeUploadMethod FileCopy
-$tfsAgentQueue = Get-TfsAgentQueue -InstanceName $tfsHostName -Port $tfsPort -Credential $tfsCred -ProjectName $projectName -CollectionName $collectionName -QueueName Default -UseSsl -SkipCertificateCheck
+$tfsAgentQueue = Get-TfsAgentQueue -InstanceName $devOpsHostName -Port $devOpsPort -Credential $devOpsCred -ProjectName $projectName -CollectionName $collectionName -QueueName Default -UseSsl -SkipCertificateCheck
 
-#region Build and Release Definitions
-# Create a new release pipeline
-# Get those build steps from Get-LabBuildStep
-$buildSteps = @(
-    @{
-        "enabled"     = $true
-        "displayName" = "Register PowerShell Gallery"
-        "task"        = @{
-            "id"          = "e213ff0f-5d5c-4791-802d-52ea3e7be1f1"
-            "versionSpec" = "2.*"
-        }
-        "inputs"      = @{
-            targetType = "inline"
-            script     = @'
-#always make sure the local PowerShell Gallery is registered correctly
-$uri = '$(GalleryUri)'
-$name = 'PowerShell'
-$r = Get-PSRepository -Name $name -ErrorAction SilentlyContinue
-if (-not $r -or $r.SourceLocation -ne $uri -or $r.PublishLocation -ne $uri) {
-    Write-Host "The Source or PublishLocation of the repository '$name' is not correct or the repository is not registered"
-    Unregister-PSRepository -Name $name -ErrorAction SilentlyContinue
-    Register-PSRepository -Name $name -SourceLocation $uri -PublishLocation $uri -InstallationPolicy Trusted
-    Get-PSRepository
-}
-'@
-        }
-    }
-    @{
-        "enabled"     = $true
-        "displayName" = "Execute Build.ps1"
-        "task"        = @{
-            "id"          = "e213ff0f-5d5c-4791-802d-52ea3e7be1f1"
-            "versionSpec" = "2.*"
-        }
-        "inputs"      = @{
-            targetType = "inline"
-            script     = @'
-cd $(Build.SourcesDirectory)\DSC
-.\Build.ps1 -ResolveDependency -GalleryRepository PowerShell -Tasks Init, CleanBuildOutput, SetPsModulePath, TestConfigData, VersionControl, LoadDatumConfigData, CompileDatumRsop, CompileRootConfiguration, CompileRootMetaMof
-'@
-        }
-    }
-    @{
-        enabled     = $true
-        displayName = 'Publish Integration Test Results'
-        condition   = 'always()'
-        task        = @{
-            id          = '0b0f01ed-7dde-43ff-9cbb-e48954daf9b1'
-            versionSpec = '*'
-        }
-        inputs      = @{
-            testRunner       = 'NUnit'
-            testResultsFiles = '**/IntegrationTestResults.xml'
-            searchFolder     = '$(System.DefaultWorkingDirectory)'
-        }
-    }
-    @{
-        enabled     = $false
-        displayName = 'Publish Artifact to Share: MOFs'
-        task        = @{
-            id          = '2ff763a7-ce83-4e1f-bc89-0ae63477cebe'
-            versionSpec = '*'
-        }
-        inputs      = @{
-            PathtoPublish = '$(Build.SourcesDirectory)\DSC\BuildOutput\MOF'
-            ArtifactName  = 'MOFOnShare' 
-            ArtifactType  = 'FilePath'
-            TargetPath    = '$(ArtifactsShare)\$(Build.DefinitionName)\$(Build.BuildNumber)'
-        }
-    }
-    @{
-        enabled     = $false
-        displayName = 'Publish Artifact to Share: Meta MOFs'
-        task        = @{
-            id          = '2ff763a7-ce83-4e1f-bc89-0ae63477cebe'
-            versionSpec = '*'
-        }
-        inputs      = @{
-            PathtoPublish = '$(Build.SourcesDirectory)\DSC\BuildOutput\MetaMof'
-            ArtifactName  = 'MetaMofOnShare'
-            ArtifactType  = 'FilePath'
-            TargetPath    = '$(ArtifactsShare)\$(Build.DefinitionName)\$(Build.BuildNumber)'
-
-        }
-    }
-    @{
-        enabled     = $false
-        displayName = 'Publish Artifact to Share: CompressedModules'
-        task        = @{
-            id          = '2ff763a7-ce83-4e1f-bc89-0ae63477cebe'
-            versionSpec = '*'
-        }
-        inputs      = @{
-            PathtoPublish = '$(Build.SourcesDirectory)\DSC\BuildOutput\CompressedModules'
-            ArtifactName  = 'CompressedModulesOnShare'
-            ArtifactType  = 'FilePath'
-            TargetPath    = '$(ArtifactsShare)\$(Build.DefinitionName)\$(Build.BuildNumber)'
-        }
-    }
-    @{
-        enabled     = $true
-        displayName = 'Publish Artifact: MOFs'
-        task        = @{
-            id          = '2ff763a7-ce83-4e1f-bc89-0ae63477cebe'
-            versionSpec = '*'
-        }
-        inputs      = @{
-            PathtoPublish = '$(Build.SourcesDirectory)\DSC\BuildOutput\MOF'
-            ArtifactName  = 'MOF'
-            ArtifactType  = 'Container'
-        }
-    }
-    @{
-        enabled     = $true
-        displayName = 'Publish Artifact: Meta MOFs'
-        task        = @{
-            id          = '2ff763a7-ce83-4e1f-bc89-0ae63477cebe'
-            versionSpec = '*'
-        }
-        inputs      = @{
-            PathtoPublish = '$(Build.SourcesDirectory)\DSC\BuildOutput\MetaMof'
-            ArtifactName  = 'MetaMof'
-            ArtifactType  = 'Container'
-        }
-    }
-    @{
-        enabled     = $true
-        displayName = 'Publish Artifact: CompressedModules'
-        task        = @{
-            id          = '2ff763a7-ce83-4e1f-bc89-0ae63477cebe'
-            versionSpec = '*'
-        }
-        inputs      = @{
-            PathtoPublish = '$(Build.SourcesDirectory)\DSC\BuildOutput\CompressedModules'
-            ArtifactName  = 'CompressedModules'
-            ArtifactType  = 'Container'
-        }
-    }
-    @{
-        enabled     = $true
-        displayName = 'Publish Artifact: BuildFolder'
-        task        = @{
-            id          = '2ff763a7-ce83-4e1f-bc89-0ae63477cebe'
-            versionSpec = '*'
-        }
-        inputs      = @{
-            PathtoPublish = '$(Build.SourcesDirectory)'
-            ArtifactName  = 'SourcesDirectory'
-            ArtifactType  = 'Container'
-        }
-    }
-)
-
+#region Release Definitions
 $releaseSteps = @(
     @{
         taskId    = '5bfb729a-a7c8-4a78-a7c3-8d717bb7c13c'
@@ -188,9 +36,9 @@ $releaseSteps = @(
         enabled   = $true
         condition = 'succeeded()'
         inputs    = @{
-            SourceFolder = '$(System.DefaultWorkingDirectory)/$(Build.DefinitionName)'
+            SourceFolder = '$(System.DefaultWorkingDirectory)/$(Release.PrimaryArtifactSourceAlias)'
             Contents     = '**'
-            TargetFolder = '\\{0}\Artifacts\$(Build.DefinitionName)\$(Build.BuildNumber)\$(Build.Repository.Name)' -f $tfsServer.FQDN
+            TargetFolder = '\\{0}\Artifacts\$(Build.DefinitionName)\$(Build.BuildNumber)\$(Build.Repository.Name)' -f $devOpsServer.FQDN
         }
     }
     @{
@@ -233,7 +81,7 @@ if (-not $r -or $r.SourceLocation -ne $uri -or $r.PublishLocation -ne $uri) {
             targetType = 'inline'
             script     = @'
 Write-Host $(System.DefaultWorkingDirectory)
-cd $(System.DefaultWorkingDirectory)\$(Build.DefinitionName)\SourcesDirectory\DSC
+Set-Location -Path '$(System.DefaultWorkingDirectory)\$(Release.PrimaryArtifactSourceAlias)\SourcesDirectory\DSC'
 .\Build.ps1 -Tasks Init, SetPsModulePath, Deploy, TestBuildAcceptance -GalleryRepository PowerShell
 '@
         }
@@ -360,10 +208,10 @@ $releaseEnvironments = @(
             uniqueName  = 'Install'
         }
         variables           = @{
-            GalleryUri          = @{ value = "http://$($pullServer.FQDN)/nuget/PowerShell" }
+            GalleryUri          = @{ value = "http://$($proGetServer.FQDN)/nuget/PowerShell" }
             InstallUserName     = @{ value = 'contoso\install' }
             InstallUserPassword = @{ value = 'Somepass1' }
-            DscConfiguration    = @{ value = "\\$($pullServer.FQDN)\DscConfiguratio" }
+            DscConfiguration    = @{ value = "\\$($pullServer.FQDN)\DscConfiguration" }
             DscModules          = @{ value = "\\$($pullServer.FQDN)\DscModules" }
         }
         preDeployApprovals  = @{
@@ -422,10 +270,10 @@ $releaseEnvironments = @(
             @{
                 name          = 'Dev'
                 conditionType = 2
-                value         = ''
+                value         = 4
             }
             @{
-                name          = 'DscWorkshopBuild'
+                name          = 'DscWorkshop CI'
                 conditionType = 4
                 value         = '{"sourceBranch":"master","tags":[],"useBuildDefinitionBranch":false}'
             }
@@ -463,7 +311,7 @@ $releaseEnvironments = @(
             uniqueName  = 'Install'
         }
         variables           = @{
-            GalleryUri          = @{ value = "http://$($pullServer.FQDN).contoso.com/nuget/PowerShell" }
+            GalleryUri          = @{ value = "http://$($proGetServer.FQDN)/nuget/PowerShell" }
             InstallUserName     = @{ value = 'contoso\install' }
             InstallUserPassword = @{ value = 'Somepass1' }
             DscConfiguration    = @{ value = "\\$($pullServer.FQDN)\DscConfiguration" }
@@ -529,10 +377,10 @@ $releaseEnvironments = @(
             @{
                 name          = 'Pilot'
                 conditionType = 2
-                value         = ''
+                value         = 4
             }
             @{
-                name          = 'DscWorkshopBuild'
+                name          = 'DscWorkshop CI'
                 conditionType = 4
                 value         = '{"sourceBranch":"master","tags":[],"useBuildDefinitionBranch":false}'
             }
@@ -563,12 +411,12 @@ $releaseEnvironments = @(
 )
 #endregion Build and Release Definitions
 
-$repo = Get-TfsGitRepository -InstanceName $tfsHostName -Port $tfsPort -CollectionName $collectionName -ProjectName $projectName -Credential $tfsCred -UseSsl -SkipCertificateCheck
-$repo.remoteUrl = $repo.remoteUrl -replace $originalPort, $tfsPort
+$repo = Get-TfsGitRepository -InstanceName $devOpsHostName -Port $devOpsPort -CollectionName $collectionName -ProjectName $projectName -Credential $devOpsCred -UseSsl -SkipCertificateCheck
+$repo.remoteUrl = $repo.remoteUrl -replace $originalPort, $devOpsPort
 
 $param =  @{
-    Uri = "https://$($tfsHostName):$tfsPort/$collectionName/_apis/git/repositories/{$($repo.id)}/refs?api-version=4.1"
-    Credential = $tfsCred    
+    Uri = "https://$($devOpsHostName):$devOpsPort/$collectionName/_apis/git/repositories/{$($repo.id)}/refs?api-version=4.1"
+    Credential = $devOpsCred    
 }
 if ($PSVersionTable.PSEdition -eq 'Core')
 {
@@ -576,40 +424,33 @@ if ($PSVersionTable.PSEdition -eq 'Core')
 }
 $refs = (Invoke-RestMethod @param).value.name
 
-$buildParameters = @{
-    ProjectName          = $projectName
-    InstanceName         = $tfsHostName
-    Port                 = $tfsPort
-    DefinitionName       = "$($projectName)Build"
-    CollectionName       = $collectionName
-    BuildTasks           = $buildSteps
-    Variables            = @{ 
-        GalleryUri     = "http://$($pullServer.FQDN)/nuget/PowerShell"
-        ArtifactsShare = "\\$tfsServer\Artifacts"
-    }
-    CiTriggerRefs        = $refs
-    Credential           = $tfsCred 
-    ApiVersion           = '4.1'
-    UseSsl               = $true
-    SkipCertificateCheck = $true
-}
-New-TfsBuildDefinition @buildParameters
-
 $releaseParameters       = @{
     ProjectName          = $projectName
-    InstanceName         = $tfsHostName
-    Port                 = $tfsPort
-    ReleaseName          = "$($projectName)Release"
+    InstanceName         = $devOpsHostName
+    Port                 = $devOpsPort
+    ReleaseName          = "$($projectName) CD"
     Environments         = $releaseEnvironments
-    Credential           = $tfsCred
+    Credential           = $devOpsCred
     CollectionName       = $collectionName
     UseSsl               = $true
     SkipCertificateCheck = $true
 }
 New-TfsReleaseDefinition @releaseParameters
 
+Invoke-LabCommand -ActivityName 'Set GalleryUri' -ScriptBlock {
+
+    Set-Location -Path C:\Git\DscWorkshop
+    $c = Get-Content '.\azure-pipelines On-Prem.yml' -Raw
+    $c = $c -replace '  GalleryUri: http://dscpull01.contoso.com/nuget/PowerShell', "  GalleryUri: http://$($pullServer.FQDN)/nuget/PowerShell"
+    $c | Set-Content '.\azure-pipelines.yml'
+    git add .
+    git commit -m 'Set GalleryUri'
+    git push 2>$null
+
+} -ComputerName $devOpsServer -Variable (Get-Variable -Name pullServer)
+
 Write-ScreenInfo done
 
 # in case you screw something up
-#Checkpoint-LabVM -All -SnapshotName AfterPipelines
+Checkpoint-LabVM -All -SnapshotName AfterPipelines
 Write-Host "3. - Creating Snapshot 'AfterPipelines'" -ForegroundColor Magenta
