@@ -15,8 +15,12 @@ describe "Prerequisite check" {
             Get-Command code.cmd -ErrorAction SilentlyContinue | Should -Not -Be $null
         }
 
-        it "Should have PowerShell and yaml extension installed" {
-            (Get-ChildItem -Path $home\.vscode\extensions).Name -Match "ms-vscode\.powershell|redhat\.vscode-yaml" | Should -Not -Be $null
+        it "Should have the PowerShell extension installed" {
+            (Get-ChildItem -Path $home\.vscode\extensions).Name -Match "ms-vscode\.powershell" | Should -Not -Be $null
+        }
+
+        it "Should have the yaml extension installed" {
+            (Get-ChildItem -Path $home\.vscode\extensions).Name -Match "redhat\.vscode-yaml" | Should -Not -Be $null
         }
     }
 
@@ -25,8 +29,8 @@ describe "Prerequisite check" {
             (Get-Module -List Az.*).Count | Should -BeGreaterOrEqual 45 -Because "We need the module Az installed with all its components"
         }
 
-        it "Should be logged in to Azure" {
-            {Get-AzContext} | Should -Not -Throw
+        it "Should be logged in to Azure (use Login-AzAccount)" {
+            { Get-AzContext } | Should -Not -Throw
             Get-AzContext | Should -Not -Be $null
         }
     }

@@ -1,4 +1,4 @@
-DscSample/BuildOutput/*
+DSC/BuildOutput/*
 
-DscSample/DSC_Configurations/*
-DscSample/DSC_Resources/*
+DSC/DscConfigurations/*
+DSC/DscResources/*
