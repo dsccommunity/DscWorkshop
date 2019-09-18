@@ -4,7 +4,7 @@
 
 To kick off a new build, the script 'Build.ps1' is going to be used. Whether or not you are in a build pipeline, the build script will create all artifacts in your current environment.
 
-***Remember to check the [prerequisites](..\CheckPrereq.ps1)!***
+***Remember to check the [prerequisites](../CheckPrereq.ps1)!***
 
 ---
 
@@ -82,37 +82,37 @@ RegistryValues:
     
     The 'ServerBaseline.yml' adds the Windows feature 'Telnet-Client' to the list of windows features:
 
-        ```yaml
+      ```yaml
         WindowsFeatures:
           Name:
           - -Telnet-Client
-        ```
+      ```
   
     And the web server role contains some other Windows features:
 
-        ```yaml
+      ```yaml
         WindowsFeatures:
         Name:
         - +Web-Server
         - -WoW64-Support
-        ```
+      ```
 
     The 'Datum.yml' defines the merge behavior for the path 'WindowsFeatures\Name':
 
-        ```yaml
+      ```yaml
         WindowsFeatures\Name:
           merge_basetype_array: Unique
-        ```
+      ```
 
     The result can be seen the RSoP files. After building the project, the Windows features config section in the 'DSCWeb01.yml' in the folder 'DSC\BuildOutput\RSOP' looks like this:
     
-        ```yaml
+      ```yaml
         WindowsFeatures:
         Name:
         - +Web-Server
         - -WoW64-Support
         - -Telnet-Client
-        ```
+      ```
 
     More complex merging scenarios are supported that will be explained in later articles.
   
