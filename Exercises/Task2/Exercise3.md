@@ -6,7 +6,7 @@ This task assumes that you have access to dev.azure.com in order to create your 
 
 *By the way: You can use the PowerShell module [AutomatedLab.Common](https://github.com/automatedlab/automatedlab.common) to automate your interactions with TFS,VSTS and Azure DevOps*
 
-***Remember to check the [prerequisites](..\CheckPrereq.ps1)!***
+***Remember to check the [prerequisites](../CheckPrereq.ps1)!***
 
 ## Trigger an automatic build
 

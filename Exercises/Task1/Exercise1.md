@@ -8,7 +8,7 @@ To kick off a new build, the script ```/DSC/Build.ps1``` is going to be used. Wh
 
 After completing this task, you have a gone through the build process for all artifacts that are required for a DSC pull server scenario (on-prem or Azure).
 
-> ## Note: Remember to check the [prerequisites](..\CheckPrereq.ps1) first
+> ## Note: Remember to check the [prerequisites](../CheckPrereq.ps1) first
 
 ---
 

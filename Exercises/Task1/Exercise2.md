@@ -4,7 +4,7 @@
 
 To kick off a new build, the script 'Build.ps1' is going to be used. Whether or not you are in a build pipeline, the build script will create all artifacts in your current environment.
 
-***Remember to check the [prerequisites](..\CheckPrereq.ps1)!***
+***Remember to check the [prerequisites](../CheckPrereq.ps1)!***
 
 ---
 
