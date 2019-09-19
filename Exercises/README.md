@@ -25,16 +25,16 @@ Please execute the [prerequisite check](CheckPrereq.ps1) in Windows PowerShell t
 
 Task 1 will get you into the DSC basics. You create a simple configuration, compile MOF file and apply the MOF file to your local machine
 
-Stat at [Task 1](Task1/Exercise1.md)
+Stat at [Task 1, Exercise 1](Task1/Exercise1.md)
 
 ## Task 2
 
 Task 2 is all about getting around the build environment step by step. From running a manual build to easily modifying the entire environment without modifying the actual DSC code you can experience everything.  
 
-Start at [Task 2, Exercise1.md](Task2/Exercise1.md)
+Start at [Task 2, Exercise 1](Task2/Exercise1.md)
 
 ## Task 3
 
 Task 2 will get you going with your release pipeline on Azure DevOps and Azure DevOps Server. While this task is specific to Microsoft products like TFS/VSTS or Azure DevOps, the same principle applies to any CI system that lets you define build and release tasks like AppVeyor, TravisCI, Jenkins, ...  
 
-Start at [Task 3, Exercise1.md](Task3/Exercise1.md)
+Start at [Task 3, Exercise 1](Task3/Exercise1.md)

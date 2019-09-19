@@ -58,7 +58,7 @@ RegistryValues:
     Role: FileServer
     Description: File Server in Dev
     Location: Frankfurt
-    FireSection: 1
+    FireSection: Section1
     ```
 
 4. Please build the project again. This time you will see that the fire section number has made it to the node's RSoP files. However, something important is missing: The data about the registry key to write. Why is it still missing?
