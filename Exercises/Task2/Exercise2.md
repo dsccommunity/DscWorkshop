@@ -1,10 +1,8 @@
-# Task 2 - The pipeline
+# Task 2 - The build
 
-*Estimated time to completion: 35 minutes*
+*Estimated time to completion: 30-60 minutes*
 
-This task assumes that you have access to dev.azure.com in order to create your own project and your own pipeline.  
-
-*By the way: You can use the PowerShell module [AutomatedLab.Common](https://github.com/automatedlab/automatedlab.common) to automate your interactions with TFS,VSTS and Azure DevOps*
+To kick off a new build, the script 'Build.ps1' is going to be used. Whether or not you are in a build pipeline, the build script will create all artifacts in your current environment.
 
 ***Remember to check the [prerequisites](../CheckPrereq.ps1)!***
 
@@ -44,31 +42,47 @@ On premises, you might want to select a dedicated agent pool for DSC configurati
 
 6. Next, we would like to publish all test results. In the last task you have triggered a manual build and saw the test cases that were executed. On each build an NUnit XML file is generated that Azure DevOps can pick up. To do so, add another agent task of the type "Publish Test Results". Make sure that it is configured to use NUnit and to pick up the correct file: ```**/IntegrationTestResults.xml```.
 
-    ![Test results](./img/PublishTests.png)
+## 2.2 Add a new node
 
-7. Now we do exactly the same like in the previous step but for the build acceptance test results. You can clone the task "Publish Interation Test Results" and adapt the fields 'Display name' and 'Test results files'. The name of the file this task is looking for is ```**/BuildAcceptanceTestResults.xml```.
+You are tasked with on-boarding a new node (DSCFile04) to your environment. The node should be a file server (Role) in your branch office in Singapore (Location). You also know that it should be part of the Pilot servers or canaries that receive new DSC configurations before other production servers.
 
-8. As a last step, we need to make sure that all build artifacts (MOF, meta.MOF and modules) are published. These artifacts will be used in the release and can be published on an Azure Automation DSC pull server, an on-premises pull server or actively pushed to your infrastructure.  
+1. Make a copy of DSCFile02.yml (use as a template) inside the folder 'DSC\DscConfigData\AllNodes\Pilot' and call it 'DSCFile04.yml'. This new yml will represent your new node. You can do this in the VSCode (mark the file and press CTRL+C and then CTRL+V. Rename the new file) or you can use this PowerShell command.
 
-    Add one "Publish Build Artifact" step for each of the following artifact types:  
+    ```powershell
+    Copy-Item -Path .\DscConfigData\AllNodes\Pilot\DSCFile02.yml -Destination .\DscConfigData\AllNodes\Pilot\DscFile04.yml
+    ```
 
-    |DisplayName|Path|Artifact name|  
-    |---|---|---|  
-    |MOF|$(Build.SourcesDirectory)\DSC\BuildOutput\MOF|MOF|  
-    |Meta.MOF|$(Build.SourcesDirectory)\DSC\BuildOutput\MetaMof|MetaMof|  
-    |Modules|$(Build.SourcesDirectory)\DSC\BuildOutput\CompressedModules|CompressedModules|
-    |RSOP|$(Build.SourcesDirectory)\DSC\BuildOutput\RSOP|RSOP|
+2. Open the newly created file and modify the properties NodeName, Location, Description and ConfigurationNames with the below values.
+  *Please note that outside of a workshop environment, this step can easily be scripted to e.g. use a CMDB as the source for new nodes*
 
-9. At the moment, our build has no triggers. Navigate to the 'Triggers' tab and enable the continuous integration trigger. The branch filters should include 'master' and 'dev' or just '*'.  
+    ```yaml
+    NodeName: DSCFile04
+    .
+    .
+    Description: 'SIN secondary file server'
+    .
+    .
+    Location: Singapore
+    .
+    .
+    ConfigurationNames : DSCFile04
+    ```
 
-    Setting up a CI trigger enables your project to be built every time someone checks in changes to code. This can be a new branch, a pull request from a fork or code committed to 'master' or 'dev'.
+3. This simple file is already enough for your new node. Produce new artifacts now by committing your changes and running a build again. You can commit the change by means of the VSCode UI or using the git command. You can find some guidance here:
+[Using Version Control in VS Code](https://code.visualstudio.com/Docs/editor/versioncontrol). After the commit, start a new build. The commands look like this:
 
-10. Once done, just select "Save & queue" to kick off your first infrastructure build. In the next 'Run pipeline dialog' just take the defaults and click on 'Save and run. Once you have done this, the next page tells you about 'Preparing an agent for the job' and 'Waiting for the request to be queued'. Lie back and wait for the artifacts to be built.
+    ```powershell
+    git add .
+    git commit -m "Added node DSCFile04"
+    .\Build.ps1
+    ```
 
-    > Note: If you create and / or compile software on a dedicated development machine or your personal computer, you pile up a lot of dependencies: Programs, helper tools, DLLs, PowerShell modules, etc. All these things may be required to run you code. In the previous task we have introduced you to [PSDepend](https://github.com/RamblingCookieMonster/PSDepend). This helper module makes sure that we have all the dependencies downloaded that are defined in the \*PSDepend*.psd1 file(s). If your software can be build on a standard build worker, it can be build everywhere and does not have any unwanted and undocumented dependencies.
+4. If you now examine the contents of your BuildOutput folder, you will notice that your new node will have received an RSOP file, a MOF and Meta.MOF file.
 
-11. Hopefully each build step is green. If the job is finished, you have the 'Artifacts' button in the upper right corner. Explore the build output a little while and move on to the next exercise once you are satisfied. Also quite interesting are the test results that you may want to examine.
+   ```powershell
+   Get-ChildItem -Path .\BuildOutput -Recurse -Filter DSCFile04* -File
+   ```
 
-    >Note: All successful tests are hidden, only failed ones are shown by default. Just remove the filter to get the full view.
+It really is as simple as that. If you as a DevOps person can provide the building blocks (Configurations) to your customers, they can easily collaborate and onboard their workloads to DSC without even knowing it.
 
 Please continue with [Exercise 3](Exercise3.md) when your are ready.

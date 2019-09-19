@@ -1,93 +1,75 @@
-# Task 1 - The build
+# Task 1
 
-*Estimated time to completion: 30-60 minutes*
+Desired State Configuration has been introduced with Windows Management Framework 4 and has been improved in WMF5.1. DSC gives administrators the necessary tools to generate configuration files, called MOF files, that machines can consume.
 
-To kick off a new build, the script 'Build.ps1' is going to be used. Whether or not you are in a build pipeline, the build script will create all artifacts in your current environment.
+## Exercise 3
 
-***Remember to check the [prerequisites](../CheckPrereq.ps1)!***
+In exercise 1 we created two MOF files. In your environment, these compiled configurations would be published on a Pull server. Each node would then download these configurations. But how does a node connect to a pull server?
 
----
+1. Open Windows PowerShell ISE or another PowerShell Editor of your choice ***as an administrator***
+2. To configure the engine enacting the changes, the Local Configuration Manager, we write another configuration. This is usually called meta configuration.
 
-## 1.3 Add a new role
+    ```powershell
+        [DscLocalConfigurationManager()]
+        configuration MetaConfiguration
+        {
 
-Now, your branch office in Frankfurt has requested a new role for WSUS servers. This requires you to configure the WSUS feature and set a registry key.
+        }
+    ```
 
-This new role should enable WSUS administrators to build on top of the basic infrastructure.
+3. To configure a pull server, you just need the pull server address as well as the registration key.
 
-1. Let us now create a new role for a WSUS Server in the 'DSC\DscConfigData\Roles' folder. This role's YAML will subscribe to the configuration "WindowsFeatures" and will define configuration data (Settings) for the configuration.
+    > The registration key can be viewed as an API key - it allows a node to access your pull server
 
-Create a new file in 'DSC\DscConfigData\Roles' named 'WsusServer.yml'. Paste the following code into the new file and save it.
+    ```powershell
+        [DscLocalConfigurationManager()]
+        configuration MetaConfiguration
+        {
+            Settings
+            {
+                RefreshMode = 'Pull'
+            }
 
-  ```yml
-  Configurations:
-  - WindowsFeatures
-  
-  WindowsFeatures:
-    Name:
-    - +UpdateServices
-  ```
+            ConfigurationRepositoryWeb PullServer1
+            {
+                ServerURL = 'https://PullServer1.your.domain'
+                RegistrationKey = 'Pre-shared key that is defined on the pull server'
+            }
+        }
 
-2. Now let us add a new node YAML (DSCWS01.yml) in the Pilot which is based on this Role. Create the new file 'DSCWS01.yml' in the folder 'DSC\DscConfigData\AllNodes\Pilot'. Paste the following content into the file and save it.
+        MetaConfiguration
+    ```
 
-  ```yml
-  NodeName: DSCWS01
-  Environment: Pilot
-  Role: WsusServer
-  Description: WSUS Server in Pilot
-  Location: Frankfurt
+4. Have a look at the meta-configuration that has been created:
 
-  NetworkIpConfiguration:
-    IpAddress: 192.168.111.120
+    ```powershell
+        Get-Content .\MetaConfiguration\localhost.meta.mof
+    ```
 
-  PSDscAllowPlainTextPassword: True
-  PSDscAllowDomainUser: True
+5. Once a configuration has automatically been pulled, changes are constantly monitored by the Local Configuration Manager. To simulate what happens try one of the DSC cmdlets, ```Test-DscConfiguration```
 
-  LcmConfig:
-    ConfigurationRepositoryWeb:
-      Server:
-        ConfigurationNames: DSCWS01
-  ```
+    ```powershell
+        Test-DscConfiguration -Reference .\DscWeb01.mof -Verbose
+    ```
 
-> Note: The YAML rendering does not always show the indention correctly. Please have a look at another node file to check the indention.
+6. The pull server can also serve as a source of reporting. In this final step, try to onboard your node to the workshop automation account. Ask your trainers for the automation account URL and registration key!
 
-Once again, it is that easy. New roles (i.e. WsusServer), environments (i.e. Pilot) and nodes (i.e. DSCWS01) just require adding YAML files. The devil is in the details: Providing the appropriate configuration data for your configurations like the network configuration requires knowledge of the underlying infrastructure of course.
+    ```powershell
+        [DscLocalConfigurationManager()]
+        configuration Reporting
+        {
+            ReportServerWeb RSAzure
+            {
+                ServerURL = 'Ask your trainer or use your own automation account'
+                RegistrationKey = 'Ask your trainer or use your own Automation accoutn'
+            }
+        }
 
-In order to build the new node 'DSCWS01' which uses the 'WsusServer' role, simply start up the build again.
+        Reporting
+    ```
 
-  ```powershell
-  .\Build.ps1
-  ```
+7. This time, you may onboard your own system if you want to. Since there are no configurations being applied, it is safe to do so. The node will appear inside Azure Automation, but will not download any configuration data.
 
-After the build has completed take a look at the new nodes resulting files.
+Congratulations! You have just mastered the first steps with DSC! Follow along with the rest of the workshop, which just makes use of DSC, but does not require you to have deep knowledge of it.
 
-> **NOTE: YAML syntax can be tricky so if you have errors during the build it very likely due to not well formed YAML.**
-
-## 1.4 Modify a role
-
-Modifying a role is even easier as adding a new one. Let's try changing the default time server for all the file servers. If the setting effect all time servers, it must be defined in the 'FileServer' role
-
-1. Open the 'FileServer.yml' from your roles directory. We are modifying an already existing role definition now.
-
-2. In order to change a configuration item, just modify or add to your YAML file:
-
-  ```yaml
-  RegistryValues:
-    Values:
-    - Key: HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\W32Time\Parameters
-      ValueName: NtpServer
-      ValueData: pool.contoso.local,0x2
-      ValueType: DWORD
-      Ensure: Present
-  ```
-
-3. After committing your changes, you can restart the build again to see your results in action. All file server artifacts that have been created will now have a modified MOF and RSoP. You can either use the VSCode UI or the following commands: 
-
-  ```powershell
-  git add .
-  git commit -m "Modified the ntpserver setting for the file server role."
-  .\Build.ps1
-  ```
-
-You should have a feeling now how easy it is to modify config data used by DSC when using Datum.
-
-Please continue with [Exercise 4](Exercise4.md) when your are ready.
+It is time now to go to [Task 2](../Task2/readme.md).

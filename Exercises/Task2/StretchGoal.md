@@ -1,4 +1,4 @@
-# Task 1 - The build
+# Task 2 - The build
 
 *Estimated time to completion: 30-60 minutes*
 
@@ -8,7 +8,7 @@ To kick off a new build, the script 'Build.ps1' is going to be used. Whether or 
 
 ---
 
-## 1.5 - Create a custom Configuration (DSC Composite Resource)
+## 2.5 - Create a custom Configuration (DSC Composite Resource)
 
 ***This is a stretch goal, if the other tasks have been too easy.***
 
@@ -106,7 +106,7 @@ At your customer, this is all customer-specific code and should be collected in 
     The folder 'C:\Git\DscWorkshopFork\DSC\DscConfigurations\CommonTasks\DscResources' should now contain your new 'Disks' composite resource.
 
 
-## 1.6 - Use a custom Configuration (DSC Composite Resource)
+## 2.6 - Use a custom Configuration (DSC Composite Resource)
 1. Let's suppose you want to manage the disk layout of all file servers with DSC. In this case the new config goes into the 'FileServer.yml' file. Please open it. The full path is '\DSC\DscConfigData\Roles\FileServer.yml'.
 
     At the top of the file you have the configurations mapped to the file server role. Please add the new 'Disks' configuration:
@@ -129,7 +129,7 @@ At your customer, this is all customer-specific code and should be collected in 
     DiskLayout[0]:
     ```
 
-    So why does the build require additional data? Adding the 'Disks' resource to the configurations makes the build script calls it when commpiling the MOF files. The resource has a mandatory parameter but no argument for this mandatory parameter
+    So why does the build require additional data? Adding the 'Disks' resource to the configurations makes the build script calls it when compiling the MOF files. The resource has a mandatory parameter but no argument for this mandatory parameter is available in the configuration data.
 
     ```powershell
     param
@@ -140,7 +140,7 @@ At your customer, this is all customer-specific code and should be collected in 
     )
     ```
 
-2. So let's add the config data so the 'Disks' resource knows what to do. Please add the following section to the 
+2. So let's add the configuration data so the 'Disks' resource knows what to do. Please add the following section to the file server role:
 
     ```yaml
     Disks:
