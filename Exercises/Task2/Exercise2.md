@@ -42,7 +42,7 @@ On premises, you might want to select a dedicated agent pool for DSC configurati
 
     ![Build task](./img/ExecuteBuild.png)
 
-6. Next, we would like to publish all test results. In the last task you have triggered a manual build and saw the test cases that were executed. On each build an NUnit XML file is generated that Azure DevOps can pick up. To do so, add another agent task, this time "Publish Test Results". Make sure that it is configured to use NUnit and to pick up the correct file: ```**/IntegrationTestResults.xml```.
+6. Next, we would like to publish all test results. In the last task you have triggered a manual build and saw the test cases that were executed. On each build an NUnit XML file is generated that Azure DevOps can pick up. To do so, add another agent task of the type "Publish Test Results". Make sure that it is configured to use NUnit and to pick up the correct file: ```**/IntegrationTestResults.xml```.
 
     ![Test results](./img/PublishTests.png)
 
