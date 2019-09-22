@@ -14,75 +14,82 @@ Desired State Configuration has been introduced with Windows Management Framewor
         }
     ```
 
-3. Inside a configuration, there may be one or more node blocks. Add some nodes now!
+3. Inside a configuration, there may be one or more node blocks. As this exercise is to work on the local machine, please add a node block for 'localhost'.
 
     ```powershell
         configuration MyFirstConfig
         {
-            node DSCFil01
-            {
-
-            }
-
-            node DSCWeb01
+            node localhost
             {
 
             }
         }
     ```
 
-4. Each node can consume one or more resources. Try to add some Windows features to your servers:
+4. Each node can consume one or more resources. Let's try to control some files and folders with DSC by adding the following configuration items to the node:
 
     ```powershell
         configuration MyFirstConfig
         {
-            node DSCFil01
+            node localhost
             {
-                WindowsFeature DFS
+                File Folder1
                 {
-                    Name = 'FS-DFS-Replication'
+                    DestinationPath = 'C:\TestFolder'
+                    Type = 'Directory'
+                    Ensure = 'Present'
                 }
-            }
 
-            node DSCWeb01
-            {
-                WindowsFeature Web
+                File File1
                 {
-                    Name = 'Web-Server'
+                    DestinationPath = 'C:\TestFolder\TestFile1'
+                    Ensure = 'Present'
+                    DependsOn = '[File]Folder1'
+                    Type = 'File'
+                    Contents = 'Hello World'
                 }
             }
         }
     ```
 
-5. In order to actually convert this code into something that target machines can properly enact, you need to compile the configuration element into a MOF file. Try it now!
+    >**Note:** Most DSC resources can be set to 'Present' and 'Absent' by using the 'Ensure' parameter. Setting the parameter to 'Absent' will delete an item without further confirmation.
+
+    >**Info:** The 'DependsOn' parameter is supported by all DSC resources and guarantees, that the used resources are called in the order as defined. If course, it does not make sense to create a file in the test folder before the test folder exists.
+
+5. In order to actually convert this code into something that the target machines can properly enact, you need to compile the configuration element into a MOF file.
+
+    >Info: A configuration is pretty similar to a function. In the following script the configuration is called like a function at the very last line. The parameter 'OutputPath' defines where the MOF file shall be created.
 
     ```powershell
         configuration MyFirstConfig
         {
-            node DSCFil01
+            node localhost
             {
-                WindowsFeature DFS
+                File Folder1
                 {
-                    Name = 'FS-DFS-Replication'
+                    DestinationPath = 'C:\TestFolder'
+                    Type = 'Directory'
+                    Ensure = 'Present'
                 }
-            }
 
-            node DSCWeb01
-            {
-                WindowsFeature Web
+                File File1
                 {
-                    Name = 'Web-Server'
+                    DestinationPath = 'C:\TestFolder\TestFile1'
+                    Ensure = 'Present'
+                    DependsOn = '[File]Folder1'
+                    Type = 'File'
+                    Contents = 'Hello World'
                 }
             }
         }
 
-        MyFirstConfig
+        MyFirstConfig -OutputPath C:\DSC
     ```
 
-6. Running the configuration has produced two MOF files, DSCFile01.mof and DSCWeb01.mof. Try examining one of them now:
+6. Running the configuration has produced a MOF file that has the same name as the node block. Try examining one of them now with ```Get-Content``` or by opening the file in any editor:
 
     ```powershell
-        Get-Content ./MyFirstConfig/DSCWeb01.mof
+        Get-Content C:\DSC\MyFirstConfig\DSCWeb01.mof
     ```
 
     > Notice the complexity of the produced file. Would you have been able to write this on your own without syntax issues?
