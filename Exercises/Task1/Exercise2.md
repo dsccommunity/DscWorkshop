@@ -1,54 +1,33 @@
-# Task 1 - The build
+# Task 1
 
-*Estimated time to completion: 30-60 minutes*
+Desired State Configuration has been introduced with Windows Management Framework 4 and has been improved in WMF5.1. DSC gives administrators the necessary tools to generate configuration files, called MOF files, that machines can consume.
 
-To kick off a new build, the script 'Build.ps1' is going to be used. Whether or not you are in a build pipeline, the build script will create all artifacts in your current environment.
+## Exercise 2
 
-***Remember to check the [prerequisites](../CheckPrereq.ps1)!***
+Now that you have created you first MOF file, let's see how Windows can enact it.
 
----
+>**Note: Before going on with the exercise, make sure your computer is not configured with DSC already. Then doing the next steps can break something. Please run the command ```Get-DscConfiguration```. If it returns the error 'Current configuration does not exist', then you are fine to continue.**
 
-## 1.2 Add a new node
-
-You are tasked with on-boarding a new node (DSCFile04) to your environment. The node should be a file server (Role) in your branch office in Singapore (Location). You also know that it should be part of the Pilot servers or canaries that receive new DSC configurations before other production servers.
-
-1. Make a copy of DSCFile02.yml (use as a template) inside the folder 'DSC\DscConfigData\AllNodes\Pilot' and call it 'DSCFile04.yml'. This new yml will represent your new node. You can do this in the VSCode (mark the file and press CTRL+C and then CTRL+V. Rename the new file) or you can use this PowerShell command.
+1. Inside PowerShell, move into the folder where you MOF file was created in (for example 'C:\DSC'). The call the following command:
 
     ```powershell
-    Copy-Item -Path .\DscConfigData\AllNodes\Pilot\DSCFile02.yml -Destination .\DscConfigData\AllNodes\Pilot\DscFile04.yml
+    Start-DscConfiguration -Path C:\DSC -Verbose -Wait
     ```
 
-2. Open the newly created file and modify the properties NodeName, Location, Description and ConfigurationNames with the below values.
-  *Please note that outside of a workshop environment, this step can easily be scripted to e.g. use a CMDB as the source for new nodes*
+    This command is no applying each configuration item to you local machine.
 
-    ```yaml
-    NodeName: DSCFile04
-    .
-    .
-    Description: 'SIN secondary file server'
-    .
-    .
-    Location: Singapore
-    .
-    .
-    ConfigurationNames : DSCFile04
-    ```
+2. Have a closer look at the output of the last command. For each resource it starts with a test. After the test is ended, the DSC Local configuration manager calls the set. This happens, if the node has not yet converged to the desired state.
 
-3. This simple file is already enough for your new node. Produce new artifacts now by committing your changes and running a build again. You can commit the change by means of the VSCode UI or using the git command. You can find some guidance here:
-[Using Version Control in VS Code](https://code.visualstudio.com/Docs/editor/versioncontrol). After the commit, start a new build. The commands look like this:
+3. Please call the same command again and have a closer look at the output. As the two configuration items defined in the MOF file have been applied already, this time set method will be skipped as the test returns 'true'.
+
+4. You can always test wether a node is in the desired state by calling the command ```Test-DscConfiguration```. Especially the 'Detailed' switch makes the output more informative. Please run the command, then change the contents of the test file and run ```Test-DscConfiguration -Detailed``` again.
+
+5. To reset your machine back into the previous state, it is not enough to remove the test folder. DSC would just recreate it, as we have learned. Please remove the folder and the DSC configuration like this:
 
     ```powershell
-    git add .
-    git commit -m "Added node DSCFile04"
-    .\Build.ps1
+    Remove-Item -Path C:\TestFolder\ -Recurse -Force
+    Remove-Item -Path C:\DSC\ -Recurse -Force
+    Remove-DscConfigurationDocument -Stage Current, Pending, Previous
     ```
 
-4. If you now examine the contents of your BuildOutput folder, you will notice that your new node will have received an RSOP file, a MOF and Meta.MOF file.
-
-   ```powershell
-   Get-ChildItem -Path .\BuildOutput -Recurse -Filter DSCFile04* -File
-   ```
-
-It really is as simple as that. If you as a DevOps person can provide the building blocks (Configurations) to your customers, they can easily collaborate and onboard their workloads to DSC without even knowing it.
-
-Please continue with [Exercise 3](Exercise3.md) when your are ready.
+Continue with [Exercise3](Exercise3.md) when you are ready.
