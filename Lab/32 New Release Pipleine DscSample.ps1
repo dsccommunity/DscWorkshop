@@ -3,16 +3,15 @@ $devOpsServer = Get-LabVM -Role AzDevOps
 $devOpsHostName = if ($lab.DefaultVirtualizationEngine -eq 'Azure') { $devOpsServer.AzureConnectionInfo.DnsName } else { $devOpsServer.FQDN }
 $proGetServer = Get-LabVM | Where-Object { $_.PostInstallationActivity.RoleName -contains 'ProGet5' }
 $pullServer = Get-LabVM -Role DSCPullServer
+$hypervHost = Get-LabVM -Role HyperV
 
 $role = $devOpsServer.Roles | Where-Object Name -like AzDevOps
 $devOpsCred = $devOpsServer.GetCredential($lab)
 $devOpsPort = $originalPort = 8080
-if ($role.Properties.ContainsKey('Port'))
-{
+if ($role.Properties.ContainsKey('Port')) {
     $devOpsPort = $role.Properties['Port']
 }
-if ($lab.DefaultVirtualizationEngine -eq 'Azure')
-{
+if ($lab.DefaultVirtualizationEngine -eq 'Azure') {
     $devOpsPort = (Get-LabAzureLoadBalancedPort -DestinationPort $devOpsPort -ComputerName $devOpsServer).Port
 }
 
@@ -98,6 +97,108 @@ Set-Location -Path '$(System.DefaultWorkingDirectory)\$(Release.PrimaryArtifactS
             searchFolder     = '$(System.DefaultWorkingDirectory)'
         }
     }
+    @{
+        taskId  = '3b5693d4-5777-4fee-862a-bd2b7a374c68'
+        version = '3.*'
+        name    = 'Create Dev Test Machines'
+        enabled = $true
+        inputs  = @{
+            Machines                    = $hypervHost.FQDN
+            UserName                    = '$(InstallUserName)'
+            UserPassword                = '$(InstallUserPassword)'
+            ScriptType                  = 'Inline'
+            InlineScript                = @'
+[System.Environment]::SetEnvironmentVariable('AUTOMATEDLAB_TELEMETRY_OPTOUT', '0')
+Import-Module -Name AutomatedLab
+$dc = Get-ADDomainController
+    
+$netAdapter = Get-NetAdapter -Name 'vEthernet (AlExternal)' -ErrorAction SilentlyContinue
+if (-not $netAdapter)
+{
+    $netAdapter = Get-NetAdapter -Name Ethernet -ErrorAction SilentlyContinue
+}
+    
+$ip = $netAdapter | Get-NetIPAddress -AddressFamily IPv4
+$network = [AutomatedLab.IPNetwork]"$($ip.IPAddress)/$($ip.PrefixLength)"
+
+#--------------------------------
+
+New-LabDefinition -Name Lab1 -DefaultVirtualizationEngine HyperV
+
+$os = Get-LabAvailableOperatingSystem | Where-Object { $_.OperatingSystemName -like '*Datacenter*' -and $_.OperatingSystemName -like '*2019*' -and $_.OperatingSystemName -like '*Desktop*' }
+$PSDefaultParameterValues = @{
+    'Add-LabMachineDefinition:OperatingSystem'= $os
+    'Add-LabMachineDefinition:Memory'= 1GB
+    'Add-LabMachineDefinition:DomainName'= $dc.Domain
+    'Add-LabMachineDefinition:DnsServer1' = $dc.IPv4Address
+    'Add-LabMachineDefinition:Gateway' = (Get-NetIPConfiguration).IPv4DefaultGateway.NextHop
+}
+    
+Add-LabVirtualNetworkDefinition -Name AlExternal -AddressSpace "$($ip.IPAddress)/$($ip.PrefixLength)" -HyperVProperties @{ SwitchType = 'External'; AdapterName = 'Ethernet' }
+    
+$param = @{
+    Name = $dc.Name
+    Roles = 'RootDC'
+    IpAddress = $dc.IPv4Address
+    SkipDeployment = $true
+}
+Add-LabMachineDefinition @param
+
+$param = @{
+    Name = 'DSCFile01'
+    Roles = 'FileServer'
+    IpAddress = [AutomatedLab.IPNetwork]::ListIPAddress($network)[100]
+}
+Add-LabMachineDefinition @param
+
+$param = @{
+    Name = 'DSCWeb01'
+    Roles = 'WebServer'
+    IpAddress = [AutomatedLab.IPNetwork]::ListIPAddress($network)[101]
+}
+Add-LabMachineDefinition @param
+    
+Install-Lab
+    
+Show-LabDeploymentSummary -Detailed
+'@
+            CommunicationProtocol       = 'Http'
+            AuthenticationMechanism     = 'Credssp'
+            NewPsSessionOptionArguments = '-SkipCACheck -IdleTimeout 7200000 -OperationTimeout 0 -OutputBufferingMode Block'
+        }
+    }
+    @{
+        enabled = $true
+        name    = "Wait"
+        taskId  = 'e213ff0f-5d5c-4791-802d-52ea3e7be1f1'
+        version = '2.*'
+        inputs  = @{
+            targetType = 'inline'
+            script     = @'
+Start-Sleep -Seconds 30
+'@
+        }
+    }
+    @{
+        taskId  = '3b5693d4-5777-4fee-862a-bd2b7a374c68'
+        version = '3.*'
+        name    = 'Remove Dev Test Machines'
+        enabled = $true
+        inputs  = @{
+            Machines                    = $hypervHost.FQDN
+            UserName                    = '$(InstallUserName)'
+            UserPassword                = '$(InstallUserPassword)'
+            ScriptType                  = 'Inline'
+            InlineScript                = @'
+            [System.Environment]::SetEnvironmentVariable('AUTOMATEDLAB_TELEMETRY_OPTOUT', '0')
+            Import-Module -Name AutomatedLab
+            Remove-Lab -Name Lab1 -Confirm:$false
+'@
+            CommunicationProtocol       = 'Http'
+            AuthenticationMechanism     = 'Credssp'
+            NewPsSessionOptionArguments = '-SkipCACheck -IdleTimeout 7200000 -OperationTimeout 0 -OutputBufferingMode Block'
+        }
+    }
 )
 
 $releaseEnvironments = @(
@@ -112,8 +213,8 @@ $releaseEnvironments = @(
         }
         variables           = @{
             GalleryUri          = @{ value = "http://$($proGetServer.FQDN)/nuget/PowerShell" }
-            InstallUserName     = @{ value = 'contoso\install' }
-            InstallUserPassword = @{ value = 'Somepass1' }
+            InstallUserName     = @{ value = $devOpsCred.UserName }
+            InstallUserPassword = @{ value = $devOpsCred.GetNetworkCredential().Password }
             DscConfiguration    = @{ value = "\\$($pullServer.FQDN)\DscConfiguration" }
             DscModules          = @{ value = "\\$($pullServer.FQDN)\DscModules" }
         }
@@ -150,7 +251,7 @@ $releaseEnvironments = @(
                     timeoutInMinutes          = 0
                     jobCancelTimeoutInMinutes = 1
                     condition                 = 'succeeded()'
-                    overrideInputs            = @{}
+                    overrideInputs            = @{ }
                 }
                 rank            = 1
                 phaseType       = 1
@@ -185,8 +286,8 @@ $releaseEnvironments = @(
             releasesToKeep = 3
             retainBuild    = $true
         }
-        processParameters   = @{}
-        properties          = @{}
+        processParameters   = @{ }
+        properties          = @{ }
         preDeploymentGates  = @{
             id           = 0
             gatesOptions = $null
@@ -209,8 +310,8 @@ $releaseEnvironments = @(
         }
         variables           = @{
             GalleryUri          = @{ value = "http://$($proGetServer.FQDN)/nuget/PowerShell" }
-            InstallUserName     = @{ value = 'contoso\install' }
-            InstallUserPassword = @{ value = 'Somepass1' }
+            InstallUserName     = @{ value = $devOpsCred.UserName }
+            InstallUserPassword = @{ value = $devOpsCred.GetNetworkCredential().Password }
             DscConfiguration    = @{ value = "\\$($pullServer.FQDN)\DscConfiguration" }
             DscModules          = @{ value = "\\$($pullServer.FQDN)\DscModules" }
         }
@@ -247,7 +348,7 @@ $releaseEnvironments = @(
                     timeoutInMinutes          = 0
                     jobCancelTimeoutInMinutes = 1
                     condition                 = 'succeeded()'
-                    overrideInputs            = @{}
+                    overrideInputs            = @{ }
                 }
                 rank            = 1
                 phaseType       = 1
@@ -288,8 +389,8 @@ $releaseEnvironments = @(
             releasesToKeep = 3
             retainBuild    = $true
         }
-        processParameters   = @{}
-        properties          = @{}
+        processParameters   = @{ }
+        properties          = @{ }
         preDeploymentGates  = @{
             id           = 0
             gatesOptions = $null
@@ -312,8 +413,8 @@ $releaseEnvironments = @(
         }
         variables           = @{
             GalleryUri          = @{ value = "http://$($proGetServer.FQDN)/nuget/PowerShell" }
-            InstallUserName     = @{ value = 'contoso\install' }
-            InstallUserPassword = @{ value = 'Somepass1' }
+            InstallUserName     = @{ value = $devOpsCred.UserName }
+            InstallUserPassword = @{ value = $devOpsCred.GetNetworkCredential().Password }
             DscConfiguration    = @{ value = "\\$($pullServer.FQDN)\DscConfiguration" }
             DscModules          = @{ value = "\\$($pullServer.FQDN)\DscModules" }
         }
@@ -326,7 +427,7 @@ $releaseEnvironments = @(
                     approver         = @{
                         displayName = "Install"
                         id          = '196672db-49dd-4968-8c52-a94e43186ffd'
-                        uniqueName  = 'contoso\Install'
+                        uniqueName  = $devOpsCred.UserName
                     }
                 }
             )
@@ -354,7 +455,7 @@ $releaseEnvironments = @(
                     timeoutInMinutes          = 0
                     jobCancelTimeoutInMinutes = 1
                     condition                 = 'succeeded()'
-                    overrideInputs            = @{}
+                    overrideInputs            = @{ }
                 }
                 rank            = 1
                 phaseType       = 1
@@ -395,8 +496,8 @@ $releaseEnvironments = @(
             releasesToKeep = 3
             retainBuild    = $true
         }
-        processParameters   = @{}
-        properties          = @{}
+        processParameters   = @{ }
+        properties          = @{ }
         preDeploymentGates  = @{
             id           = 0
             gatesOptions = $null
@@ -414,29 +515,27 @@ $releaseEnvironments = @(
 $repo = Get-TfsGitRepository -InstanceName $devOpsHostName -Port $devOpsPort -CollectionName $collectionName -ProjectName $projectName -Credential $devOpsCred -UseSsl -SkipCertificateCheck
 $repo.remoteUrl = $repo.remoteUrl -replace $originalPort, $devOpsPort
 
-$param =  @{
-    Uri = "https://$($devOpsHostName):$devOpsPort/$collectionName/_apis/git/repositories/{$($repo.id)}/refs?api-version=4.1"
+$param = @{
+    Uri        = "https://$($devOpsHostName):$devOpsPort/$collectionName/_apis/git/repositories/{$($repo.id)}/refs?api-version=4.1"
     Credential = $devOpsCred    
 }
-if ($PSVersionTable.PSEdition -eq 'Core')
-{
+if ($PSVersionTable.PSEdition -eq 'Core') {
     $param.Add('SkipCertificateCheck', $true)
 }
-$refs = (Invoke-RestMethod @param).value.name
 
-Invoke-LabCommand -ActivityName 'Set GalleryUri' -ScriptBlock {
+Invoke-LabCommand -ActivityName 'Set GalleryUri and create Build Pipeline' -ScriptBlock {
 
     Set-Location -Path C:\Git\DscWorkshop
     $c = Get-Content '.\azure-pipelines On-Prem.yml' -Raw
     $c = $c -replace '  GalleryUri: http://dscpull01.contoso.com/nuget/PowerShell', "  GalleryUri: http://$($pullServer.FQDN)/nuget/PowerShell"
     $c | Set-Content '.\azure-pipelines.yml'
     git add .
-    git commit -m 'Set GalleryUri'
+    git commit -m 'Set GalleryUri and create Build Pipeline'
     git push 2>$null
 
 } -ComputerName $devOpsServer -Variable (Get-Variable -Name pullServer)
 
-$releaseParameters       = @{
+$releaseParameters = @{
     ProjectName          = $projectName
     InstanceName         = $devOpsHostName
     Port                 = $devOpsPort
