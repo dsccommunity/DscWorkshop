@@ -424,6 +424,18 @@ if ($PSVersionTable.PSEdition -eq 'Core')
 }
 $refs = (Invoke-RestMethod @param).value.name
 
+Invoke-LabCommand -ActivityName 'Set GalleryUri' -ScriptBlock {
+
+    Set-Location -Path C:\Git\DscWorkshop
+    $c = Get-Content '.\azure-pipelines On-Prem.yml' -Raw
+    $c = $c -replace '  GalleryUri: http://dscpull01.contoso.com/nuget/PowerShell', "  GalleryUri: http://$($pullServer.FQDN)/nuget/PowerShell"
+    $c | Set-Content '.\azure-pipelines.yml'
+    git add .
+    git commit -m 'Set GalleryUri'
+    git push 2>$null
+
+} -ComputerName $devOpsServer -Variable (Get-Variable -Name pullServer)
+
 $releaseParameters       = @{
     ProjectName          = $projectName
     InstanceName         = $devOpsHostName
@@ -437,17 +449,6 @@ $releaseParameters       = @{
 }
 New-TfsReleaseDefinition @releaseParameters
 
-Invoke-LabCommand -ActivityName 'Set GalleryUri' -ScriptBlock {
-
-    Set-Location -Path C:\Git\DscWorkshop
-    $c = Get-Content '.\azure-pipelines On-Prem.yml' -Raw
-    $c = $c -replace '  GalleryUri: http://dscpull01.contoso.com/nuget/PowerShell', "  GalleryUri: http://$($pullServer.FQDN)/nuget/PowerShell"
-    $c | Set-Content '.\azure-pipelines.yml'
-    git add .
-    git commit -m 'Set GalleryUri'
-    git push 2>$null
-
-} -ComputerName $devOpsServer -Variable (Get-Variable -Name pullServer)
 
 Write-ScreenInfo done
 
