@@ -75,9 +75,9 @@ Add-LabMachineDefinition -Name DSCDO01 -Memory 4GB -Roles $roles -IpAddress 192.
 Add-LabMachineDefinition -Name DSCHost01 -Memory 8GB -Roles HyperV -IpAddress 192.168.111.80
 
 # DSC target nodes - our legacy VMs with an existing configuration
-# Servers in Dev
-Add-LabMachineDefinition -Name DSCFile01 -Memory 1GB -Roles FileServer -IpAddress 192.168.111.100
-Add-LabMachineDefinition -Name DSCWeb01 -Memory 1GB -Roles WebServer -IpAddress 192.168.111.101
+# Servers in Dev will be created adhoc and destroyed on DSCHost01 in the release pipeline
+#Add-LabMachineDefinition -Name DSCFile01 -Memory 1GB -Roles FileServer -IpAddress 192.168.111.100
+#Add-LabMachineDefinition -Name DSCWeb01 -Memory 1GB -Roles WebServer -IpAddress 192.168.111.101
 
 # Servers in Pilot
 Add-LabMachineDefinition -Name DSCFile02 -Memory 1GB -Roles FileServer -IpAddress 192.168.111.110
