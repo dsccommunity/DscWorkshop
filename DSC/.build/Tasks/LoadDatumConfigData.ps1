@@ -10,6 +10,13 @@ task LoadDatumConfigData {
         Write-Error 'No nodes found in the solution'
     }
 
-    $global:configurationData = Get-FilteredConfigurationData -Filter $Filter -Datum $datum
+    if ($RoleName) {
+        Write-Build Green "Building Configdata for Role $RoleName"
+        $Global:ConfigurationData = Get-FilteredRoleConfigurationData -RoleName $RoleName -Datum $Datum
+    }
+    else {
+        Write-Build Green "Building Configdata for Environment $Environment"
+        $Global:ConfigurationData = Get-FilteredConfigurationData -Environment $Environment -Datum $Datum
+    }
 
 }

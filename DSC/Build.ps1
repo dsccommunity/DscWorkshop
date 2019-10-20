@@ -9,6 +9,18 @@ param (
     [string]
     $ConfigDataFolder = 'DscConfigData',
 
+    [String]
+    $Environment = $(
+        $branch = (&git @('rev-parse', '--abbrev-ref', 'HEAD'))
+        $branch = if ($branch -eq 'master') { 'Prod' } else { 'Dev' }
+        if (Test-Path -Path ".\$ConfigDataFolder\AllNodes\$branch") {
+            $branch
+        }
+    ),
+
+    [String]
+    $RoleName,
+
     [string]
     $ConfigurationsFolder = 'DscConfigurations',
 
@@ -59,6 +71,15 @@ param (
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
 Add-Type -AssemblyName System.Threading
 $m = [System.Threading.Mutex]::new($false, 'DscBuildProcessMutex')
+
+if ($RoleName) {
+    if ((Get-ChildItem -Path ".\$ConfigDataFolder\DSC_ConfigData\Roles" -Filter "$RoleName*" -ErrorAction SilentlyContinue)) {
+        Write-Output "Role found with name $RoleName"
+    }
+    else {
+        Write-Output "No role found with the given name $RoleName"
+    }
+}
 
 $env:BHBuildStartTime = Get-Date
 Write-Host "Current Process ID is '$PID'"

@@ -12,10 +12,10 @@ Remember to **charge your laptop** before the workshop!
 **If the build fails, please download the latest version of AutomatedLab and pull the repository again**
 
 ## Goal:
+
   - Introduce the [Release Pipeline Model](https://aka.ms/TRPM) with one possible implementation using DSC
   - Use the code to setup a lab environment at work/home and learn how to roll your own DSC Pipeline
-  - Share our experiences of rolling out DSC in production environments within highly regulated industries 
-
+  - Share our experiences of rolling out DSC in production environments within highly regulated industries
 
 ## Overview:
 
@@ -24,7 +24,6 @@ Remember to **charge your laptop** before the workshop!
 3. The Release [Pipeline](https://gaelcolas.files.wordpress.com/2018/04/samplemodule_pipeline.mp4), and how to apply to your [infrastructure](https://gaelcolas.files.wordpress.com/2018/04/demo_dsc_sol.mp4)
 4. Building a trusted release process 
 5. Bringing Existing Infrastructure under DSC Control, with [Datum](https://gaelcolas.files.wordpress.com/2018/04/datum_quick.mp4)
-
 
 ## Before you start
 
@@ -46,7 +45,8 @@ Now that you have it under your name, you can clone **your** fork onto your lapt
 In your Github page you can use the green button 'Clone or Download' on your forked Github page `https://github.com/<your github handle>/DscWorkshop.git`
 
 Or use the following command in your command line:
-```
+
+```Powershell
 git clone https://github.com/<your github handle>/DscWorkshop.git
 ```
 
@@ -55,6 +55,7 @@ git clone https://github.com/<your github handle>/DscWorkshop.git
 You need Git in your path, a permissive `ExecutionPolicy` set so you can run scripts, and internet access so you can pull from the gallery.
 
 Run the following as administrator:
+
 ```PowerShell
 Set-ExecutionPolicy -ExecutionPolicy Bypass
 Install-Module Chocolatey
@@ -83,11 +84,9 @@ You can do any of the following:
 
 - Browse the code and ask questions
 
-
 There will be a few slides to introduce concepts, share our tips and tricks, and loads of Q&A, so you can work with others to progress faster!
 
 Make it your own.
-
 
 ## Next Steps
 

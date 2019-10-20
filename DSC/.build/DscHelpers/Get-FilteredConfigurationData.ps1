@@ -3,10 +3,20 @@ function Get-FilteredConfigurationData {
         [ScriptBlock]
         $Filter = {},
 
+        $Environment = 'DEV',
+
         $Datum = $(Get-variable Datum -ValueOnly -ErrorAction Stop)
     )
 
-    $allNodes = @(Get-DatumNodesRecursive -Nodes $Datum.AllNodes -Depth 20)
+    #$allNodes = @(Get-DatumNodesRecursive -Nodes $Datum.AllNodes -Depth 20)
+    $AllNodes = @($Datum.AllNodes.($Environment).PSObject.Properties.Foreach{
+        $Node = $Datum.AllNodes.($Environment).($_.Name)
+        $Node['Environment'] = $Environment
+        if (!$Node.contains('Name')) {
+            $Null = $Node.Add('Name',$_.Name)
+        }
+        (@{} + $Node)
+    })
     
     Write-Host "Node count: $($allNodes.Count)"
     
