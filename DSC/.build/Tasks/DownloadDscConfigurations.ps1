@@ -7,6 +7,6 @@ task DownloadDscConfigurations {
             Confirm = $false
             Target  = $configurationPath
         }
-        Invoke-PSDependInternal -PSDependParameters $psDependParams -Reporitory $GalleryRepository
+        Invoke-PSDependInternal -PSDependParameters $psDependParams -Repository $GalleryRepository
     }
 }

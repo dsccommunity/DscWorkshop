@@ -3,7 +3,7 @@ function Invoke-PSDependInternal {
         [hashtable]$PSDependParameters,
 
         [Parameter(Mandatory)]
-        [string]$Reporitory
+        [string]$Repository
     )
 
     if (-not $PSDependParameters.ContainsKey('Path')) {
@@ -18,7 +18,7 @@ function Invoke-PSDependInternal {
     }
 
     $content = Get-Content -Path $psDependFilePath -Raw
-    $newString = "Repository = '$Reporitory'"
+    $newString = "Repository = '$Repository'"
     $content = $content -replace "Repository = 'PSGallery'", $newString
 
     $path = "$projectPath\PSDependTemp.psd1"
