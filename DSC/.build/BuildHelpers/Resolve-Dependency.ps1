@@ -49,6 +49,6 @@ function Resolve-Dependency {
         $psDependParams.Add('Verbose', $Verbose)
     }
     Import-Module -Name PSDepend
-    Invoke-PSDependInternal -PSDependParameters $psDependParams -Reporitory $GalleryRepository
+    Invoke-PSDependInternal -PSDependParameters $psDependParams -Repository $GalleryRepository
     Write-Verbose 'Project Bootstrapped, returning to Invoke-Build'
 }
