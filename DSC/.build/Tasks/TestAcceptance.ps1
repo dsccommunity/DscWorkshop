@@ -32,6 +32,11 @@ task TestBuildAcceptance {
     }
     $testResults = Invoke-Pester @pesterParams
 
-    assert (-not $testResults.FailedCount)
+    #if the build is invoked locally or or an unknown build system, it should fail hard if the
+    #test result contains errors. Otherwise we leave if up to the build system to handle the error.
+    if ($env:BHBuildSystem -eq 'Unknown')
+    {
+        assert (-not $testResults.FailedCount)
+    }
 
 }
