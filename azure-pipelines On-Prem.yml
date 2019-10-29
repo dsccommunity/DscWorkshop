@@ -30,14 +30,14 @@ steps:
             Get-PSRepository
         }
       errorActionPreference: stop
-    
+
   - task: PowerShell@2
     displayName: 'Execute build.ps1'
     inputs:
-      targetType: filePath
-      filePath: .\DSC\Build.ps1
-      arguments: -ResolveDependency -GalleryRepository PowerShell
-      workingDirectory: DSC
+      targetType: inline
+      script: |
+        Set-Location -Path .\DSC
+        .\Build.ps1 -ResolveDependency -GalleryRepository PowerShell -MofCompilationTaskCount (Get-CimInstance -ClassName Win32_Processor).NumberOfLogicalProcessors
 
   - task: PublishTestResults@2
     displayName: 'Publish Integration Test Results'
