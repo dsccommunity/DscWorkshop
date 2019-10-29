@@ -15,7 +15,7 @@ task TestDscResources {
     while ($resourceCount -ne (Get-DscResource -Module CommonTasks).Count -and $maxIterations -gt 0) {
         Start-Sleep -Seconds 5
         $maxIterations--
-        Write-Host "ResourceCount DOES NOT matches, currently '$((Get-DscResource -Module CommonTasks).Count)'"
+        Write-Host "ResourceCount DOES NOT match, currently '$((Get-DscResource -Module CommonTasks).Count)'"
     }
     if ($maxIterations -eq 0)
     {
