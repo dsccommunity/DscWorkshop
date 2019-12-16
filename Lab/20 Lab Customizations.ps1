@@ -29,10 +29,10 @@ $requiredModules = @{
     XmlContentDsc                = '0.0.1'
     PowerShellGet                = 'latest'
     PackageManagement            = 'latest'
-    xWebAdministration           = '2.8.0.0'
-    ActiveDirectoryDsc           = '4.0.0.0'
+    xWebAdministration           = '3.0.0.0'
+    ActiveDirectoryDsc           = '4.2.0.0'
     SecurityPolicyDsc            = '2.10.0.0'
-    StorageDsc                    = '4.8.0.0'
+    StorageDsc                    = '4.9.0.0'
 }
 
 if (-not (Test-LabMachineInternetConnectivity -ComputerName $devOpsServer)) {
