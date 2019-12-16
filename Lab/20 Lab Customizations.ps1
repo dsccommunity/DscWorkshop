@@ -144,6 +144,7 @@ foreach ($domain in (Get-Lab).Domains) {
 
 Invoke-LabCommand -ActivityName 'Get tested nuget.exe and register ProGet Repository' -ComputerName (Get-LabVM) -ScriptBlock {
 
+    [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
     Install-PackageProvider -Name NuGet -Force
     mkdir -Path C:\ProgramData\Microsoft\Windows\PowerShell\PowerShellGet -Force
     Invoke-WebRequest -Uri 'https://nuget.org/nuget.exe' -OutFile C:\ProgramData\Microsoft\Windows\PowerShell\PowerShellGet\nuget.exe -ErrorAction Stop
