@@ -22,7 +22,7 @@ $requiredModules = @{
     PSScriptAnalyzer             = 'latest'
     xDSCResourceDesigner         = 'latest'
     xPSDesiredStateConfiguration = '8.10.0.0'
-    ComputerManagementDsc        = '7.0.0.0'
+    ComputerManagementDsc        = '7.1.0.0'
     NetworkingDsc                = '7.4.0.0'
     NTFSSecurity                 = 'latest'
     JeaDsc                       = '0.6.5'
@@ -32,7 +32,7 @@ $requiredModules = @{
     xWebAdministration           = '3.0.0.0'
     ActiveDirectoryDsc           = '4.2.0.0'
     SecurityPolicyDsc            = '2.10.0.0'
-    StorageDsc                    = '4.9.0.0'
+    StorageDsc                   = '4.9.0.0'
 }
 
 if (-not (Test-LabMachineInternetConnectivity -ComputerName $devOpsServer)) {
