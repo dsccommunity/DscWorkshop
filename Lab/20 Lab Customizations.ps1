@@ -69,17 +69,19 @@ Invoke-LabCommand -ActivityName 'Add ProGet DNS A record' -ComputerName (Get-Lab
 
 # File server
 Invoke-LabCommand -Activity 'Creating folders and shares' -ComputerName (Get-LabVM -Role FileServer) -ScriptBlock {
-    New-Item -ItemType Directory -Path C:\UserHome
+    New-Item -ItemType Directory -Path C:\UserHome -Force
     foreach ($User in (Get-ADUser -Filter * | Select-Object -First 1000)) {
-        New-Item -ItemType Directory -Path C:\UserHome -Name $User.samAccountName
+        New-Item -ItemType Directory -Path C:\UserHome -Name $User.samAccountName -Force
     }
 
-    New-Item -ItemType Directory -Path C:\GroupData
+    New-Item -ItemType Directory -Path C:\GroupData -Force
 
-    'Accounting', 'Legal', 'HR', 'Janitorial' | ForEach-Object { New-Item -ItemType Directory -Path C:\GroupData -Name $_ }
+    'Accounting', 'Legal', 'HR', 'Janitorial' | ForEach-Object {
+        New-Item -ItemType Directory -Path C:\GroupData -Name $_  -Force
+    }
 
-    New-SmbShare -Name Home -Path C:\UserHome
-    New-SmbShare -Name Department -Path C:\GroupData
+    New-SmbShare -Name Home -Path C:\UserHome -ErrorAction SilentlyContinue
+    New-SmbShare -Name Department -Path C:\GroupData -ErrorAction SilentlyContinue
 }
 
 # Azure DevOps Server

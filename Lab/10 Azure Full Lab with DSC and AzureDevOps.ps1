@@ -54,7 +54,7 @@ $roles = @(
     Get-LabMachineRoleDefinition -Role WebServer
 )
 $proGetRole = Get-LabPostInstallationActivity -CustomRole ProGet5 -Properties @{
-    ProGetDownloadLink = 'https://s3.amazonaws.com/cdn.inedo.com/downloads/proget/ProGetSetup5.2.12.exe'
+    ProGetDownloadLink = 'https://s3.amazonaws.com/cdn.inedo.com/downloads/proget/ProGetSetup5.2.21.exe'
     SqlServer          = 'DSCCASQL01'
 }
 
@@ -68,9 +68,8 @@ $roles = @(
 Add-LabMachineDefinition -Name DSCDO01 -Memory 2GB -Roles $roles -IpAddress 192.168.111.70
 
 # DSC target nodes - our legacy VMs with an existing configuration
-# Servers in Dev will be created adhoc and destroyed on DSCHost01 in the release pipeline
-#Add-LabMachineDefinition -Name DSCFile01 -Memory 1GB -Roles FileServer -IpAddress 192.168.111.100
-#Add-LabMachineDefinition -Name DSCWeb01 -Memory 1GB -Roles WebServer -IpAddress 192.168.111.101
+Add-LabMachineDefinition -Name DSCFile01 -Memory 1GB -Roles FileServer -IpAddress 192.168.111.100
+Add-LabMachineDefinition -Name DSCWeb01 -Memory 1GB -Roles WebServer -IpAddress 192.168.111.101
 
 # Servers in Pilot
 Add-LabMachineDefinition -Name DSCFile02 -Memory 1GB -Roles FileServer -IpAddress 192.168.111.110
