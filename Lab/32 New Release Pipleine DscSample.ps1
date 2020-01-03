@@ -102,7 +102,7 @@ Set-Location -Path '$(System.DefaultWorkingDirectory)\$(Release.PrimaryArtifactS
         taskId  = '3b5693d4-5777-4fee-862a-bd2b7a374c68'
         version = '3.*'
         name    = 'Create Dev Test Machines'
-        enabled = $true
+        enabled = $false
         inputs  = @{
             Machines                    = $hypervHost.FQDN
             UserName                    = '$(InstallUserName)'
@@ -169,7 +169,7 @@ Show-LabDeploymentSummary -Detailed
         }
     }
     @{
-        enabled = $true
+        enabled = $false
         name    = "Wait"
         taskId  = 'e213ff0f-5d5c-4791-802d-52ea3e7be1f1'
         version = '2.*'
@@ -184,7 +184,7 @@ Start-Sleep -Seconds 30
         taskId  = '3b5693d4-5777-4fee-862a-bd2b7a374c68'
         version = '3.*'
         name    = 'Remove Dev Test Machines'
-        enabled = $true
+        enabled = $false
         inputs  = @{
             Machines                    = $hypervHost.FQDN
             UserName                    = '$(InstallUserName)'
