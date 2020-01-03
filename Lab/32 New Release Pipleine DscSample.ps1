@@ -17,7 +17,7 @@ if ($lab.DefaultVirtualizationEngine -eq 'Azure') {
 }
 
 $projectName = 'DscWorkshop'
-$projectGitUrl = 'https://github.com/raandree/DscWorkshop'
+$projectGitUrl = 'https://github.com/AutomatedLab/DscWorkshop'
 $collectionName = 'AutomatedLab'
 
 # Which will make use of Azure DevOps, clone the stuff, add the necessary build step, publish the test results and so on
