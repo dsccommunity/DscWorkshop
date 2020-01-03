@@ -53,12 +53,7 @@ $roles = @(
     Get-LabMachineRoleDefinition -Role TfsBuildWorker
     Get-LabMachineRoleDefinition -Role WebServer
 )
-$proGetRole = Get-LabPostInstallationActivity -CustomRole ProGet5 -Properties @{
-    ProGetDownloadLink = 'https://s3.amazonaws.com/cdn.inedo.com/downloads/proget/ProGetSetup5.2.21.exe'
-    SqlServer          = 'DSCCASQL01'
-}
-
-Add-LabMachineDefinition -Name DSCPULL01 -Memory 2GB -Roles $roles -IpAddress 192.168.111.60 -PostInstallationActivity $proGetRole -OperatingSystem 'Windows Server 2019 Datacenter (Desktop Experience)'
+Add-LabMachineDefinition -Name DSCPULL01 -Memory 2GB -Roles $roles -IpAddress 192.168.111.60 -OperatingSystem 'Windows Server 2019 Datacenter (Desktop Experience)'
 
 # Build Server
 $roles = @(

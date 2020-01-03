@@ -45,7 +45,7 @@ $netAdapter = @()
 $netAdapter += New-LabNetworkAdapterDefinition -VirtualSwitch $labName -Ipv4Address 192.168.111.50
 $netAdapter += New-LabNetworkAdapterDefinition -VirtualSwitch 'Default Switch' -UseDhcp
 
-# The good, the bad and the ugly
+# SQL and PKI
 Add-LabMachineDefinition -Name DSCCASQL01 -Memory 3GB -Roles CaRoot, SQLServer2017, Routing -NetworkAdapter $netAdapter
 
 # DSC Pull Server with SQL server backing, Azure DevOps Build Worker
@@ -59,11 +59,7 @@ $roles = @(
     Get-LabMachineRoleDefinition -Role TfsBuildWorker
     Get-LabMachineRoleDefinition -Role WebServer
 )
-$proGetRole = Get-LabPostInstallationActivity -CustomRole ProGet5 -Properties @{
-    ProGetDownloadLink = 'https://s3.amazonaws.com/cdn.inedo.com/downloads/proget/ProGetSetup5.2.21.exe'
-    SqlServer          = 'DSCCASQL01'
-}
-Add-LabMachineDefinition -Name DSCPULL01 -Memory 2GB -Roles $roles -IpAddress 192.168.111.60 -PostInstallationActivity $proGetRole -OperatingSystem 'Windows Server 2019 Datacenter (Desktop Experience)'
+Add-LabMachineDefinition -Name DSCPULL01 -Memory 2GB -Roles $roles -IpAddress 192.168.111.60 -OperatingSystem 'Windows Server 2019 Datacenter (Desktop Experience)'
 
 # Build Server
 $roles = @(
