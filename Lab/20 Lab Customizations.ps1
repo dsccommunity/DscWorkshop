@@ -29,8 +29,8 @@ $domainSid = Invoke-LabCommand -ActivityName 'Get domain SID' -ScriptBlock {
 
 $feedPermissions = @()
 $feedPermissions += (New-Object pscustomobject -Property @{ role = 'administrator'; identityDescriptor = "System.Security.Principal.WindowsIdentity;$domainSid-1000" })
-$feedPermissions += (New-Object pscustomobject -Property @{ role = 'reader'; identityDescriptor = "System.Security.Principal.WindowsIdentity;$domainSid-513" })
-$feedPermissions += (New-Object pscustomobject -Property @{ role = 'reader'; identityDescriptor = "System.Security.Principal.WindowsIdentity;$domainSid-515" })
+$feedPermissions += (New-Object pscustomobject -Property @{ role = 'contributor'; identityDescriptor = "System.Security.Principal.WindowsIdentity;$domainSid-513" })
+$feedPermissions += (New-Object pscustomobject -Property @{ role = 'contributor'; identityDescriptor = "System.Security.Principal.WindowsIdentity;$domainSid-515" })
 $feedPermissions += (New-Object pscustomobject -Property @{ role = 'reader'; identityDescriptor = 'System.Security.Principal.WindowsIdentity;S-1-5-7' })
 
 $nugetFeed = New-LabTfsFeed -ComputerName $nugetServer -FeedName PowerShell -FeedPermissions $feedPermissions -PassThru -ErrorAction Stop
