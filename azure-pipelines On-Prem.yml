@@ -33,7 +33,7 @@ steps:
         if (-not $r -or $r.SourceLocation -ne $uri -or $r.PublishLocation -ne $uri) {
             Write-Host "The Source or PublishLocation of the repository '$name' is not correct or the repository is not registered"
             Unregister-PSRepository -Name $name -ErrorAction SilentlyContinue
-            Register-PSRepository -Name $name -SourceLocation $uri -PublishLocation $uri -InstallationPolicy Trusted -Credential $cred -Force
+            Register-PSRepository -Name $name -SourceLocation $uri -PublishLocation $uri -InstallationPolicy Trusted -Credential $cred
             Get-PSRepository
         }
       errorActionPreference: stop
