@@ -113,7 +113,7 @@ $releaseEnvironments = @(
         }
         variables           = @{
             GalleryUri = @{ value = $nugetFeed.NugetV2Url }
-            NugetApiKey = @{ value = $nugetFeed.NugetApiKey }
+            NugetApiKey = @{ value = $nugetFeed.NugetApiKey }            
         }
         preDeployApprovals  = @{
             approvals = @(
@@ -212,6 +212,21 @@ if ($PSVersionTable.PSEdition -eq 'Core')
     $param.Add('SkipCertificateCheck', $true)
 }
 $refs = (Invoke-RestMethod @param).value.name
+
+Invoke-LabCommand -ActivityName 'Set GalleryUri and create Build Pipeline' -ScriptBlock {
+
+    Set-Location -Path C:\Git\CommonTasks
+    $c = Get-Content '.\azure-pipelines On-Prem.yml' -Raw
+    $c = $c -replace '  GalleryUri: ggggg', "  GalleryUri: $($nugetFeed.NugetV2Url)"
+    $c = $c -replace '  Domain: ddddd', "  Domain: $($nugetFeed.NugetCredential.GetNetworkCredential().Domain)"
+    $c = $c -replace '  UserName: uuuuu', "  Username: $($nugetFeed.NugetCredential.GetNetworkCredential().UserName)"
+    $c = $c -replace '  Password: ppppp', "  Password: $($nugetFeed.NugetCredential.GetNetworkCredential().Password)"
+    $c | Set-Content '.\azure-pipelines.yml'
+    git add .
+    git commit -m 'Set GalleryUri and create Build Pipeline'
+    git push 2>$null
+
+} -ComputerName $devOpsServer -Variable (Get-Variable -Name nugetFeed)
 
 New-TfsReleaseDefinition -ProjectName $projectName -InstanceName $devOpsHostName -Port $devOpsPort -ReleaseName "$($projectName) CD" -Environments $releaseEnvironments -Credential $devOpsCred -CollectionName $collectionName -UseSsl -SkipCertificateCheck
 
