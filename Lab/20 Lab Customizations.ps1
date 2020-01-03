@@ -1,14 +1,41 @@
 ﻿#region Lab customizations
+$lab = Get-Lab
+$dc = Get-LabVM -Role ADDS | Select-Object -First 1
+$domainName = $lab.Domains[0].Name
 $devOpsServer = Get-LabVM -Role AzDevOps
 $buildWorkers = Get-LabVM -Role TfsBuildWorker
 $sqlServer = Get-LabVM -Role SQLServer2017
 $pullServer = Get-LabVM -Role DSCPullServer
 $router = Get-LabVM -Role Routing
-$progetServer = Get-LabVM | Where-Object { $_.PostInstallationActivity.RoleName -like 'ProGet*' }
-$progetUrl = "http://$($progetServer.FQDN)/nuget/PowerShell"
+$nugetServer = Get-LabVM -Role AzDevOps
 $firstDomain = (Get-Lab).Domains[0]
 $nuGetApiKey = "$($firstDomain.Administrator.UserName)@$($firstDomain.Name):$($firstDomain.Administrator.Password)"
- 
+
+$vscodeDownloadUrl = 'https://go.microsoft.com/fwlink/?Linkid=852157'
+$gitDownloadUrl = 'https://github.com/git-for-windows/git/releases/download/v2.24.1.windows.2/Git-2.24.1.2-64-bit.exe'
+$vscodePowerShellExtensionDownloadUrl = 'https://marketplace.visualstudio.com/_apis/public/gallery/publishers/ms-vscode/vsextensions/PowerShell-Preview/2019.12.0/vspackage'
+$edgeDownloadUrl = 'http://dl.delivery.mp.microsoft.com/filestreamingservice/files/beb6becc-5dc3-4bd4-a457-6858a5867097/MicrosoftEdgeBetaEnterpriseX64.msi'
+
+#Install Azure DevOps artifacts feed
+$domainSid = Invoke-LabCommand -ActivityName 'Get domain SID' -ScriptBlock {
+
+    $domainContext = New-Object System.DirectoryServices.ActiveDirectory.DirectoryContext('Domain', $domainName)
+    $domain = [System.DirectoryServices.ActiveDirectory.Domain]::GetDomain($domainContext).GetDirectoryEntry()
+    $domainSid = [byte[]]$domain.Properties["objectSID"].Value
+    $domainSid = (New-Object System.Security.Principal.SecurityIdentifier($domainSid, 0)).Value
+    $domainSid
+
+} -ComputerName $dc -Variable (Get-Variable -Name domainName) -NoDisplay -PassThru
+
+$feedPermissions = @()
+$feedPermissions += (New-Object pscustomobject -Property @{ role = 'administrator'; identityDescriptor = "System.Security.Principal.WindowsIdentity;$domainSid-1000" })
+$feedPermissions += (New-Object pscustomobject -Property @{ role = 'reader'; identityDescriptor = "System.Security.Principal.WindowsIdentity;$domainSid-513" })
+$feedPermissions += (New-Object pscustomobject -Property @{ role = 'reader'; identityDescriptor = "System.Security.Principal.WindowsIdentity;$domainSid-515" })
+$feedPermissions += (New-Object pscustomobject -Property @{ role = 'reader'; identityDescriptor = 'System.Security.Principal.WindowsIdentity;S-1-5-7' })
+
+$nugetFeed = New-LabTfsFeed -ComputerName $nugetServer -FeedName PowerShell -FeedPermissions $feedPermissions -PassThru -ErrorAction Stop
+#endregion
+
 $requiredModules = @{
     'powershell-yaml'            = 'latest'
     BuildHelpers                 = 'latest'
@@ -85,12 +112,18 @@ Invoke-LabCommand -Activity 'Creating folders and shares' -ComputerName (Get-Lab
 }
 
 # Azure DevOps Server
-Get-LabInternetFile -Uri https://go.microsoft.com/fwlink/?Linkid=852157 -Path $labSources\SoftwarePackages\VSCodeSetup.exe
-Get-LabInternetFile -Uri https://github.com/git-for-windows/git/releases/download/v2.16.2.windows.1/Git-2.16.2-64-bit.exe -Path $labSources\SoftwarePackages\Git.exe
-Get-LabInternetFile -Uri https://marketplace.visualstudio.com/_apis/public/gallery/publishers/ms-vscode/vsextensions/PowerShell/1.6.0/vspackage -Path $labSources\SoftwarePackages\VSCodeExtensions\ps.vsix
+$vscodeInstaller = Get-LabInternetFile -Uri $vscodeDownloadUrl -Path $labSources\SoftwarePackages -PassThru
+$gitInstaller = Get-LabInternetFile -Uri $gitDownloadUrl -Path $labSources\SoftwarePackages -PassThru
+Get-LabInternetFile -Uri $vscodePowerShellExtensionDownloadUrl -Path $labSources\SoftwarePackages\VSCodeExtensions\ps.vsix
+$edgeInstaller = Get-LabInternetFile -Uri $edgeDownloadUrl -Path $labSources\SoftwarePackages -PassThru
 
-Install-LabSoftwarePackage -Path $labSources\SoftwarePackages\VSCodeSetup.exe -CommandLine /SILENT -ComputerName $devOpsServer
-Install-LabSoftwarePackage -Path $labSources\SoftwarePackages\Git.exe -CommandLine /SILENT -ComputerName ((@($devOpsServer) + $buildWorkers) | Select-Object -Unique)
+Install-LabSoftwarePackage -Path $vscodeInstaller.FullName -CommandLine /SILENT -ComputerName $devOpsServer
+Install-LabSoftwarePackage -Path $gitInstaller.FullName -CommandLine /SILENT -ComputerName ((@($devOpsServer) + $buildWorkers) | Select-Object -Unique)
+Install-LabSoftwarePackage -Path $edgeInstaller.FullName -ComputerName ((@($devOpsServer) + $buildWorkers) | Select-Object -Unique)
+Invoke-LabCommand -ActivityName 'Enable WIA for Edge' -ScriptBlock {
+    New-Item -Path HKCU:\SOFTWARE\Policies\Microsoft\Edge
+    New-ItemProperty -Path HKCU:\SOFTWARE\Policies\Microsoft\Edge -Name AuthServerAllowlist -Value * -PropertyType String -Force
+} -ComputerName ((@($devOpsServer) + $buildWorkers) | Select-Object -Unique)
 Restart-LabVM -ComputerName $devOpsServer #somehow required to finish all parts of the VSCode installation
 
 Copy-LabFileItem -Path $labSources\SoftwarePackages\VSCodeExtensions -ComputerName $devOpsServer
@@ -111,8 +144,8 @@ Invoke-LabCommand -ActivityName 'Create link on AzureDevOps desktop' -ComputerNa
     $shortcut.TargetPath = "https://$($devOpsServer):8080/AutomatedLab/CommonTasks"
     $shortcut.Save()
     
-    $shortcut = $shell.CreateShortcut("$desktopPath\ProGet.url")
-    $shortcut.TargetPath = "http://$progetServer/"
+    $shortcut = $shell.CreateShortcut("$desktopPath\Nuget Feed.url")
+    $shortcut.TargetPath = "https://$($devOpsServer):8080/AutomatedLab/_packaging?_a=feed&feed=PowerShell"
     $shortcut.Save()
     
     $shortcut = $shell.CreateShortcut("$desktopPath\SQL RS.url")
@@ -122,7 +155,7 @@ Invoke-LabCommand -ActivityName 'Create link on AzureDevOps desktop' -ComputerNa
     $shortcut = $shell.CreateShortcut("$desktopPath\Pull Server Endpoint.url")
     $shortcut.TargetPath = "https://$($pullServer.FQDN):8080/PSDSCPullServer.svc/"
     $shortcut.Save()
-} -Variable (Get-Variable -Name devOpsServer, sqlServer, proGetServer, pullServer)
+} -Variable (Get-Variable -Name devOpsServer, sqlServer, nugetFeed, pullServer)
 
 #in server 2019 there seems to be an issue with dynamic DNS registration, doing this manually
 foreach ($domain in (Get-Lab).Domains) {
@@ -155,10 +188,10 @@ Invoke-LabCommand -ActivityName 'Get tested nuget.exe and register ProGet Reposi
     Install-Module -Name PowerShellGet -RequiredVersion 1.6.0 -Force -WarningAction SilentlyContinue
 
     if (-not (Get-PSRepository -Name PowerShell -ErrorAction SilentlyContinue)) {
-        Register-PSRepository -Name PowerShell -SourceLocation $progetUrl -PublishLocation $progetUrl -InstallationPolicy Trusted -ErrorAction Stop
+        Register-PSRepository -Name PowerShell -SourceLocation $nugetFeed.NugetV2Url -PublishLocation $nugetFeed.NugetV2Url -Credential $nugetFeed.NugetCredential -InstallationPolicy Trusted -ErrorAction Stop
     }
 
-} -Variable (Get-Variable -Name progetUrl)
+} -Variable (Get-Variable -Name nugetFeed)
 
 Remove-LabPSSession #this is required to make use of the new version of PowerShellGet
 

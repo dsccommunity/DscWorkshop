@@ -1,7 +1,8 @@
 ﻿$lab = Get-Lab
 $devOpsServer = Get-LabVM -Role AzDevOps
 $devOpsHostName = if ($lab.DefaultVirtualizationEngine -eq 'Azure') { $devOpsServer.AzureConnectionInfo.DnsName } else { $devOpsServer.FQDN }
-$proGetServer = Get-LabVM | Where-Object { $_.PostInstallationActivity.RoleName -contains 'ProGet5' }
+$nugetServer = Get-LabVM -Role AzDevOps
+$nugetFeed = Get-LabTfsFeed -ComputerName $nugetServer -FeedName PowerShell
 $pullServer = Get-LabVM -Role DSCPullServer
 $hypervHost = Get-LabVM -Role HyperV
 
@@ -212,7 +213,7 @@ $releaseEnvironments = @(
             uniqueName  = 'Install'
         }
         variables           = @{
-            GalleryUri          = @{ value = "http://$($proGetServer.FQDN)/nuget/PowerShell" }
+            GalleryUri          = @{ value = $nugetFeed.NugetV2Url }
             InstallUserName     = @{ value = $devOpsCred.UserName }
             InstallUserPassword = @{ value = $devOpsCred.GetNetworkCredential().Password }
             DscConfiguration    = @{ value = "\\$($pullServer.FQDN)\DscConfiguration" }
@@ -309,7 +310,7 @@ $releaseEnvironments = @(
             uniqueName  = 'Install'
         }
         variables           = @{
-            GalleryUri          = @{ value = "http://$($proGetServer.FQDN)/nuget/PowerShell" }
+            GalleryUri          = @{ value = $nugetFeed.NugetV2Url }
             InstallUserName     = @{ value = $devOpsCred.UserName }
             InstallUserPassword = @{ value = $devOpsCred.GetNetworkCredential().Password }
             DscConfiguration    = @{ value = "\\$($pullServer.FQDN)\DscConfiguration" }
@@ -412,7 +413,7 @@ $releaseEnvironments = @(
             uniqueName  = 'Install'
         }
         variables           = @{
-            GalleryUri          = @{ value = "http://$($proGetServer.FQDN)/nuget/PowerShell" }
+            GalleryUri          = @{ value = $nugetFeed.NugetV2Url }
             InstallUserName     = @{ value = $devOpsCred.UserName }
             InstallUserPassword = @{ value = $devOpsCred.GetNetworkCredential().Password }
             DscConfiguration    = @{ value = "\\$($pullServer.FQDN)\DscConfiguration" }
@@ -527,7 +528,10 @@ Invoke-LabCommand -ActivityName 'Set GalleryUri and create Build Pipeline' -Scri
 
     Set-Location -Path C:\Git\DscWorkshop
     $c = Get-Content '.\azure-pipelines On-Prem.yml' -Raw
-    $c = $c -replace '  GalleryUri: http://dscpull01.contoso.com/nuget/PowerShell', "  GalleryUri: http://$($pullServer.FQDN)/nuget/PowerShell"
+    $c = $c -replace '  GalleryUri: ggggg', "  GalleryUri: $($nugetFeed.NugetV2Url)"
+    $c = $c -replace '  Domain: ddddd', "  Domain: $($nugetFeed.NugetCredential.GetNetworkCredential().Domain)"
+    $c = $c -replace '  UserName: uuuuu', "  Username: $($nugetFeed.NugetCredential.GetNetworkCredential().UserName)"
+    $c = $c -replace '  Password: ppppp', "  Password: $($nugetFeed.NugetCredential.GetNetworkCredential().Password)"
     $c | Set-Content '.\azure-pipelines.yml'
     git add .
     git commit -m 'Set GalleryUri and create Build Pipeline'

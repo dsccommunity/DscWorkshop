@@ -2,7 +2,8 @@
 $domain = $lab.Domains[0]
 $devOpsServer = Get-LabVM -Role AzDevOps
 $devOpsHostName = if ($lab.DefaultVirtualizationEngine -eq 'Azure') { $devOpsServer.AzureConnectionInfo.DnsName } else { $devOpsServer.FQDN }
-$proGetServer = Get-LabVM | Where-Object { $_.PostInstallationActivity.RoleName -contains 'ProGet5' }
+$nugetServer = Get-LabVM -Role AzDevOps
+$nugetFeed = Get-LabTfsFeed -ComputerName $nugetServer -FeedName PowerShell
 
 $role = $devOpsServer.Roles | Where-Object Name -eq AzDevOps
 $devOpsCred = $devOpsServer.GetCredential($lab)
@@ -111,8 +112,8 @@ $releaseEnvironments = @(
             uniqueName  = 'Install'
         }
         variables           = @{
-            GalleryUri = @{ value = "http://$($proGetServer.FQDN)/nuget/PowerShell" }
-            NugetApiKey = @{ value = "{0}@{1}:{2}" -f $domain.Administrator.UserName, $domain.Name, $domain.Administrator.Password }
+            GalleryUri = @{ value = $nugetFeed.NugetV2Url }
+            NugetApiKey = @{ value = $nugetFeed.NugetApiKey }
         }
         preDeployApprovals  = @{
             approvals = @(
