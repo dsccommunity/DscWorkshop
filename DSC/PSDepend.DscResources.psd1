@@ -9,8 +9,8 @@
     }
 
     xPSDesiredStateConfiguration = '9.0.0'
-    ComputerManagementDsc        = '8.0.0-preview0001'
-    NetworkingDsc                = '8.0.0-preview0001'
+    ComputerManagementDsc        = '7.1.0.0'
+    NetworkingDsc                = '7.4.0.0'
     JeaDsc                       = '0.6.5'
     XmlContentDsc                = '0.0.1'
     xWebAdministration           = '3.1.1'
