@@ -11,10 +11,10 @@ $nugetServer = Get-LabVM -Role AzDevOps
 $firstDomain = (Get-Lab).Domains[0]
 $nuGetApiKey = "$($firstDomain.Administrator.UserName)@$($firstDomain.Name):$($firstDomain.Administrator.Password)"
 
-$vscodeDownloadUrl = 'https://go.microsoft.com/fwlink/?Linkid=852157'
-$gitDownloadUrl = 'https://github.com/git-for-windows/git/releases/download/v2.24.1.windows.2/Git-2.24.1.2-64-bit.exe'
-$vscodePowerShellExtensionDownloadUrl = 'https://marketplace.visualstudio.com/_apis/public/gallery/publishers/ms-vscode/vsextensions/PowerShell-Preview/2019.12.0/vspackage'
-$edgeDownloadUrl = 'http://dl.delivery.mp.microsoft.com/filestreamingservice/files/beb6becc-5dc3-4bd4-a457-6858a5867097/MicrosoftEdgeBetaEnterpriseX64.msi'
+$vsCodeDownloadUrl = 'https://go.microsoft.com/fwlink/?Linkid=852157'
+$gitDownloadUrl = 'https://github.com/git-for-windows/git/releases/download/v2.25.0.windows.1/Git-2.25.0-64-bit.exe'
+$vscodePowerShellExtensionDownloadUrl = 'https://marketplace.visualstudio.com/_apis/public/gallery/publishers/ms-vscode/vsextensions/PowerShell/2020.1.0/vspackage'
+$edgeDownloadUrl = 'http://dl.delivery.mp.microsoft.com/filestreamingservice/files/0af31313-0430-454d-908a-d55ce3df7b69/MicrosoftEdgeEnterpriseX64.msi'
 
 #Install Azure DevOps artifacts feed
 $domainSid = Invoke-LabCommand -ActivityName 'Get domain SID' -ScriptBlock {
@@ -26,14 +26,6 @@ $domainSid = Invoke-LabCommand -ActivityName 'Get domain SID' -ScriptBlock {
     $domainSid
 
 } -ComputerName $dc -Variable (Get-Variable -Name domainName) -NoDisplay -PassThru
-
-$feedPermissions = @()
-$feedPermissions += (New-Object pscustomobject -Property @{ role = 'administrator'; identityDescriptor = "System.Security.Principal.WindowsIdentity;$domainSid-1000" })
-$feedPermissions += (New-Object pscustomobject -Property @{ role = 'contributor'; identityDescriptor = "System.Security.Principal.WindowsIdentity;$domainSid-513" })
-$feedPermissions += (New-Object pscustomobject -Property @{ role = 'contributor'; identityDescriptor = "System.Security.Principal.WindowsIdentity;$domainSid-515" })
-$feedPermissions += (New-Object pscustomobject -Property @{ role = 'reader'; identityDescriptor = 'System.Security.Principal.WindowsIdentity;S-1-5-7' })
-
-$nugetFeed = New-LabTfsFeed -ComputerName $nugetServer -FeedName PowerShell -FeedPermissions $feedPermissions -PassThru -ErrorAction Stop
 #endregion
 
 $requiredModules = @{
@@ -48,16 +40,16 @@ $requiredModules = @{
     PSDeploy                     = 'latest'
     PSScriptAnalyzer             = 'latest'
     xDSCResourceDesigner         = 'latest'
-    xPSDesiredStateConfiguration = '8.10.0.0'
-    ComputerManagementDsc        = '7.1.0.0'
-    NetworkingDsc                = '7.4.0.0'
+    xPSDesiredStateConfiguration = '9.0.0'
+    ComputerManagementDsc        = '8.0.0-preview0001'
+    NetworkingDsc                = '8.0.0-preview0001'
     NTFSSecurity                 = 'latest'
     JeaDsc                       = '0.6.5'
     XmlContentDsc                = '0.0.1'
     PowerShellGet                = 'latest'
     PackageManagement            = 'latest'
-    xWebAdministration           = '3.0.0.0'
-    ActiveDirectoryDsc           = '4.2.0.0'
+    xWebAdministration           = '3.1.1'
+    ActiveDirectoryDsc           = '5.0.0'
     SecurityPolicyDsc            = '2.10.0.0'
     StorageDsc                   = '4.9.0.0'
 }
@@ -67,16 +59,24 @@ if (-not (Test-LabMachineInternetConnectivity -ComputerName $devOpsServer)) {
 }
 Write-Host "Lab is connected to the internet, continuing with customizations."
 
+$feedPermissions = @()
+$feedPermissions += (New-Object pscustomobject -Property @{ role = 'administrator'; identityDescriptor = "System.Security.Principal.WindowsIdentity;$domainSid-1000" })
+$feedPermissions += (New-Object pscustomobject -Property @{ role = 'contributor'; identityDescriptor = "System.Security.Principal.WindowsIdentity;$domainSid-513" })
+$feedPermissions += (New-Object pscustomobject -Property @{ role = 'contributor'; identityDescriptor = "System.Security.Principal.WindowsIdentity;$domainSid-515" })
+$feedPermissions += (New-Object pscustomobject -Property @{ role = 'reader'; identityDescriptor = 'System.Security.Principal.WindowsIdentity;S-1-5-7' })
+
+$nugetFeed = New-LabTfsFeed -ComputerName $nugetServer -FeedName PowerShell -FeedPermissions $feedPermissions -PassThru -ErrorAction Stop
+
 # Web server
-$deployUserName = (Get-LabVm -Role WebServer).GetCredential((Get-Lab)).UserName
-$deployUserPassword = (Get-LabVm  -Role WebServer).GetCredential((Get-Lab)).GetNetworkCredential().Password
+$deployUserName = (Get-LabVM -Role WebServer).GetCredential((Get-Lab)).UserName
+$deployUserPassword = (Get-LabVM  -Role WebServer).GetCredential((Get-Lab)).GetNetworkCredential().Password
 
 Copy-LabFileItem -Path "$PSScriptRoot\LabData\LabSite.zip" -ComputerName (Get-LabVM -Role WebServer)
 Copy-LabFileItem -Path "$PSScriptRoot\LabData\DummyService.exe" -ComputerName (Get-LabVM -Role WebServer)
 $desktopPath = Invoke-LabCommand -ComputerName $devOpsServer -ScriptBlock { [System.Environment]::GetFolderPath('Desktop') } -PassThru
 Copy-LabFileItem -Path "$PSScriptRoot\LabData\Helpers.psm1" -ComputerName $devOpsServer -DestinationFolderPath $desktopPath
 
-Invoke-LabCommand -Activity 'Setup Web Site' -ComputerName (Get-LabVm  -Role WebServer) -ScriptBlock {
+Invoke-LabCommand -Activity 'Setup Web Site' -ComputerName (Get-LabVM -Role WebServer) -ScriptBlock {
 
     New-Item -ItemType Directory -Path C:\PSConfSite
     Expand-Archive -Path C:\LabSite.zip -DestinationPath C:\PSConfSite -Force
@@ -214,7 +214,11 @@ Invoke-LabCommand -ActivityName 'Downloading required modules from PSGallery' -C
         if ($requiredModule.Value -ne 'latest') {
             $installModuleParams.Add('RequiredVersion', $requiredModule.Value)
         }
-        Write-Host "Installing module '$($requiredModule.Key)'"
+        if ($requiredModule.Value -like '*-*') #if pre-release version
+        {
+            $installModuleParams.Add('AllowPrerelease', $true)
+        }
+        Write-Host "Installing module '$($requiredModule.Key)' with version '$($requiredModule.Value)'"
         Install-Module @installModuleParams
     }
 } -Variable (Get-Variable -Name requiredModules)
@@ -225,27 +229,38 @@ Invoke-LabCommand -ActivityName 'Publishing required modules to internal ProGet 
     
     foreach ($requiredModule in $requiredModules.GetEnumerator()) {
         $module = Get-Module $requiredModule.Key -ListAvailable | Sort-Object -Property Version -Descending | Select-Object -First 1
-        Write-Host "`t'$($module.Name) - $($module.Version)'"
-        if (-not (Find-Module -Name $requiredModule.Key -Repository PowerShell -ErrorAction SilentlyContinue)) {
-            Publish-Module -Name $requiredModule.Key -RequiredVersion $module.Version -Repository PowerShell -NuGetApiKey $nuGetApiKey -Force -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
+        $version = $module.Version
+        if ($module.PrivateData.PSData.Prerelease)
+        {
+            $version = "$version-$($module.PrivateData.PSData.Prerelease)"
+        }
+        Write-Host "`t'$($module.Name) - $version'"
+        if (-not (Find-Module -Name $module.Name -Repository PowerShell -ErrorAction SilentlyContinue)) {
+            Publish-Module -Name $module.Name -RequiredVersion $version -Repository PowerShell -NuGetApiKey $nuGetApiKey -AllowPrerelease -Force -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
         }
     }
     
     Write-Host "Publishing $($requiredModules.Count) modules to the internal gallery (loop 2)"
     foreach ($requiredModule in $requiredModules.GetEnumerator()) {
         $module = Get-Module $requiredModule.Key -ListAvailable | Sort-Object -Property Version -Descending | Select-Object -First 1
-        Write-Host "`t'$($module.Name) - $($module.Version)'"
-        if (-not (Find-Module -Name $requiredModule.Key -Repository PowerShell -ErrorAction SilentlyContinue)) {
-            Publish-Module -Name $requiredModule.Key -RequiredVersion $module.Version -Repository PowerShell -NuGetApiKey $nuGetApiKey -Force
+        $version = $module.Version
+        if ($module.PrivateData.PSData.Prerelease)
+        {
+            $version = "$version-$($module.PrivateData.PSData.Prerelease)"
+        }
+        Write-Host "`t'$($module.Name) - $version'"
+        if (-not (Find-Module -Name $module.Name -Repository PowerShell -ErrorAction SilentlyContinue)) {
+            Publish-Module -Name $module.Name -RequiredVersion $version -Repository PowerShell -NuGetApiKey $nuGetApiKey -AllowPrerelease -Force -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
         }
     }
     
+    $modulesToUninstall = $requiredModules.GetEnumerator() | Where-Object Key -NotIn PowerShellGet, PackageManagement
     Write-Host "Uninstalling $($requiredModules.Count) modules"
-    foreach ($requiredModule in $requiredModules.GetEnumerator()) {
-        Uninstall-Module -Name $requiredModule.Key -ErrorAction SilentlyContinue
+    foreach ($module in $modulesToUninstall) {
+        Uninstall-Module -Name $module.Key -ErrorAction SilentlyContinue
     }
-    foreach ($requiredModule in $requiredModules.GetEnumerator()) {
-        Uninstall-Module -Name $requiredModule.Key -ErrorAction SilentlyContinue
+    foreach ($module in $modulesToUninstall) {
+        Uninstall-Module -Name $module.Key -ErrorAction SilentlyContinue
     }
 } -Variable (Get-Variable -Name requiredModules, nuGetApiKey)
 
