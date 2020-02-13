@@ -257,9 +257,11 @@ Invoke-LabCommand -ActivityName 'Publishing required modules to internal ProGet 
     $modulesToUninstall = $requiredModules.GetEnumerator() | Where-Object Key -NotIn PowerShellGet, PackageManagement
     Write-Host "Uninstalling $($requiredModules.Count) modules"
     foreach ($module in $modulesToUninstall) {
+        Write-Host "`t'$($module.Name)"
         Uninstall-Module -Name $module.Key -ErrorAction SilentlyContinue
     }
     foreach ($module in $modulesToUninstall) {
+        Write-Host "`t'$($module.Name)"
         Uninstall-Module -Name $module.Key -ErrorAction SilentlyContinue
     }
 } -Variable (Get-Variable -Name requiredModules, nuGetApiKey)
