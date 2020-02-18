@@ -46,8 +46,8 @@ $resourcePath = Join-Path -Path $ProjectPath -ChildPath $ResourcesFolder
 $configDataPath = Join-Path -Path $ProjectPath -ChildPath $ConfigDataFolder
 $testsPath = Join-Path -Path $ProjectPath -ChildPath $TestFolder
 
-#importing all resources from .build directory
-Get-ChildItem -Path "$PSScriptRoot/.build/" -Recurse -Include *.ps1 |
+#importing all resources from 'Build' directory
+Get-ChildItem -Path "$PSScriptRoot/Build/" -Recurse -Include *.ps1 |
     ForEach-Object {
     Write-Verbose "Importing file $($_.BaseName)"
     try {

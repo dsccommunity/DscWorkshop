@@ -94,8 +94,8 @@ if ($buildModulesPath -notin $psModulePathElemets) {
     $env:PSModulePath += ";$buildModulesPath"
 }
 
-#importing all resources from .build directory
-Get-ChildItem -Path "$PSScriptRoot/.build" -Recurse -Include *.ps1 |
+#importing all resources from 'Build' directory
+Get-ChildItem -Path "$PSScriptRoot/Build" -Recurse -Include *.ps1 |
     ForEach-Object {
     Write-Verbose "Importing file $($_.BaseName)"
     try {
@@ -110,7 +110,7 @@ if (-not (Get-Module -Name InvokeBuild -ListAvailable) -and -not $ResolveDepende
 }
 
 if ($ResolveDependency) {
-    . $PSScriptRoot/.build/BuildHelpers/Resolve-Dependency.ps1
+    . $PSScriptRoot/Build/BuildHelpers/Resolve-Dependency.ps1
     Resolve-Dependency
 }
 

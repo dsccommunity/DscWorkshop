@@ -27,7 +27,7 @@ C:\> Set-ExecutionPolicy -ExecutionPolicy Bypass
 The first step to kick off a build of the DSC Artefacts is to run this command:
 
 ```PowerShell
-C:\> .build.ps1 -ResolveDependency
+C:\> Build.ps1 -ResolveDependency
 ```
 
 This will pull all the dependencies from the PowerShell Gallery and save them in your project (but not in the `git` repository).
