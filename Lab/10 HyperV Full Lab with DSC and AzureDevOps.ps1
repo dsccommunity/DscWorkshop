@@ -56,17 +56,17 @@ $roles = @(
         SqlServer             = 'DSCCASQL01'
         DatabaseName          = 'DSC'
     }
-    Get-LabMachineRoleDefinition -Role TfsBuildWorker -Properties @{ NumberOfWorkers = '4' }
+    Get-LabMachineRoleDefinition -Role TfsBuildWorker -Properties @{ NumberOfBuildWorkers = '4' }
     Get-LabMachineRoleDefinition -Role WebServer
 )
-Add-LabMachineDefinition -Name DSCPULL01 -Memory 2GB -Roles $roles -IpAddress 192.168.111.60 -OperatingSystem 'Windows Server 2019 Datacenter (Desktop Experience)'
+Add-LabMachineDefinition -Name DSCPULL01 -Memory 4GB -Roles $roles -IpAddress 192.168.111.60 -OperatingSystem 'Windows Server 2019 Datacenter (Desktop Experience)'
 
 # Build Server
 Add-LabMachineDefinition -Name DSCDO01 -Memory 4GB -Roles AzDevOps -IpAddress 192.168.111.70
 
 #Hyper-V Host
 $roles = @(
-    Get-LabMachineRoleDefinition -Role TfsBuildWorker -Properties @{ NumberOfWorkers = '4' }
+    Get-LabMachineRoleDefinition -Role TfsBuildWorker -Properties @{ NumberOfBuildWorkers = '4' }
     Get-LabMachineRoleDefinition -Role HyperV
 )
 Add-LabMachineDefinition -Name DSCHost01 -Memory 8GB -Roles $roles -IpAddress 192.168.111.80
