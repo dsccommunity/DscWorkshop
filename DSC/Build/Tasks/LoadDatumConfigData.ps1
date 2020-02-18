@@ -10,6 +10,6 @@ task LoadDatumConfigData {
         Write-Error 'No nodes found in the solution'
     }
 
-    $global:configurationData = Get-FilteredConfigurationData -Filter $Filter -Datum $datum
+    $global:configurationData = Get-FilteredConfigurationData -Filter $Filter -CurrentJobNumber $CurrentJobNumber -TotalJobCount $TotalJobCount
 
 }

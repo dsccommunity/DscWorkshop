@@ -3,6 +3,10 @@ task CompileRootConfiguration {
     $tid = [System.Threading.Thread]::CurrentThread.ManagedThreadId
     Start-Transcript -Path "$BuildOutput\Logs\CompileRootConfiguration$tid-Log.txt"
 
+    if (-not (Test-Path -Path $BuildOutput\MOF)) {
+        mkdir -Path $BuildOutput\MOF | Out-Null
+    }
+
     try {
         $mofs = . (Join-Path -Path $ProjectPath -ChildPath 'RootConfiguration.ps1')
         if ($ConfigurationData.AllNodes.Count -ne $mofs.Count) {

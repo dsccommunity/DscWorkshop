@@ -3,6 +3,12 @@ function Get-FilteredConfigurationData {
         [ScriptBlock]
         $Filter = {},
 
+        [int]
+        $CurrentJobNumber,
+
+        [int]
+        $TotalJobCount,
+
         $Datum = $(Get-variable Datum -ValueOnly -ErrorAction Stop)
     )
 
@@ -15,6 +21,10 @@ function Get-FilteredConfigurationData {
         $allNodes = [System.Collections.Hashtable[]]$allNodes.Where($Filter)
         Write-Host "Node count after applying filter: $($allNodes.Count)"
     }
+
+    $CurrentJobNumber--
+    $allNodes = Split-Array -List $allNodes -ChunkCount $TotalJobCount
+    $allNodes = $allNodes[$CurrentJobNumber]
 
     return @{
         AllNodes = $allNodes

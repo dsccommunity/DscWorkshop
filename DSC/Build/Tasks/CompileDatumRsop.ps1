@@ -5,7 +5,7 @@ param (
 
 task CompileDatumRsop {
     
-    if(![System.IO.Path]::IsPathRooted($rsopFolder)) {
+    if (-not [System.IO.Path]::IsPathRooted($rsopFolder)) {
         $rsopOutputPath = Join-Path -Path $BuildOutput -ChildPath $rsopFolder
     }
     else {
@@ -21,12 +21,16 @@ task CompileDatumRsop {
         mkdir -Path $rsopOutputPathVersion -Force | Out-Null
     }
 
-    Write-Build Green "Generating RSOP output for $($configurationData.AllNodes.Count) nodes"
-    $configurationData.AllNodes |
-    Where-Object Name -ne * |
-    ForEach-Object {
-        $nodeRSOP = Get-DatumRsop -Datum $datum -AllNodes ([ordered]@{} + $_)
-        $nodeRSOP | Convertto-Yaml -OutFile (Join-Path -Path $rsopOutputPathVersion -ChildPath "$($_.Name).yml") -Force
+    if ($configurationData.AllNodes) {
+        Write-Build Green "Generating RSOP output for $($configurationData.AllNodes.Count) nodes."
+        $configurationData.AllNodes |
+        Where-Object Name -ne * |
+        ForEach-Object {
+            $nodeRSOP = Get-DatumRsop -Datum $datum -AllNodes ([ordered]@{ } + $_)
+            $nodeRSOP | Convertto-Yaml -OutFile (Join-Path -Path $rsopOutputPathVersion -ChildPath "$($_.Name).yml") -Force
+        }
     }
-
+    else {
+        Write-Build Green "No data for generating RSOP output."
+    }
 }

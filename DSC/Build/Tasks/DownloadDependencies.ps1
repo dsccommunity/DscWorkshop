@@ -8,6 +8,6 @@ task DownloadDscResources {
             Confirm = $false
             Target  = $resourcePath
         }
-        Invoke-PSDependInternal -PSDependParameters $psDependParams -Repository $GalleryRepository
+        Invoke-PSDependInternal -PSDependParameters $psDependParams -Repository $Repository
     }
 }

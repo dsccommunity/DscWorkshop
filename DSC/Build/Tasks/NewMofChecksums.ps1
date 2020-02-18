@@ -1,5 +1,5 @@
 task NewMofChecksums {
-    $mofs = Get-ChildItem -Path (Join-Path -Path $BuildOutput -ChildPath MOF)
+    $mofs = Get-ChildItem -Path (Join-Path -Path $BuildOutput -ChildPath MOF) -ErrorAction SilentlyContinue
     foreach ($mof in $mofs)
     {
         if ($mof.BaseName -in $global:configurationData.AllNodes.NodeName)

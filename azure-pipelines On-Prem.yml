@@ -4,10 +4,10 @@ trigger:
 - '*'
 
 variables:
-  GalleryUri: https://dscdo01.contoso.com:8080/AutomatedLab/_packaging/PowerShell/nuget/v2 #will be replaced during lab deployment
-  Domain: contoso.com #will be replaced during lab deployment
-  Username: Install #will be replaced during lab deployment
-  Password: Somepass1 #will be replaced during lab deployment
+  GalleryUri: ggggg #will be replaced during lab deployment
+  Domain: ddddd #will be replaced during lab deployment
+  UserName: uuuuu #will be replaced during lab deployment
+  Password: ppppp #will be replaced during lab deployment
 
 jobs:
 - job: DscBuild
@@ -98,4 +98,3 @@ jobs:
         testResultsFormat: NUnit
         testResultsFiles: '**/BuildAcceptanceTestResults.xml'
         failTaskOnFailedTests: true
-
