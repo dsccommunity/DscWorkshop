@@ -64,10 +64,11 @@ Add-LabMachineDefinition -Name DSCPULL01 -Memory 2GB -Roles $roles -IpAddress 19
 # Build Server
 Add-LabMachineDefinition -Name DSCDO01 -Memory 4GB -Roles AzDevOps -IpAddress 192.168.111.70
 
+#Hyper-V Host
 $roles = @(
     Get-LabMachineRoleDefinition -Role TfsBuildWorker -Properties @{ NumberOfWorkers = '4' }
     Get-LabMachineRoleDefinition -Role HyperV
-}
+)
 Add-LabMachineDefinition -Name DSCHost01 -Memory 8GB -Roles $roles -IpAddress 192.168.111.80
 
 # DSC target nodes - our legacy VMs with an existing configuration
