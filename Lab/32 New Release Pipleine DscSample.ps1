@@ -527,6 +527,7 @@ if ($PSVersionTable.PSEdition -eq 'Core') {
 Invoke-LabCommand -ActivityName 'Set GalleryUri and create Build Pipeline' -ScriptBlock {
 
     Set-Location -Path C:\Git\DscWorkshop
+    git checkout dev *>$null
     $c = Get-Content '.\azure-pipelines On-Prem.yml' -Raw
     $c = $c -replace '  GalleryUri: ggggg', "  GalleryUri: $($nugetFeed.NugetV2Url)"
     $c = $c -replace '  Domain: ddddd', "  Domain: $($nugetFeed.NugetCredential.GetNetworkCredential().Domain)"
@@ -537,7 +538,7 @@ Invoke-LabCommand -ActivityName 'Set GalleryUri and create Build Pipeline' -Scri
     git commit -m 'Set GalleryUri and create Build Pipeline'
     git push 2>$null
 
-} -ComputerName $devOpsServer -Variable (Get-Variable -Name pullServer)
+} -ComputerName $devOpsServer -Variable (Get-Variable -Name nugetFeed)
 
 $releaseParameters = @{
     ProjectName          = $projectName

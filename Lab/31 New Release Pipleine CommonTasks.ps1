@@ -216,6 +216,7 @@ $refs = (Invoke-RestMethod @param).value.name
 Invoke-LabCommand -ActivityName 'Set GalleryUri and create Build Pipeline' -ScriptBlock {
 
     Set-Location -Path C:\Git\CommonTasks
+    git checkout dev *>$null
     $c = Get-Content '.\azure-pipelines On-Prem.yml' -Raw
     $c = $c -replace '  GalleryUri: ggggg', "  GalleryUri: $($nugetFeed.NugetV2Url)"
     $c = $c -replace '  Domain: ddddd', "  Domain: $($nugetFeed.NugetCredential.GetNetworkCredential().Domain)"
