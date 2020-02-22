@@ -7,7 +7,7 @@ function Get-FilteredConfigurationData {
         $CurrentJobNumber,
 
         [int]
-        $TotalJobCount,
+        $TotalJobCount = 1,
 
         $Datum = $(Get-variable Datum -ValueOnly -ErrorAction Stop)
     )
