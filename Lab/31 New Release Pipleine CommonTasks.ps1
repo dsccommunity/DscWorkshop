@@ -51,7 +51,7 @@ $releaseSteps = @(
             targetType = 'inline'
             script     = @'
 #always make sure the local PowerShell Gallery is registered correctly
-$uri = '$(GalleryUri)'
+$uri = '$(RepositoryUri)'
 $name = 'PowerShell'
 $r = Get-PSRepository -Name $name -ErrorAction SilentlyContinue
 if (-not $r -or $r.SourceLocation -ne $uri -or $r.PublishLocation -ne $uri) {
@@ -112,7 +112,7 @@ $releaseEnvironments = @(
             uniqueName  = 'Install'
         }
         variables           = @{
-            GalleryUri = @{ value = $nugetFeed.NugetV2Url }
+            RepositoryUri = @{ value = $nugetFeed.NugetV2Url }
             NugetApiKey = @{ value = $nugetFeed.NugetApiKey }            
         }
         preDeployApprovals  = @{
@@ -213,18 +213,18 @@ if ($PSVersionTable.PSEdition -eq 'Core')
 }
 $refs = (Invoke-RestMethod @param).value.name
 
-Invoke-LabCommand -ActivityName 'Set GalleryUri and create Build Pipeline' -ScriptBlock {
+Invoke-LabCommand -ActivityName 'Set RepositoryUri and create Build Pipeline' -ScriptBlock {
 
     Set-Location -Path C:\Git\CommonTasks
     git checkout dev *>$null
     $c = Get-Content '.\azure-pipelines On-Prem.yml' -Raw
-    $c = $c -replace '  GalleryUri: ggggg', "  GalleryUri: $($nugetFeed.NugetV2Url)"
+    $c = $c -replace '  RepositoryUri: ggggg', "  RepositoryUri: $($nugetFeed.NugetV2Url)"
     $c = $c -replace '  Domain: ddddd', "  Domain: $($nugetFeed.NugetCredential.GetNetworkCredential().Domain)"
     $c = $c -replace '  UserName: uuuuu', "  Username: $($nugetFeed.NugetCredential.GetNetworkCredential().UserName)"
     $c = $c -replace '  Password: ppppp', "  Password: $($nugetFeed.NugetCredential.GetNetworkCredential().Password)"
     $c | Set-Content '.\azure-pipelines.yml'
     git add .
-    git commit -m 'Set GalleryUri and create Build Pipeline'
+    git commit -m 'Set RepositoryUri and create Build Pipeline'
     git push 2>$null
 
 } -ComputerName $devOpsServer -Variable (Get-Variable -Name nugetFeed)

@@ -4,7 +4,7 @@ trigger:
 - '*'
 
 variables:
-  GalleryUri: ggggg #will be replaced during lab deployment
+  RepositoryUri: ggggg #will be replaced during lab deployment
   Domain: ddddd #will be replaced during lab deployment
   UserName: uuuuu #will be replaced during lab deployment
   Password: ppppp #will be replaced during lab deployment
@@ -25,7 +25,7 @@ jobs:
         script: |
           #always make sure the local PowerShell Gallery is registered correctly
           [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
-          $uri = '$(GalleryUri)'
+          $uri = '$(RepositoryUri)'
           $name = 'PowerShell'
           $domain = '$(Domain)'
           $userName = '$(UserName)'
