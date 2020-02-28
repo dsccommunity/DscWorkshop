@@ -22,6 +22,9 @@ Describe 'Datum Tree Definition' -Tag Integration {
 }
 
 Describe 'Node Definition Files' -Tag Integration {
+    $environments = dir .\DscConfigData\Environment\ | Select-Object -ExpandProperty BaseName
+    $locations = dir .\DscConfigData\Locations\ | Select-Object -ExpandProperty BaseName
+
     $nodeDefinitions.ForEach{
         # A Node cannot be empty
         $content = Get-Content -Path $_ -Raw
@@ -47,8 +50,12 @@ Describe 'Node Definition Files' -Tag Integration {
 
         It "Location of '$nodeName' is '$($node.Location)' and does exist" {
             $node = $content | ConvertFrom-Yaml
-            $locations = dir .\DscConfigData\Locations\ | Select-Object -ExpandProperty BaseName
             $node.Location -in $locations | Should Be $true
+        }
+
+        It "Environment of '$nodeName' is '$($node.Environment)' and does exist" {
+            $node = $content | ConvertFrom-Yaml
+            $node.Environment -in $environments | Should Be $true
         }
     }
 }
