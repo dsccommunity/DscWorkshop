@@ -16,7 +16,7 @@ $gitDownloadUrl = 'https://github.com/git-for-windows/git/releases/download/v2.2
 $vscodePowerShellExtensionDownloadUrl = 'https://marketplace.visualstudio.com/_apis/public/gallery/publishers/ms-vscode/vsextensions/PowerShell/2020.1.0/vspackage'
 $edgeDownloadUrl = 'http://dl.delivery.mp.microsoft.com/filestreamingservice/files/0af31313-0430-454d-908a-d55ce3df7b69/MicrosoftEdgeEnterpriseX64.msi'
 
-#Install Azure DevOps artifacts feed
+#Create Azure DevOps artifacts feed
 $domainSid = Invoke-LabCommand -ActivityName 'Get domain SID' -ScriptBlock {
 
     $domainContext = New-Object System.DirectoryServices.ActiveDirectory.DirectoryContext('Domain', $domainName)
@@ -52,6 +52,18 @@ $requiredModules = @{
     ActiveDirectoryDsc           = '5.0.0'
     SecurityPolicyDsc            = '2.10.0.0'
     StorageDsc                   = '4.9.0.0'
+    Chocolatey                   = '0.0.77'
+    'Datum.ProtectedData'        = '0.0.1'
+}
+
+$requiredChocolateyPackages = @{
+    putty               = 'latest'
+    winrar              = 'latest'
+    notepadplusplus     = 'latest'
+    'microsoft-edge'    = 'latest'
+    vscode              = 'latest'
+    wireshark           = 'latest'
+    winpcap             = 'latest'
 }
 
 if (-not (Test-LabMachineInternetConnectivity -ComputerName $devOpsServer)) {
@@ -65,7 +77,8 @@ $feedPermissions += (New-Object pscustomobject -Property @{ role = 'contributor'
 $feedPermissions += (New-Object pscustomobject -Property @{ role = 'contributor'; identityDescriptor = "System.Security.Principal.WindowsIdentity;$domainSid-515" })
 $feedPermissions += (New-Object pscustomobject -Property @{ role = 'reader'; identityDescriptor = 'System.Security.Principal.WindowsIdentity;S-1-5-7' })
 
-$nugetFeed = New-LabTfsFeed -ComputerName $nugetServer -FeedName PowerShell -FeedPermissions $feedPermissions -PassThru -ErrorAction Stop
+$powerShellFeed = New-LabTfsFeed -ComputerName $nugetServer -FeedName PowerShell -FeedPermissions $feedPermissions -PassThru -ErrorAction Stop
+$chocolateyFeed = New-LabTfsFeed -ComputerName $nugetServer -FeedName Software -FeedPermissions $feedPermissions -PassThru -ErrorAction Stop
 
 # Web server
 $deployUserName = (Get-LabVM -Role WebServer).GetCredential((Get-Lab)).UserName
@@ -188,10 +201,10 @@ Invoke-LabCommand -ActivityName 'Get tested nuget.exe and register ProGet Reposi
     Install-Module -Name PowerShellGet -RequiredVersion 1.6.0 -Force -WarningAction SilentlyContinue
 
     if (-not (Get-PSRepository -Name PowerShell -ErrorAction SilentlyContinue)) {
-        Register-PSRepository -Name PowerShell -SourceLocation $nugetFeed.NugetV2Url -PublishLocation $nugetFeed.NugetV2Url -Credential $nugetFeed.NugetCredential -InstallationPolicy Trusted -ErrorAction Stop
+        Register-PSRepository -Name PowerShell -SourceLocation $powerShellFeed.NugetV2Url -PublishLocation $powerShellFeed.NugetV2Url -Credential $powerShellFeed.NugetCredential -InstallationPolicy Trusted -ErrorAction Stop
     }
 
-} -Variable (Get-Variable -Name nugetFeed)
+} -Variable (Get-Variable -Name powerShellFeed)
 
 Remove-LabPSSession #this is required to make use of the new version of PowerShellGet
 
@@ -223,9 +236,9 @@ Invoke-LabCommand -ActivityName 'Downloading required modules from PSGallery' -C
     }
 } -Variable (Get-Variable -Name requiredModules)
 
-Invoke-LabCommand -ActivityName 'Publishing required modules to internal ProGet repository' -ComputerName $devOpsServer -ScriptBlock {
+Invoke-LabCommand -ActivityName 'Publishing required modules to internal repository' -ComputerName $devOpsServer -ScriptBlock {
 
-    Write-Host "Publishing $($requiredModules.Count) modules to the internal gallery (loop 1)"
+    Write-Host "Publishing $($requiredModules.Count) modules to the internal repository (loop 1)"
     
     foreach ($requiredModule in $requiredModules.GetEnumerator()) {
         $module = Get-Module $requiredModule.Key -ListAvailable | Sort-Object -Property Version -Descending | Select-Object -First 1
@@ -240,7 +253,7 @@ Invoke-LabCommand -ActivityName 'Publishing required modules to internal ProGet 
         }
     }
     
-    Write-Host "Publishing $($requiredModules.Count) modules to the internal gallery (loop 2)"
+    Write-Host "Publishing $($requiredModules.Count) modules to the internal repository (loop 2)"
     foreach ($requiredModule in $requiredModules.GetEnumerator()) {
         $module = Get-Module $requiredModule.Key -ListAvailable | Sort-Object -Property Version -Descending | Select-Object -First 1
         $version = $module.Version
@@ -265,6 +278,50 @@ Invoke-LabCommand -ActivityName 'Publishing required modules to internal ProGet 
         Uninstall-Module -Name $module.Key -ErrorAction SilentlyContinue
     }
 } -Variable (Get-Variable -Name requiredModules, nuGetApiKey)
+
+Invoke-LabCommand -ActivityName 'Publishing required Chocolatey packages to internal repository' -ScriptBlock {
+    
+    if (([Net.ServicePointManager]::SecurityProtocol -band 'Tls12') -ne 'Tls12')
+    {
+        [Net.ServicePointManager]::SecurityProtocol += [Net.SecurityProtocolType]::Tls12
+    }
+    
+    Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+
+    if (-not (Find-PackageProvider NuGet -ErrorAction SilentlyContinue))
+    {
+        Install-PackageProvider -Name NuGet
+    }
+    Import-PackageProvider -Name NuGet
+
+    $tempFolder = mkdir C:\ChocoTemp -Force
+
+    if (-not (Get-PackageSource -Name $chocolateyFeed.name -ErrorAction SilentlyContinue))
+    {
+        Register-PackageSource -Name $chocolateyFeed.name -ProviderName NuGet -Location $chocolateyFeed.NugetV2Url -Trusted
+    }
+    if (-not (Get-PackageSource -Name Choco -ErrorAction SilentlyContinue))
+    {
+        Register-PackageSource -Name Choco -ProviderName NuGet -Location $publicFeedUri
+    }
+
+    foreach ($kvp in $requiredChocolateyPackages.GetEnumerator())
+    {
+        if (-not ($p = Find-Package -Name $kvp.Name -Source Choco))
+        {
+            Write-Error "Package '$($kvp.Name)' could not be found at the source '$publicFeedUri'"
+            continue
+        }
+        $p | Save-Package -Path $tempFolder
+    }
+
+    dir -Path $tempFolder | ForEach-Object {
+
+        choco push $_.FullName -s $chocolateyFeed.NugetV2Url --api-key $chocolateyFeed.NugetApiKey
+
+    }
+
+} -ComputerName $devOpsServer -Variable (Get-Variable -Name chocolateyFeed, requiredChocolateyPackages)
 
 Invoke-LabCommand -ActivityName 'Disable Git SSL Certificate Check' -ComputerName $devOpsServer, $buildWorkers -ScriptBlock {
     [System.Environment]::SetEnvironmentVariable('GIT_SSL_NO_VERIFY', '1', 'Machine')
