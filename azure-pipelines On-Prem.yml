@@ -48,11 +48,9 @@ jobs:
         script: |
           Set-Location -Path .\DSC
 
-          Get-PSRepository | Out-String | Write-Host
-
           [int]$currentJobNumber = $env:SYSTEM_JOBPOSITIONINPHASE
           [int]$totalJobCount = $env:SYSTEM_TOTALJOBSINPHASE
-
+          Write-Host "Calling 'Build.ps1' with parameter 'CurrentJobNumber' =  $currentJobNumber and 'TotalJobCount' = $totalJobCount"
           .\Build.ps1 -ResolveDependency -Repository PowerShell -CurrentJobNumber $currentJobNumber -TotalJobCount $totalJobCount
 
     - task: PublishTestResults@2
