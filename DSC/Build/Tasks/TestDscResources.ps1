@@ -1,6 +1,6 @@
 task TestDscResources {
-    $tid = [System.Threading.Thread]::CurrentThread.ManagedThreadId
-    Start-Transcript -Path "$BuildOutput\Logs\TestDscResources$tid-Log.txt"
+
+    Start-Transcript -Path "$BuildOutput\Logs\TestDscResources.log"
 
     Write-Host ------------------------------------------------------------
     Write-Host 'Currently loaded modules:'

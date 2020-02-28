@@ -60,7 +60,6 @@ param (
 )
 
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
-Add-Type -AssemblyName System.Threading
 
 $env:BHBuildStartTime = Get-Date
 Write-Host "Current Process ID is '$PID'"

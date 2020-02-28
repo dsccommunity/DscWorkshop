@@ -1,7 +1,6 @@
 task CompileRootConfiguration {
 
-    $tid = [System.Threading.Thread]::CurrentThread.ManagedThreadId
-    Start-Transcript -Path "$BuildOutput\Logs\CompileRootConfiguration$tid-Log.txt"
+    Start-Transcript -Path "$BuildOutput\Logs\CompileRootConfiguration.log"
 
     if (-not (Test-Path -Path $BuildOutput\MOF)) {
         mkdir -Path $BuildOutput\MOF | Out-Null
