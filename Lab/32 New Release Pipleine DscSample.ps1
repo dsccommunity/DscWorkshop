@@ -540,6 +540,7 @@ Invoke-LabCommand -ActivityName 'Set RepositoryUri and create Build Pipeline' -S
 
 } -ComputerName $devOpsServer -Variable (Get-Variable -Name nugetFeed)
 
+Start-Sleep -Seconds 10
 $releaseParameters = @{
     ProjectName          = $projectName
     InstanceName         = $devOpsHostName

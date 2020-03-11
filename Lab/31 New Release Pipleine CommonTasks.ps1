@@ -229,6 +229,7 @@ Invoke-LabCommand -ActivityName 'Set RepositoryUri and create Build Pipeline' -S
 
 } -ComputerName $devOpsServer -Variable (Get-Variable -Name nugetFeed)
 
+Start-Sleep -Seconds 10
 New-TfsReleaseDefinition -ProjectName $projectName -InstanceName $devOpsHostName -Port $devOpsPort -ReleaseName "$($projectName) CD" -Environments $releaseEnvironments -Credential $devOpsCred -CollectionName $collectionName -UseSsl -SkipCertificateCheck
 
 Write-ScreenInfo done
