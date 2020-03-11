@@ -15,6 +15,7 @@ $vsCodeDownloadUrl = 'https://go.microsoft.com/fwlink/?Linkid=852157'
 $gitDownloadUrl = 'https://github.com/git-for-windows/git/releases/download/v2.25.0.windows.1/Git-2.25.0-64-bit.exe'
 $vscodePowerShellExtensionDownloadUrl = 'https://marketplace.visualstudio.com/_apis/public/gallery/publishers/ms-vscode/vsextensions/PowerShell/2020.1.0/vspackage'
 $edgeDownloadUrl = 'http://dl.delivery.mp.microsoft.com/filestreamingservice/files/0af31313-0430-454d-908a-d55ce3df7b69/MicrosoftEdgeEnterpriseX64.msi'
+$chromeDownloadUrl = 'https://dl.google.com/tag/s/appguid%3D%7B8A69D345-D564-463C-AFF1-A69D9E530F96%7D%26iid%3D%7BC9D94BD4-6037-E88E-2D5A-F6B7D7F8F4CF%7D%26lang%3Den%26browser%3D5%26usagestats%3D0%26appname%3DGoogle%2520Chrome%26needsadmin%3Dprefers%26ap%3Dx64-stable-statsdef_1%26installdataindex%3Dempty/chrome/install/ChromeStandaloneSetup64.exe'
 
 #Create Azure DevOps artifacts feed
 $domainSid = Invoke-LabCommand -ActivityName 'Get domain SID' -ScriptBlock {
@@ -52,18 +53,18 @@ $requiredModules = @{
     ActiveDirectoryDsc           = '5.0.0'
     SecurityPolicyDsc            = '2.10.0.0'
     StorageDsc                   = '4.9.0.0'
-    Chocolatey                   = '0.0.77'
+    Chocolatey                   = '0.0.79'
     'Datum.ProtectedData'        = '0.0.1'
 }
 
 $requiredChocolateyPackages = @{
-    putty               = 'latest'
-    winrar              = 'latest'
-    notepadplusplus     = 'latest'
-    'microsoft-edge'    = 'latest'
-    vscode              = 'latest'
-    wireshark           = 'latest'
-    winpcap             = 'latest'
+    putty            = 'latest'
+    winrar           = 'latest'
+    notepadplusplus  = 'latest'
+    'microsoft-edge' = 'latest'
+    vscode           = 'latest'
+    wireshark        = 'latest'
+    winpcap          = 'latest'
 }
 
 if (-not (Test-LabMachineInternetConnectivity -ComputerName $devOpsServer)) {
@@ -78,7 +79,9 @@ $feedPermissions += (New-Object pscustomobject -Property @{ role = 'contributor'
 $feedPermissions += (New-Object pscustomobject -Property @{ role = 'reader'; identityDescriptor = 'System.Security.Principal.WindowsIdentity;S-1-5-7' })
 
 $powerShellFeed = New-LabTfsFeed -ComputerName $nugetServer -FeedName PowerShell -FeedPermissions $feedPermissions -PassThru -ErrorAction Stop
+Write-Host "Created artifacts feed 'PowerShell' on Azure DevOps Server '$nugetServer'"
 $chocolateyFeed = New-LabTfsFeed -ComputerName $nugetServer -FeedName Software -FeedPermissions $feedPermissions -PassThru -ErrorAction Stop
+Write-Host "Created artifacts feed 'Software' on Azure DevOps Server '$nugetServer'"
 
 # Web server
 $deployUserName = (Get-LabVM -Role WebServer).GetCredential((Get-Lab)).UserName
@@ -129,10 +132,12 @@ $vscodeInstaller = Get-LabInternetFile -Uri $vscodeDownloadUrl -Path $labSources
 $gitInstaller = Get-LabInternetFile -Uri $gitDownloadUrl -Path $labSources\SoftwarePackages -PassThru
 Get-LabInternetFile -Uri $vscodePowerShellExtensionDownloadUrl -Path $labSources\SoftwarePackages\VSCodeExtensions\ps.vsix
 $edgeInstaller = Get-LabInternetFile -Uri $edgeDownloadUrl -Path $labSources\SoftwarePackages -PassThru
+$chromeInstaller = Get-LabInternetFile -Uri $chromeDownloadUrl -Path $labSources\SoftwarePackages -PassThru
 
 Install-LabSoftwarePackage -Path $vscodeInstaller.FullName -CommandLine /SILENT -ComputerName $devOpsServer
 Install-LabSoftwarePackage -Path $gitInstaller.FullName -CommandLine /SILENT -ComputerName ((@($devOpsServer) + $buildWorkers) | Select-Object -Unique)
-Install-LabSoftwarePackage -Path $edgeInstaller.FullName -ComputerName ((@($devOpsServer) + $buildWorkers) | Select-Object -Unique)
+Install-LabSoftwarePackage -Path $edgeInstaller.FullName -ComputerName $devOpsServer
+Install-LabSoftwarePackage -Path $chromeInstaller.FullName -ComputerName ((@($devOpsServer) + $buildWorkers) | Select-Object -Unique) -CommandLine '/silent /install'
 Invoke-LabCommand -ActivityName 'Enable WIA for Edge' -ScriptBlock {
     New-Item -Path HKCU:\SOFTWARE\Policies\Microsoft\Edge
     New-ItemProperty -Path HKCU:\SOFTWARE\Policies\Microsoft\Edge -Name AuthServerAllowlist -Value * -PropertyType String -Force
@@ -157,8 +162,12 @@ Invoke-LabCommand -ActivityName 'Create link on AzureDevOps desktop' -ComputerNa
     $shortcut.TargetPath = "https://$($devOpsServer):8080/AutomatedLab/CommonTasks"
     $shortcut.Save()
     
-    $shortcut = $shell.CreateShortcut("$desktopPath\Nuget Feed.url")
-    $shortcut.TargetPath = "https://$($devOpsServer):8080/AutomatedLab/_packaging?_a=feed&feed=PowerShell"
+    $shortcut = $shell.CreateShortcut("$desktopPath\PowerShell Feed.url")
+    $shortcut.TargetPath = "https://$($devOpsServer):8080/AutomatedLab/_packaging?_a=feed&feed=$($powerShellFeed.name)"
+    $shortcut.Save()
+    
+    $shortcut = $shell.CreateShortcut("$desktopPath\Chocolatey Feed.url")
+    $shortcut.TargetPath = "https://$($devOpsServer):8080/AutomatedLab/_packaging?_a=feed&feed=$($chocolateyFeed.name)"
     $shortcut.Save()
     
     $shortcut = $shell.CreateShortcut("$desktopPath\SQL RS.url")
@@ -168,7 +177,7 @@ Invoke-LabCommand -ActivityName 'Create link on AzureDevOps desktop' -ComputerNa
     $shortcut = $shell.CreateShortcut("$desktopPath\Pull Server Endpoint.url")
     $shortcut.TargetPath = "https://$($pullServer.FQDN):8080/PSDSCPullServer.svc/"
     $shortcut.Save()
-} -Variable (Get-Variable -Name devOpsServer, sqlServer, nugetFeed, pullServer)
+} -Variable (Get-Variable -Name devOpsServer, sqlServer, powerShellFeed, chocolateyFeed, pullServer)
 
 #in server 2019 there seems to be an issue with dynamic DNS registration, doing this manually
 foreach ($domain in (Get-Lab).Domains) {
@@ -227,8 +236,8 @@ Invoke-LabCommand -ActivityName 'Downloading required modules from PSGallery' -C
         if ($requiredModule.Value -ne 'latest') {
             $installModuleParams.Add('RequiredVersion', $requiredModule.Value)
         }
-        if ($requiredModule.Value -like '*-*') #if pre-release version
-        {
+        if ($requiredModule.Value -like '*-*') {
+            #if pre-release version
             $installModuleParams.Add('AllowPrerelease', $true)
         }
         Write-Host "Installing module '$($requiredModule.Key)' with version '$($requiredModule.Value)'"
@@ -243,8 +252,7 @@ Invoke-LabCommand -ActivityName 'Publishing required modules to internal reposit
     foreach ($requiredModule in $requiredModules.GetEnumerator()) {
         $module = Get-Module $requiredModule.Key -ListAvailable | Sort-Object -Property Version -Descending | Select-Object -First 1
         $version = $module.Version
-        if ($module.PrivateData.PSData.Prerelease)
-        {
+        if ($module.PrivateData.PSData.Prerelease) {
             $version = "$version-$($module.PrivateData.PSData.Prerelease)"
         }
         Write-Host "`t'$($module.Name) - $version'"
@@ -257,8 +265,7 @@ Invoke-LabCommand -ActivityName 'Publishing required modules to internal reposit
     foreach ($requiredModule in $requiredModules.GetEnumerator()) {
         $module = Get-Module $requiredModule.Key -ListAvailable | Sort-Object -Property Version -Descending | Select-Object -First 1
         $version = $module.Version
-        if ($module.PrivateData.PSData.Prerelease)
-        {
+        if ($module.PrivateData.PSData.Prerelease) {
             $version = "$version-$($module.PrivateData.PSData.Prerelease)"
         }
         Write-Host "`t'$($module.Name) - $version'"
@@ -281,34 +288,28 @@ Invoke-LabCommand -ActivityName 'Publishing required modules to internal reposit
 
 Invoke-LabCommand -ActivityName 'Publishing required Chocolatey packages to internal repository' -ScriptBlock {
     
-    if (([Net.ServicePointManager]::SecurityProtocol -band 'Tls12') -ne 'Tls12')
-    {
+    if (([Net.ServicePointManager]::SecurityProtocol -band 'Tls12') -ne 'Tls12') {
         [Net.ServicePointManager]::SecurityProtocol += [Net.SecurityProtocolType]::Tls12
     }
     
+    $publicFeedUri = 'https://chocolatey.org/api/v2/'
+    
     Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
 
-    if (-not (Find-PackageProvider NuGet -ErrorAction SilentlyContinue))
-    {
-        Install-PackageProvider -Name NuGet
-    }
+    Install-PackageProvider -Name NuGet -Force
     Import-PackageProvider -Name NuGet
 
     $tempFolder = mkdir C:\ChocoTemp -Force
 
-    if (-not (Get-PackageSource -Name $chocolateyFeed.name -ErrorAction SilentlyContinue))
-    {
+    if (-not (Get-PackageSource -Name $chocolateyFeed.name -ErrorAction SilentlyContinue)) {
         Register-PackageSource -Name $chocolateyFeed.name -ProviderName NuGet -Location $chocolateyFeed.NugetV2Url -Trusted
     }
-    if (-not (Get-PackageSource -Name Choco -ErrorAction SilentlyContinue))
-    {
+    if (-not (Get-PackageSource -Name Choco -ErrorAction SilentlyContinue)) {
         Register-PackageSource -Name Choco -ProviderName NuGet -Location $publicFeedUri
     }
 
-    foreach ($kvp in $requiredChocolateyPackages.GetEnumerator())
-    {
-        if (-not ($p = Find-Package -Name $kvp.Name -Source Choco))
-        {
+    foreach ($kvp in $requiredChocolateyPackages.GetEnumerator()) {
+        if (-not ($p = Find-Package -Name $kvp.Name -Source Choco)) {
             Write-Error "Package '$($kvp.Name)' could not be found at the source '$publicFeedUri'"
             continue
         }
