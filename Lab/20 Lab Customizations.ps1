@@ -286,6 +286,17 @@ Invoke-LabCommand -ActivityName 'Publishing required modules to internal reposit
     }
 } -Variable (Get-Variable -Name requiredModules, nuGetApiKey)
 
+Invoke-LabCommand -ActivityName 'Install Chocolatey executables to all lab VMs' -ScriptBlock {
+    
+    if (([Net.ServicePointManager]::SecurityProtocol -band 'Tls12') -ne 'Tls12')
+    {
+        [Net.ServicePointManager]::SecurityProtocol += [Net.SecurityProtocolType]::Tls12
+    }
+    
+    Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+
+} -ComputerName (Get-LabVM)
+
 Invoke-LabCommand -ActivityName 'Publishing required Chocolatey packages to internal repository' -ScriptBlock {
     
     if (([Net.ServicePointManager]::SecurityProtocol -band 'Tls12') -ne 'Tls12') {
