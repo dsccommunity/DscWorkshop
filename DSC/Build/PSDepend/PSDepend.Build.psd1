@@ -1,5 +1,5 @@
 @{
-    PSDependOptions   = @{
+    PSDependOptions       = @{
         AddToPath      = $true
         Target         = 'BuildOutput\Modules'
         DependencyType = 'PSGalleryModule'
@@ -8,11 +8,12 @@
         }
     }
 
-    InvokeBuild       = 'latest'
-    BuildHelpers      = 'latest'
-    Pester            = 'latest'
-    PSScriptAnalyzer  = 'latest'
-    DscBuildHelpers   = 'latest'
-    Datum             = 'latest'
-    'powershell-yaml' = 'latest'
+    InvokeBuild           = 'latest'
+    BuildHelpers          = 'latest'
+    Pester                = 'latest'
+    PSScriptAnalyzer      = 'latest'
+    DscBuildHelpers       = 'latest'
+    Datum                 = 'latest'
+    'powershell-yaml'     = 'latest'
+    'Datum.ProtectedData' = 'latest'
 }
