@@ -215,6 +215,28 @@ Invoke-LabCommand -ActivityName 'Get tested nuget.exe and register ProGet Reposi
 
 } -Variable (Get-Variable -Name powerShellFeed)
 
+Invoke-LabCommand -ActivityName 'Install Chocolatey to all lab VMs' -ScriptBlock {
+    
+    if (([Net.ServicePointManager]::SecurityProtocol -band 'Tls12') -ne 'Tls12')
+    {
+        [Net.ServicePointManager]::SecurityProtocol += [Net.SecurityProtocolType]::Tls12
+    }
+    
+    Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+    
+    if (-not (Find-PackageProvider NuGet -ErrorAction SilentlyContinue))
+    {
+        Install-PackageProvider -Name NuGet
+    }
+    Import-PackageProvider -Name NuGet
+
+    if (-not (Get-PackageSource -Name $chocolateyFeed.name -ErrorAction SilentlyContinue))
+    {
+        Register-PackageSource -Name $chocolateyFeed.name -ProviderName NuGet -Location $chocolateyFeed.NugetV2Url -Trusted
+    }
+
+} -ComputerName (Get-LabVM) -Variable (Get-Variable -Name chocolateyFeed)
+
 Remove-LabPSSession #this is required to make use of the new version of PowerShellGet
 
 Restart-LabVM -ComputerName $pullServer
@@ -299,15 +321,6 @@ Invoke-LabCommand -ActivityName 'Install Chocolatey executables to all lab VMs' 
 
 Invoke-LabCommand -ActivityName 'Publishing required Chocolatey packages to internal repository' -ScriptBlock {
     
-    if (([Net.ServicePointManager]::SecurityProtocol -band 'Tls12') -ne 'Tls12') {
-        [Net.ServicePointManager]::SecurityProtocol += [Net.SecurityProtocolType]::Tls12
-    }
-    
-    $publicFeedUri = 'https://chocolatey.org/api/v2/'
-    
-    Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
-
-    Install-PackageProvider -Name NuGet -Force
     Import-PackageProvider -Name NuGet
 
     $tempFolder = mkdir C:\ChocoTemp -Force
