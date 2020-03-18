@@ -106,10 +106,6 @@ Invoke-LabCommand -Activity 'Setup Web Site' -ComputerName (Get-LabVM -Role WebS
     New-Website -name "PSConfSite" -PhysicalPath C:\PsConfSite -ApplicationPool "PSConfSite"  
 } -Variable (Get-Variable deployUserName, deployUserPassword)
 
-Invoke-LabCommand -ActivityName 'Add ProGet DNS A record' -ComputerName (Get-LabVM -Role RootDC) -ScriptBlock {
-    Add-DnsServerResourceRecord -ZoneName $pullServer.DomainName -IPv4Address $pullServer.IpV4Address -Name ProGet -A
-} -Variable (Get-Variable -Name pullServer)
-
 # File server
 Invoke-LabCommand -Activity 'Creating folders and shares' -ComputerName (Get-LabVM -Role FileServer) -ScriptBlock {
     New-Item -ItemType Directory -Path C:\UserHome -Force
@@ -199,7 +195,7 @@ foreach ($domain in (Get-Lab).Domains) {
     } -ComputerName $dc -Variable (Get-Variable -Name vms) -PassThru
 }
 
-Invoke-LabCommand -ActivityName 'Get tested nuget.exe and register ProGet Repository' -ComputerName (Get-LabVM) -ScriptBlock {
+Invoke-LabCommand -ActivityName 'Get tested nuget.exe and register Azure DevOps Artifact Feed' -ComputerName (Get-LabVM) -ScriptBlock {
 
     [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
     Install-PackageProvider -Name NuGet -Force
@@ -308,20 +304,15 @@ Invoke-LabCommand -ActivityName 'Publishing required modules to internal reposit
     }
 } -Variable (Get-Variable -Name requiredModules, nuGetApiKey)
 
-Invoke-LabCommand -ActivityName 'Install Chocolatey executables to all lab VMs' -ScriptBlock {
+Invoke-LabCommand -ActivityName 'Publishing required Chocolatey packages to internal repository' -ScriptBlock {
     
     if (([Net.ServicePointManager]::SecurityProtocol -band 'Tls12') -ne 'Tls12')
     {
         [Net.ServicePointManager]::SecurityProtocol += [Net.SecurityProtocolType]::Tls12
     }
-    
-    Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
-
-} -ComputerName (Get-LabVM)
-
-Invoke-LabCommand -ActivityName 'Publishing required Chocolatey packages to internal repository' -ScriptBlock {
-    
+        
     Import-PackageProvider -Name NuGet
+    $publicFeedUri = 'https://chocolatey.org/api/v2/'
 
     $tempFolder = mkdir C:\ChocoTemp -Force
 
