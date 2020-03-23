@@ -10,12 +10,12 @@ To kick off a new build, the script 'Build.ps1' is going to be used. Whether or 
 
 ## 2.2 Add a new node
 
-You are tasked with on-boarding a new node (DSCFile04) to your environment. The node should be a file server (Role) in your branch office in Singapore (Location). You also know that it should be part of the Pilot servers or canaries that receive new DSC configurations before other production servers.
+You are tasked with on-boarding a new node (DSCFile04) to your environment. The node should be a file server (Role) in your branch office in Singapore (Location). You also know that it should be part of the Test servers or canaries that receive new DSC configurations before other production servers.
 
-1. Make a copy of DSCFile02.yml (use as a template) inside the folder 'DSC\DscConfigData\AllNodes\Pilot' and call it 'DSCFile04.yml'. This new yml will represent your new node. You can do this in the VSCode (mark the file and press CTRL+C and then CTRL+V. Rename the new file) or you can use this PowerShell command.
+1. Make a copy of DSCFile02.yml (use as a template) inside the folder 'DSC\DscConfigData\AllNodes\Test' and call it 'DSCFile04.yml'. This new yml will represent your new node. You can do this in the VSCode (mark the file and press CTRL+C and then CTRL+V. Rename the new file) or you can use this PowerShell command.
 
     ```powershell
-    Copy-Item -Path .\DscConfigData\AllNodes\Pilot\DSCFile02.yml -Destination .\DscConfigData\AllNodes\Pilot\DscFile04.yml
+    Copy-Item -Path .\DscConfigData\AllNodes\Test\DSCFile02.yml -Destination .\DscConfigData\AllNodes\Test\DscFile04.yml
     ```
 
 2. Open the newly created file and modify the properties NodeName, Location, Description and ConfigurationNames with the below values.

@@ -1,7 +1,7 @@
 NodeName: DSCFile02
-Environment: Pilot
+Environment: Test
 Role: FileServer
-Description: File Server in Pilot
+Description: File Server in Test
 Location: Frankfurt
 
 NetworkIpConfiguration:

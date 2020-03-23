@@ -170,7 +170,7 @@ Show-LabDeploymentSummary -Detailed
     }
     @{
         enabled = $false
-        name    = "Wait"
+        name    = 'Wait'
         taskId  = 'e213ff0f-5d5c-4791-802d-52ea3e7be1f1'
         version = '2.*'
         inputs  = @{
@@ -205,7 +205,7 @@ Start-Sleep -Seconds 30
 $releaseEnvironments = @(
     @{
         id                  = 3
-        name                = "Dev"
+        name                = 'Dev'
         rank                = 1
         owner               = @{
             displayName = 'Install'
@@ -302,7 +302,7 @@ $releaseEnvironments = @(
     }
     @{
         id                  = 4
-        name                = "Pilot"
+        name                = 'Test'
         rank                = 2
         owner               = @{
             displayName = 'Install'
@@ -426,7 +426,7 @@ $releaseEnvironments = @(
                     isAutomated      = $false
                     isNotificationOn = $false
                     approver         = @{
-                        displayName = "Install"
+                        displayName = 'Install'
                         id          = '196672db-49dd-4968-8c52-a94e43186ffd'
                         uniqueName  = $devOpsCred.UserName
                     }
@@ -477,7 +477,7 @@ $releaseEnvironments = @(
         demands             = @()
         conditions          = @(
             @{
-                name          = 'Pilot'
+                name          = 'Test'
                 conditionType = 2
                 value         = 4
             }

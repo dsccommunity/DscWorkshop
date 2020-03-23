@@ -27,13 +27,13 @@ Create a new file in 'DSC\DscConfigData\Roles' named 'WsusServer.yml'. Paste the
     - +UpdateServices
   ```
 
-2. Now let us add a new node YAML (DSCWS01.yml) in the Pilot which is based on this Role. Create the new file 'DSCWS01.yml' in the folder 'DSC\DscConfigData\AllNodes\Pilot'. Paste the following content into the file and save it.
+2. Now let us add a new node YAML (DSCWS01.yml) in the Test which is based on this Role. Create the new file 'DSCWS01.yml' in the folder 'DSC\DscConfigData\AllNodes\Test'. Paste the following content into the file and save it.
 
   ```yml
   NodeName: DSCWS01
-  Environment: Pilot
+  Environment: Test
   Role: WsusServer
-  Description: WSUS Server in Pilot
+  Description: WSUS Server in Test
   Location: Frankfurt
 
   NetworkIpConfiguration:
@@ -50,7 +50,7 @@ Create a new file in 'DSC\DscConfigData\Roles' named 'WsusServer.yml'. Paste the
 
 > Note: The YAML rendering does not always show the indention correctly. Please have a look at another node file to check the indention.
 
-Once again, it is that easy. New roles (i.e. WsusServer), environments (i.e. Pilot) and nodes (i.e. DSCWS01) just require adding YAML files. The devil is in the details: Providing the appropriate configuration data for your configurations like the network configuration requires knowledge of the underlying infrastructure of course.
+Once again, it is that easy. New roles (i.e. WsusServer), environments (i.e. Test) and nodes (i.e. DSCWS01) just require adding YAML files. The devil is in the details: Providing the appropriate configuration data for your configurations like the network configuration requires knowledge of the underlying infrastructure of course.
 
 In order to build the new node 'DSCWS01' which uses the 'WsusServer' role, simply start up the build again.
 

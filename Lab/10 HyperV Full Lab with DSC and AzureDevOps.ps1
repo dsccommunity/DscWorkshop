@@ -75,7 +75,7 @@ Add-LabMachineDefinition -Name DSCHost01 -Memory 8GB -Roles $roles -IpAddress 19
 Add-LabMachineDefinition -Name DSCFile01 -Memory 1GB -Roles FileServer -IpAddress 192.168.111.100
 Add-LabMachineDefinition -Name DSCWeb01 -Memory 1GB -Roles WebServer -IpAddress 192.168.111.101
 
-# Servers in Pilot
+# Servers in Test
 Add-LabMachineDefinition -Name DSCFile02 -Memory 1GB -Roles FileServer -IpAddress 192.168.111.110
 Add-LabMachineDefinition -Name DSCWeb02 -Memory 1GB -Roles WebServer -IpAddress 192.168.111.111
 

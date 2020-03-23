@@ -27,7 +27,7 @@ The template selection will pop up. Select "Empty job" on the very top.
 
 > Note: The names may vary depending on the name you have given to the project.
 
-2. Rename 'Stage 1' to 'Dev'. Add two additional stages (environemnts), called 'Pilot' and 'Production', each with an empty job.
+2. Rename 'Stage 1' to 'Dev'. Add two additional stages (environemnts), called 'Test' and 'Production', each with an empty job.
 
 The design of the pipeline depends very much on where it should operate. Your build steps might have included copying the files to an Azure blob storage instead of an on-premises file share. This would be the recommended way in case you want your Azure Automation DSC pull server to host the MOF files. The release step would be to execute New-AzAutomationModule with the URIs of your uploaded, compressed modules.
 
