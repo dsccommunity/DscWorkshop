@@ -5,7 +5,7 @@ $nodeDefinitions = Get-ChildItem $here\..\..\DscConfigData\AllNodes -Recurse -In
 $environments = (Get-ChildItem $here\..\..\DscConfigData\AllNodes -Directory).BaseName
 $roleDefinitions = Get-ChildItem $here\..\..\DscConfigData\Roles -Recurse -Include *.yml
 $datum = New-DatumStructure -DefinitionFile $datumDefinitionFile
-$configurationData = Get-FilteredConfigurationData -Environment $environment -Datum $datum -Filter $filter
+$configurationData = Get-FilteredConfigurationData -Datum $datum -Filter $filter
 
 $nodeNames = [System.Collections.ArrayList]::new()
 
