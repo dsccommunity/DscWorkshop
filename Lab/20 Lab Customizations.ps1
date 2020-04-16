@@ -55,16 +55,17 @@ $requiredModules = @{
     StorageDsc                   = '4.9.0.0'
     Chocolatey                   = '0.0.79'
     'Datum.ProtectedData'        = '0.0.1'
+    xDscDiagnostic               = '2.7.0.0'
 }
 
 $requiredChocolateyPackages = @{
-    putty            = 'latest'
-    winrar           = 'latest'
-    notepadplusplus  = 'latest'
-    'microsoft-edge' = 'latest'
-    vscode           = 'latest'
-    wireshark        = 'latest'
-    winpcap          = 'latest'
+    putty            = '0.73'
+    winrar           = '5.90.0.20200401'
+    notepadplusplus  = '7.8.5'
+    'microsoft-edge' = '80.0.361.111'
+    vscode           = '1.44.0'
+    wireshark        = '3.2.2'
+    winpcap          = '4.1.3.20161116'
 }
 
 if (-not (Test-LabMachineInternetConnectivity -ComputerName $devOpsServer)) {
@@ -213,29 +214,44 @@ Invoke-LabCommand -ActivityName 'Get tested nuget.exe and register Azure DevOps 
 
 Invoke-LabCommand -ActivityName 'Install Chocolatey to all lab VMs' -ScriptBlock {
     
-    if (([Net.ServicePointManager]::SecurityProtocol -band 'Tls12') -ne 'Tls12')
-    {
+    if (([Net.ServicePointManager]::SecurityProtocol -band 'Tls12') -ne 'Tls12') {
         [Net.ServicePointManager]::SecurityProtocol += [Net.SecurityProtocolType]::Tls12
     }
     
     Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
     
-    if (-not (Find-PackageProvider NuGet -ErrorAction SilentlyContinue))
-    {
+    if (-not (Find-PackageProvider NuGet -ErrorAction SilentlyContinue)) {
         Install-PackageProvider -Name NuGet
     }
     Import-PackageProvider -Name NuGet
 
-    if (-not (Get-PackageSource -Name $chocolateyFeed.name -ErrorAction SilentlyContinue))
-    {
+    if (-not (Get-PackageSource -Name $chocolateyFeed.name -ErrorAction SilentlyContinue)) {
         Register-PackageSource -Name $chocolateyFeed.name -ProviderName NuGet -Location $chocolateyFeed.NugetV2Url -Trusted
     }
+    
+    choco source add -n=Software -s $chocolateyFeed.NugetV2Url
 
 } -ComputerName (Get-LabVM) -Variable (Get-Variable -Name chocolateyFeed)
 
 Remove-LabPSSession #this is required to make use of the new version of PowerShellGet
 
-Restart-LabVM -ComputerName $pullServer
+Write-Host "Restarting all $((Get-LabVM).Count) machines to make the installation of Chocolaty effective."
+Write-Host 'Restarting Domain Controllers'
+Restart-LabVM -ComputerName (Get-LabVM -Role ADDS) -Wait
+Write-Host 'Restarting SQL Servers'
+Restart-LabVM -ComputerName (Get-LabVM -Role SQLServer) -Wait
+Write-Host 'Restarting all other machines'
+Restart-LabVM -ComputerName (Get-LabVM -Role WebServer, FileServer, DSCPullServer, AzDevOps, SQLServer, HyperV) -Wait
+
+Invoke-LabCommand -ActivityName 'Add Chocolatey internal source' -ScriptBlock {
+    
+    if (([Net.ServicePointManager]::SecurityProtocol -band 'Tls12') -ne 'Tls12') {
+        [Net.ServicePointManager]::SecurityProtocol += [Net.SecurityProtocolType]::Tls12
+    }
+   
+    choco source add -n=Software -s $chocolateyFeed.NugetV2Url
+
+} -ComputerName (Get-LabVM) -Variable (Get-Variable -Name chocolateyFeed)
 
 Invoke-LabCommand -ActivityName 'Downloading required modules from PSGallery' -ComputerName $devOpsServer -ScriptBlock {
 
@@ -306,8 +322,7 @@ Invoke-LabCommand -ActivityName 'Publishing required modules to internal reposit
 
 Invoke-LabCommand -ActivityName 'Publishing required Chocolatey packages to internal repository' -ScriptBlock {
     
-    if (([Net.ServicePointManager]::SecurityProtocol -band 'Tls12') -ne 'Tls12')
-    {
+    if (([Net.ServicePointManager]::SecurityProtocol -band 'Tls12') -ne 'Tls12') {
         [Net.ServicePointManager]::SecurityProtocol += [Net.SecurityProtocolType]::Tls12
     }
         
