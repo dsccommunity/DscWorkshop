@@ -8,5 +8,6 @@
         }
     }
 
-    CommonTasks     = 'latest'
+    CommonTasks     = '0.3.33'
+    
 }
