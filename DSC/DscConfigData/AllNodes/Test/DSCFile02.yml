@@ -1,0 +1,16 @@
+NodeName: DSCFile02
+Environment: Test
+Role: FileServer
+Description: File Server in Test
+Location: Frankfurt
+
+NetworkIpConfiguration:
+  IpAddress: 192.168.111.110
+
+PSDscAllowPlainTextPassword: True
+PSDscAllowDomainUser: True
+
+LcmConfig:
+  ConfigurationRepositoryWeb:
+    Server:
+      ConfigurationNames: DSCFile02

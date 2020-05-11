@@ -5,7 +5,7 @@ $nodeDefinitions = Get-ChildItem $here\..\..\DscConfigData\AllNodes -Recurse -In
 $environments = (Get-ChildItem $here\..\..\DscConfigData\AllNodes -Directory).BaseName
 $roleDefinitions = Get-ChildItem $here\..\..\DscConfigData\Roles -Recurse -Include *.yml
 $datum = New-DatumStructure -DefinitionFile $datumDefinitionFile
-$configurationData = Get-FilteredConfigurationData -Environment $environment -Datum $datum -Filter $filter
+$configurationData = Get-FilteredConfigurationData -Datum $datum -Filter $filter
 
 $nodeNames = [System.Collections.ArrayList]::new()
 
@@ -22,30 +22,43 @@ Describe 'Datum Tree Definition' -Tag Integration {
 }
 
 Describe 'Node Definition Files' -Tag Integration {
+    $environments = dir .\DscConfigData\Environment\ | Select-Object -ExpandProperty BaseName
+    $locations = dir .\DscConfigData\Locations\ | Select-Object -ExpandProperty BaseName
+
     $nodeDefinitions.ForEach{
         # A Node cannot be empty
         $content = Get-Content -Path $_ -Raw
+        $node = $content | ConvertFrom-Yaml
+        $nodeName = $node.NodeName
         
         if ($_.BaseName -ne 'AllNodes') {
-            It "$($_.FullName) Should not be duplicated" {
+            It "'$($_.FullName)' should not be duplicated" {
                 $nodeNames -contains $_.BaseName | Should -Be $false
             }
         }
-        
-        $null = $nodeNames.Add($_.BaseName)
 
-        It "$($_.Name) has valid yaml" {
+        $nodeNames.Add($_.BaseName) | Out-Null
+
+        It "'$nodeName' has valid yaml" {
             { $content | ConvertFrom-Yaml } | Should -Not -Throw
         }
 
-        It "$($_.Name) is in the right environment" {
-            $node = $content | ConvertFrom-Yaml
+        It "'$nodeName' is in the right environment" {
             $pathElements = $_.FullName.Split('\')
             $pathElements -contains $node.Environment | Should Be $true
         }
+
+        It "Location of '$nodeName' is '$($node.Location)' and does exist" {
+            $node = $content | ConvertFrom-Yaml
+            $node.Location -in $locations | Should Be $true
+        }
+
+        It "Environment of '$nodeName' is '$($node.Environment)' and does exist" {
+            $node = $content | ConvertFrom-Yaml
+            $node.Environment -in $environments | Should Be $true
+        }
     }
 }
-
 
 Describe 'Roles Definition Files' -Tag Integration {
     $nodes = if ($Environment) {

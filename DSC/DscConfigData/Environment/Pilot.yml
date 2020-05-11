@@ -1,7 +1,0 @@
-DscTagging:
-  Environment: Pilot
-
-FilesAndFolders:
-  Items:
-    - DestinationPath: C:\Test\Pilot-Environment
-      Type: Directory

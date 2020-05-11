@@ -2,7 +2,8 @@
 $domain = $lab.Domains[0]
 $devOpsServer = Get-LabVM -Role AzDevOps
 $devOpsHostName = if ($lab.DefaultVirtualizationEngine -eq 'Azure') { $devOpsServer.AzureConnectionInfo.DnsName } else { $devOpsServer.FQDN }
-$proGetServer = Get-LabVM | Where-Object { $_.PostInstallationActivity.RoleName -contains 'ProGet5' }
+$nugetServer = Get-LabVM -Role AzDevOps
+$nugetFeed = Get-LabTfsFeed -ComputerName $nugetServer -FeedName PowerShell
 
 $role = $devOpsServer.Roles | Where-Object Name -eq AzDevOps
 $devOpsCred = $devOpsServer.GetCredential($lab)
@@ -50,7 +51,7 @@ $releaseSteps = @(
             targetType = 'inline'
             script     = @'
 #always make sure the local PowerShell Gallery is registered correctly
-$uri = '$(GalleryUri)'
+$uri = '$(RepositoryUri)'
 $name = 'PowerShell'
 $r = Get-PSRepository -Name $name -ErrorAction SilentlyContinue
 if (-not $r -or $r.SourceLocation -ne $uri -or $r.PublishLocation -ne $uri) {
@@ -82,7 +83,7 @@ if (-not $r -or $r.SourceLocation -ne $uri -or $r.PublishLocation -ne $uri) {
             script     = @'
 Write-Host "$(System.DefaultWorkingDirectory)"
 Set-Location -Path "$(System.DefaultWorkingDirectory)\$(Build.DefinitionName)\SourcesDirectory"
-.\Build.ps1 -Tasks Init, SetPsModulePath, Deploy, TestReleaseAcceptance -GalleryRepository PowerShell
+.\Build.ps1 -Tasks Init, SetPsModulePath, Deploy, TestReleaseAcceptance -Repository PowerShell
 '@
         }
     }
@@ -111,8 +112,8 @@ $releaseEnvironments = @(
             uniqueName  = 'Install'
         }
         variables           = @{
-            GalleryUri = @{ value = "http://$($proGetServer.FQDN)/nuget/PowerShell" }
-            NugetApiKey = @{ value = "{0}@{1}:{2}" -f $domain.Administrator.UserName, $domain.Name, $domain.Administrator.Password }
+            RepositoryUri = @{ value = $nugetFeed.NugetV2Url }
+            NugetApiKey = @{ value = $nugetFeed.NugetApiKey }            
         }
         preDeployApprovals  = @{
             approvals = @(
@@ -212,6 +213,23 @@ if ($PSVersionTable.PSEdition -eq 'Core')
 }
 $refs = (Invoke-RestMethod @param).value.name
 
+Invoke-LabCommand -ActivityName 'Set RepositoryUri and create Build Pipeline' -ScriptBlock {
+
+    Set-Location -Path C:\Git\CommonTasks
+    git checkout dev *>$null
+    $c = Get-Content '.\azure-pipelines On-Prem.yml' -Raw
+    $c = $c -replace '  RepositoryUri: ggggg', "  RepositoryUri: $($nugetFeed.NugetV2Url)"
+    $c = $c -replace '  Domain: ddddd', "  Domain: $($nugetFeed.NugetCredential.GetNetworkCredential().Domain)"
+    $c = $c -replace '  UserName: uuuuu', "  Username: $($nugetFeed.NugetCredential.GetNetworkCredential().UserName)"
+    $c = $c -replace '  Password: ppppp', "  Password: $($nugetFeed.NugetCredential.GetNetworkCredential().Password)"
+    $c | Set-Content '.\azure-pipelines.yml'
+    git add .
+    git commit -m 'Set RepositoryUri and create Build Pipeline'
+    git push 2>$null
+
+} -ComputerName $devOpsServer -Variable (Get-Variable -Name nugetFeed)
+
+Start-Sleep -Seconds 10
 New-TfsReleaseDefinition -ProjectName $projectName -InstanceName $devOpsHostName -Port $devOpsPort -ReleaseName "$($projectName) CD" -Environments $releaseEnvironments -Credential $devOpsCred -CollectionName $collectionName -UseSsl -SkipCertificateCheck
 
 Write-ScreenInfo done

@@ -45,7 +45,7 @@ $netAdapter = @()
 $netAdapter += New-LabNetworkAdapterDefinition -VirtualSwitch $labName -Ipv4Address 192.168.111.50
 $netAdapter += New-LabNetworkAdapterDefinition -VirtualSwitch 'Default Switch' -UseDhcp
 
-# The good, the bad and the ugly
+# SQL and PKI
 Add-LabMachineDefinition -Name DSCCASQL01 -Memory 3GB -Roles CaRoot, SQLServer2017, Routing -NetworkAdapter $netAdapter
 
 # DSC Pull Server with SQL server backing, Azure DevOps Build Worker
@@ -56,28 +56,26 @@ $roles = @(
         SqlServer             = 'DSCCASQL01'
         DatabaseName          = 'DSC'
     }
-    Get-LabMachineRoleDefinition -Role TfsBuildWorker
+    Get-LabMachineRoleDefinition -Role TfsBuildWorker -Properties @{ NumberOfBuildWorkers = '4' }
     Get-LabMachineRoleDefinition -Role WebServer
 )
-$proGetRole = Get-LabPostInstallationActivity -CustomRole ProGet5 -Properties @{
-    ProGetDownloadLink = 'https://s3.amazonaws.com/cdn.inedo.com/downloads/proget/ProGetSetup5.2.8.exe'
-    SqlServer          = 'DSCCASQL01'
-}
-Add-LabMachineDefinition -Name DSCPULL01 -Memory 2GB -Roles $roles -IpAddress 192.168.111.60 -PostInstallationActivity $proGetRole -OperatingSystem 'Windows Server 2019 Datacenter (Desktop Experience)'
+Add-LabMachineDefinition -Name DSCPULL01 -Memory 4GB -Roles $roles -IpAddress 192.168.111.60 -OperatingSystem 'Windows Server 2019 Datacenter (Desktop Experience)'
 
 # Build Server
+Add-LabMachineDefinition -Name DSCDO01 -Memory 4GB -Roles AzDevOps -IpAddress 192.168.111.70
+
+#Hyper-V Host
 $roles = @(
-    Get-LabMachineRoleDefinition -Role AzDevOps
-    Get-LabMachineRoleDefinition -Role TfsBuildWorker
+    Get-LabMachineRoleDefinition -Role TfsBuildWorker -Properties @{ NumberOfBuildWorkers = '4' }
+    Get-LabMachineRoleDefinition -Role HyperV
 )
-Add-LabMachineDefinition -Name DSCDO01 -Memory 4GB -Roles $roles -IpAddress 192.168.111.70
+Add-LabMachineDefinition -Name DSCHost01 -Memory 8GB -Roles $roles -IpAddress 192.168.111.80
 
 # DSC target nodes - our legacy VMs with an existing configuration
-# Servers in Dev
 Add-LabMachineDefinition -Name DSCFile01 -Memory 1GB -Roles FileServer -IpAddress 192.168.111.100
 Add-LabMachineDefinition -Name DSCWeb01 -Memory 1GB -Roles WebServer -IpAddress 192.168.111.101
 
-# Servers in Pilot
+# Servers in Test
 Add-LabMachineDefinition -Name DSCFile02 -Memory 1GB -Roles FileServer -IpAddress 192.168.111.110
 Add-LabMachineDefinition -Name DSCWeb02 -Memory 1GB -Roles WebServer -IpAddress 192.168.111.111
 

@@ -17,20 +17,24 @@ Before starting any exercise, please make sure you have met the following requir
    - Install the Az module (Install-Module -Name Az)
    - Test logging into your free Azure test subscription (Login-AzAccount)
  
-Please execute the [prerequisite check](CheckPrereq.ps1) in Windows PowerShell to check if verything is configured correctly on you computer.
+Please execute the [prerequisite check](CheckPrereq.ps1) in Windows PowerShell to check if everything is configured correctly on you computer.
 
 > ***Please not that this test requires Pester > 4 to run.***
 
 ## Task 1
 
->***New to DSC? Maybe start with [Task 0](Task0/Exercise1.md)!***
+Task 1 will get you into the DSC basics. You create a simple configuration, compile MOF file and apply the MOF file to your local machine
 
-Task 1 is all about getting around the build environment step by step. From running a manual build to easily modifying the entire environment without modifying the actual DSC code you can experience everything.  
-
-Start at [Task 1, Exercise1.md](Task1/Exercise1.md)
+Stat at [Task 1, Exercise 1](Task1/Exercise1.md)
 
 ## Task 2
 
+Task 2 is all about getting around the build environment step by step. From running a manual build to easily modifying the entire environment without modifying the actual DSC code you can experience everything.  
+
+Start at [Task 2, Exercise 1](Task2/Exercise1.md)
+
+## Task 3
+
 Task 2 will get you going with your release pipeline on Azure DevOps and Azure DevOps Server. While this task is specific to Microsoft products like TFS/VSTS or Azure DevOps, the same principle applies to any CI system that lets you define build and release tasks like AppVeyor, TravisCI, Jenkins, ...  
 
-Start at [Task 2, Exercise1.md](Task2/Exercise1.md)
+Start at [Task 3, Exercise 1](Task3/Exercise1.md)

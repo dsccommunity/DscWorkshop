@@ -19,10 +19,13 @@ param (
     $Filter = {},
 
     [int]
-    $MofCompilationTaskCount = 1,
+    $CurrentJobNumber = 1,
+
+    [int]
+    $TotalJobCount = 1,
 
     [string]
-    $GalleryRepository = 'PSGallery',
+    $Repository = 'PSGallery',
 
     [uri]
     $GalleryProxy,
@@ -57,8 +60,6 @@ param (
 )
 
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
-Add-Type -AssemblyName System.Threading
-$m = [System.Threading.Mutex]::new($false, 'DscBuildProcessMutex')
 
 $env:BHBuildStartTime = Get-Date
 Write-Host "Current Process ID is '$PID'"
@@ -94,8 +95,8 @@ if ($buildModulesPath -notin $psModulePathElemets) {
     $env:PSModulePath += ";$buildModulesPath"
 }
 
-#importing all resources from .build directory
-Get-ChildItem -Path "$PSScriptRoot/.build" -Recurse -Include *.ps1 |
+#importing all resources from 'Build' directory
+Get-ChildItem -Path "$PSScriptRoot/Build" -Recurse -Include *.ps1 |
     ForEach-Object {
     Write-Verbose "Importing file $($_.BaseName)"
     try {
@@ -110,7 +111,7 @@ if (-not (Get-Module -Name InvokeBuild -ListAvailable) -and -not $ResolveDepende
 }
 
 if ($ResolveDependency) {
-    . $PSScriptRoot/.build/BuildHelpers/Resolve-Dependency.ps1
+    . $PSScriptRoot/Build/BuildHelpers/Resolve-Dependency.ps1
     Resolve-Dependency
 }
 
@@ -126,43 +127,14 @@ if ($MyInvocation.ScriptName -notlike '*Invoke-Build.ps1') {
     else {
         $PSBoundParameters.Remove('Tasks') | Out-Null
         Invoke-Build -Tasks $Tasks -File $MyInvocation.MyCommand.Path @PSBoundParameters
-
-        if ($MofCompilationTaskCount -gt 1) {
-            $global:splittedNodes = Split-Array -List $ConfigurationData.AllNodes -ChunkCount $MofCompilationTaskCount
-
-            $mofCompilationTasks = foreach ($nodeSet in $global:splittedNodes) {
-                $nodeNamesInSet = "'$($nodeSet.Name -join "', '")'"
-                $filterString = '$_.NodeName -in {0}' -f $nodeNamesInSet
-                $PSBoundParameters.Filter = [scriptblock]::Create($filterString)
-
-                @{
-                    File                    = $MyInvocation.MyCommand.Path
-                    Task                    = 'WaitForMutex',
-                    'TestDscResources',
-                    'LoadDatumConfigData',
-                    'CompileDatumRsop',
-                    'CompileRootConfiguration',
-                    'CompileRootMetaMof'
-                    Filter                  = [scriptblock]::Create($filterString)
-                    MofCompilationTaskCount = $MofCompilationTaskCount
-                    ProjectPath             = $ProjectPath
-                    BuildOutput             = $buildOutput
-                    ResourcesFolder         = $ResourcesFolder
-                    ConfigDataFolder        = $ConfigDataFolder
-                    ConfigurationsFolder    = $ConfigurationsFolder
-                    TestFolder              = $TestFolder
-                }
-            }
-            Build-Parallel $mofCompilationTasks
-        }
     }
 
     if (($Tasks -contains 'CompileRootConfiguration' -or $Tasks -contains 'CompileRootMetaMof') -or -not $Tasks) {
         Invoke-Build -File "$ProjectPath\PostBuild.ps1"
     }
 
-    $m.Dispose()
-    Write-Host "Created $((Get-ChildItem -Path "$BuildOutput\MOF" -Filter *.mof).Count) MOF files in '$BuildOutput/MOF'" -ForegroundColor Green
+    $mofFileCount = (Get-ChildItem -Path "$BuildOutput\MOF" -Filter *.mof -ErrorAction SilentlyContinue).Count
+    Write-Host "Created $mofFileCount MOF files in '$BuildOutput/MOF'" -ForegroundColor Green
 
     #Debug Output
     Write-Host "------------------------------------" -ForegroundColor Magenta
@@ -180,31 +152,20 @@ if ($TaskHeader) {
     Set-BuildHeader $TaskHeader
 }
 
-if ($MofCompilationTaskCount -gt 1) {
+if (-not $Tasks) {
     task . Init,
     CleanBuildOutput,
     SetPsModulePath,
-    DownloadDependencies,
     TestConfigData,
     VersionControl,
-    LoadDatumConfigData
+    LoadDatumConfigData,
+    CompileDatumRsop,
+    TestDscResources,
+    CompileRootConfiguration,
+    CompileRootMetaMof
 }
 else {
-    if (-not $Tasks) {
-        task . Init,
-        CleanBuildOutput,
-        SetPsModulePath,
-        TestConfigData,
-        VersionControl,
-        LoadDatumConfigData,
-        CompileDatumRsop,
-        TestDscResources,
-        CompileRootConfiguration,
-        CompileRootMetaMof
-    }
-    else {
-        task . $Tasks
-    }
+    task . $Tasks
 }
 
 Write-Host "Running the folling tasks:" -ForegroundColor Magenta

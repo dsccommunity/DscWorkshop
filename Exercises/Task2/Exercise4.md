@@ -1,151 +1,140 @@
-# Task 2 - The pipeline
+# Task 2 - The build
 
-*Estimated time to completion: 35 minutes*
+*Estimated time to completion: 30-60 minutes*
 
-This task will guide you through the process of creating an infrastructure build and release pipeline. While the full project also creates a separate pipeline for the DSC Composite Resource module, the same principles apply so that we will concentrate on the build process of your IaaS workloads.  
-
-This task assumes that you have access to dev.azure.com in order to create your own project and your own pipeline.  
-
-*By the way: You can use the PowerShell module [AutomatedLab.Common](https://github.com/automatedlab/automatedlab.common) to automate your interactions with TFS,VSTS and Azure DevOps*
+To kick off a new build, the script 'Build.ps1' is going to be used. Whether or not you are in a build pipeline, the build script will create all artifacts in your current environment.
 
 ***Remember to check the [prerequisites](../CheckPrereq.ps1)!***
 
-## Create the release pipeline
+---
 
-While the build process is already a first important step towards infrastructure automation you can trust in, the CD bit of your pipeline is also important. The created artifacts should be automatically deployed to your infrastructure after all. By utilizing staging rings we can move the build artifacts securely through the infrastructure.
+## 2.4 Add another layer to your hierarchy
 
-If you are using our on-premises lab script to try it on your own, the environment already contains an on-premises DSC pull server. Adapting this to use Azure Automation DSC or any other DSC pull server is trivial.
+You are tasked with creating another layer that better reflects separate fire sections for your locations. All locations have two fire sections that are physically kept apart from each other. Each computer should have the fire section information written to its registry in the key 'HKEY_LOCAL_MACHINE\SOFTWARE\Dsc'.
 
-1. First of all, navigate to "Pipelines\Releases" on the right-hand side and select "New pipeline".
-The template selection will pop up. Select "Empty job".
+1. To create a new layer, you need to find an appropriate structure. Since the file system is already quite good when it comes to displaying hierarchical data, we can add a subfolder called FireSections which should contain for example Section1.yml and Section2.yml. The file subscribes to the 'RegistryValues' configuration to write a registry key to the nodes containing the fire section. You may either use VSCode to create the folder and the files or run the following commands:
 
-1. Once your pipeline is created, notice that the Artifacts are yet to be filled. Select "Add an artifact" and use the output of your build. A successful build will now trigger your pipeline.  
-    ![This belongs in a museum](./img/AddArtifact.png)
-1. Rename 'Stage 1' to 'Dev'. Add two additional stages (environemnts), called 'pilot' and 'production', each with an empty job.
+> Note: Before running the commands, make sure you are in the DscWorkshop directory.
 
-The design of the pipeline depends very much on where it should operate. Your build steps might have included copying the files to an Azure blob storage instead of an on-premises file share. This would be the recommended way in case you want your Azure Automation DSC pull server to host the MOF files. The release step would be to execute New-AzAutomationModule with the URIs of your uploaded, compressed modules.
+```powershell
+@'
+Configurations:
+  - RegistryValues
 
-For now, we will only upload the MOF files to Azure Automation, but you can add a similar release task for uploading the modules for example.
+RegistryValues:
+    Values:
+    - Key: HKEY_LOCAL_MACHINE\SOFTWARE\Dsc
+      ValueName: FireSection
+      ValueData: 1
+      ValueType: DWORD
+      Ensure: Present
+      Force: true
+'@ | New-Item -Path .\DSC\DscConfigData\FireSections\Section1.yml -Force
 
-1. Open your first stage, dev, and navigate to variables. For the dev stage, we want for example to deploy to the dev automation account. Variables you add here are available as environment variables. The environment variables are used later by the PowerShell scripts. By selecting the appropriate scope, you can control the variable contents for each stage.
+@'
+Configurations:
+  - RegistryValues
 
-    |Name | Value
+RegistryValues:
+    Values:
+    - Key: HKEY_LOCAL_MACHINE\SOFTWARE\Dsc
+      ValueName: FireSection
+      ValueData: 2
+      ValueType: DWORD
+      Ensure: Present
+      Force: true
+'@ | New-Item -Path .\DSC\DscConfigData\FireSections\Section2.yml -Force
+```
+
+2. Please start a new build and examine the RSoP files for the new fire section information once completed. Don't try too hard to find the information. It is expected that it's not there. Why?
+
+    We have created config files containing the fire sections but the nodes have not been assigned a fire section yet.
+
+3. To assign a node to a fire section, please open the files for the nodes 'DSCFile01' and DSCWeb01' in the dev environment. Like a node is assigned to a location or role, you can add a line containing the fire section like this:
+
+    ```yml
+    NodeName: DSCFile01
+    Environment: Dev
+    Role: FileServer
+    Description: File Server in Dev
+    Location: Frankfurt
+    FireSection: Section1
+    ```
+
+4. Please build the project again. This time you will see that the fire section number has made it to the node's RSoP files. However, something important is missing: The data about the registry key to write. Why is it still missing?
+
+5. In order to add completely new layers to your configuration, you need to tell Datum about it by modifying the lookup precedence. This is done in the global configuration file called 'Datum.yml' stored in the directory 'DscConfigData'. Please open the file.
+
+6. Examine the current contents of 'Datum.yml' and notice the resolution order for your files:
+
+    | Name      | Description |
     |-|-|
-    ResourceGroupName | DscWorkshop
-    AutomationAccountName | DscWorkshop
-    StorageAccountName | DscWorkshop
+    | ```AllNodes\$($Node.Environment)\$($Node.NodeName)``` | The settings unique to one node|
+    | ```Environment$($Node.Environment)``` | The settings that are environment specific|
+    | ```Environment$($Node.Location)``` | The settings that are location specific|
+    | ```Roles\$($Node.Role)``` | The settings unique to the role of a node|
+    | ```Roles\ServerBaseline``` | The baseline settings that should apply to all nodes and roles|
+    | ```MetaConfig\DscBaseline``` | DSC specific settings like intervals, maintenance windows  and version info
 
-    ![Variable overview](./img/ReleaseVariables.png)
+    The settings get more generic the further down you go in the list. This way, your node will always win and will always be able to override settings that have been defined on a more global scale like the environment. This is because the default lookup is set to 'MostSpecific', so the most specific setting wins.
 
-    ---
+    Some paths are configured to have a different lookup option like 'merge_basetype_array: Unique' or 'merge_hash: deep'. This tells Datum not to override settings in lower levels but merge the content. An example:
 
-1. Add a new 'Azure PowerShell' task for uploading the MOF files to the Azure automation account
-    
-    > Note: In the task select your subscription and authorize Azure DevOps to access your subscription.
+    The 'ServerBaseline.yml' adds the Windows feature 'Telnet-Client' to the list of windows features:
 
-    - Select a meaningful display name.
-    - Select the Azure subscription you have created your Azure Automation Account in.
-    - Select the script type 'Inline script'.
-    - Paste the following script into the space named 'Inline Script'.
-    - Azure PowerShell Version should be 'Latest installed version'.
+      ```yaml
+        WindowsFeatures:
+          Name:
+          - -Telnet-Client
+      ```
+  
+    And the web server role contains some other Windows features:
 
-    This is the inline script:
-    ```powershell
-    if (Get-Command Enable-AzureRmAlias -ea silentlycontinue)
-    {
-        Enable-AzureRmAlias
-    }
-    
-    $path = "$($env:SYSTEM_ARTIFACTSDIRECTORY)\$($env:RELEASE_PRIMARYARTIFACTSOURCEALIAS)\MOF"
-    
-    foreach ($config in (Get-ChildItem -Path $path -Filter *.mof ))
-    {
-        Import-AzureRmAutomationDscNodeConfiguration -ResourceGroupName $env:ResourceGroupName -AutomationAccountName $env:AutomationAccountName -Path $config.FullName -ConfigurationName $config.BaseName -Verbose -Force
-    }
+      ```yaml
+        WindowsFeatures:
+        Name:
+        - +Web-Server
+        - -WoW64-Support
+      ```
+
+    The 'Datum.yml' defines the merge behavior for the path 'WindowsFeatures\Name':
+
+      ```yaml
+        WindowsFeatures\Name:
+          merge_basetype_array: Unique
+      ```
+
+    The result can be seen the RSoP files. After building the project, the Windows features config section in the 'DSCWeb01.yml' in the folder 'DSC\BuildOutput\RSOP' looks like this:
+
+      ```yaml
+        WindowsFeatures:
+        Name:
+        - +Web-Server
+        - -WoW64-Support
+        - -Telnet-Client
+      ```
+
+    More complex merging scenarios are supported that will be explained in later articles.
+
+7. Let's go back to the fire section task. A good place to add your new layer thus would be somewhere before the node-specific data is applied, since a separate fire section might mean different IP configurations.
+
+    Let's add the new layer by adding an entry to Datum's global lookup precedence. Depending on when you want your new layer to apply, this could look like:
+
+    ```yaml
+    ResolutionPrecedence:
+    - AllNodes\$($Node.Environment)\$($Node.NodeName)
+    - Environment\$($Node.Environment)
+    - Locations\$($Node.Location)
+    - FireSections\$($Node.FireSection)
+    - Roles\$($Node.Role)
+    - Roles\ServerBaseline
+    - Roles\DscBaseline
     ```
 
-    Your new task should look like this:
-    ![Task settings](./img/AutomationDscTask.png)
-    
+    We are using node-specific settings to select the correct files to import. This principle gives you a lot of flexibility to put your infrastructure and business requirements into DSC config data.
 
-    The simple script works with the artifacts from the build process and uploads them as new DSC configurations to your Azure Automation Account. This is only one of the many ways you could use your artifacts at this stage.
+    In summary, adding new layers is a bit more involved than adding a new role. You need to think about the resolution precedence and the way your settings will be merged. Our project can serve as a good starting point, but you still need to take care of organizational requirements and so on.
 
-    Another approach can be to actively push configurations out to all nodes to immediately receive feedback that could be consumed by Pester tests.
+---
 
-    ---
-
-1. Add a new 'Azure PowerShell' task for uploading the compressed modules to the Azure automation account
-    
-    This is almost the same as for the previous task for uploading the MOF files but this time we want to upload the compressed modules. These modules are required to apply the DSC configuration on the nodes. After a node has downloaded its configuration (MOF) from the automation account, it will look for the modules referenced in the configuration. If the automation account does not provide the required modules, applying the configuration will fail.
-
-    - Select a meaningful display name.
-    - Select the Azure subscription you have created your Azure Automation Account in.
-    - Select the script type 'Inline script'.
-    - Paste the following script into the space named 'Inline Script'.
-    - Azure PowerShell Version should be 'Latest installed version'.
-
-    This is the script for uploading the modules:
-    ``` PowerShell
-    $resourceGroupName = $env:ResourceGroupName
-    $storageAccountName = $env:StorageAccountName 
-    $automationAccountName = $env:AutomationAccountName
-    $storageContainerName = 'DscModules'
-    
-    $path = "$($env:SYSTEM_ARTIFACTSDIRECTORY)\$($env:RELEASE_PRIMARYARTIFACTSOURCEALIAS)\Compressed Modules"
-    
-    if (Get-Command Enable-AzureRMAlias -ErrorAction SilentlyContinue)
-        {
-            Enable-AzureRMAlias
-        }
-    
-    #-------------------------
-    
-    $storageAccountName = $storageAccountName.ToLower()
-    $storageContainerName = $storageContainerName.ToLower()
-    
-    $storageAccount = Get-AzureRMStorageAccount -ResourceGroupName $resourceGroupName -Name $storageAccountName -ErrorAction SilentlyContinue
-    if (-not $storageAccount)
-    {
-        $storageAccount = New-AzureRMStorageAccount -ResourceGroupName $resourceGroupName -Name $storageAccountName -Location WestEurope -SkuName Standard_GRS
-    }
-    
-    $ctx = $storageAccount.Context
-    Set-AzureRMCurrentStorageAccount -ResourceGroupName $resourceGroupName -Name $storageAccountName | Out-Null
-    
-    $storageContainer = Get-AzureStorageContainer -Name $storageContainerName -Context $ctx -ErrorAction SilentlyContinue
-    if (-not $storageContainer)
-    {
-        $storageContainer = New-AzureStorageContainer -Name $storageContainerName -Context $ctx -Permission Blob
-    }
-    
-    $modules = Get-ChildItem -Path $path -Filter *.zip
-    $moduleJobs = foreach ($module in $modules)
-    {
-        Write-Host "Uploading module '$module' to storage account'"
-        $blob = Set-AzureStorageBlobContent –Container $storageContainerName -File $module.FullName -Blob $module.Name -Force
-    
-        $moduleUrl = $blob.ICloudBlob.Uri.AbsoluteUri
-        $moduleName = $module.BaseName.Split('_')[0]
-        
-        Write-Host "Creating new module '$module' in Azure Automation Account"
-        New-AzureRMAutomationModule -Name $moduleName -ResourceGroupName $resourceGroupName -AutomationAccountName $automationAccountName -ContentLinkUri $moduleUrl
-    }
-    
-    Write-Host "Uploading $($moduleJobs.Count) modules to Azure..." -NoNewline
-    do
-    {
-        $moduleJobs = $moduleJobs | Get-AzureRMAutomationModule | Where-Object { $_.ProvisioningState -ne 'Succeeded' }
-        Start-Sleep -Seconds 5
-        Write-Host . -NoNewline
-    }
-    while ($moduleJobs)
-    Write-Host finished
-    
-    Write-Host "Removing storage container '$($storageContainer.Name)'."
-    $storageContainer | Remove-AzureStorageContainer -Force
-    ```
-    ---
-
-You can trigger a new release either manually or automatically after a build has successfully finished. If you have an automation account set up, you can try it out! Simply set up your build variables properly and observe.  
-
-Congratulations! You have successfully created your first, very simple CI/CD pipeline to deploy your infrastructure as code. Now go on, make this project your own and help your company or your customers succeed!
+Please continue with [the stretch goal](StretchGoal.md) when your are ready.

@@ -9,7 +9,7 @@ Get-LabInternetFile -Uri https://download.microsoft.com/download/E/6/4/E6477A2A-
 Install-LabSoftwarePackage -Path $labsources\SoftwarePackages\ReportBuilder.msi -ComputerName $sqlServer
 Install-LabSoftwarePackage -Path $labsources\SoftwarePackages\SQLServerReportingServices.exe -CommandLine '/Quiet /IAcceptLicenseTerms' -ComputerName $sqlServer
 
-Invoke-LabCommand -ActivityName 'Configuring SSRS' -ComputerName $sqlServer -FilePath $labSources\PostInstallationActivities\SetupDscPullServer\SetupSqlServerReportingServices.ps1
+Invoke-LabCommand -ActivityName 'Configuring SSRS' -ComputerName $sqlServer -FilePath $labSources\PostInstallationActivities\SqlServer\SetupSqlServerReportingServices.ps1
 
 if (-not (Get-Module -Name ReportingServicesTools -ListAvailable)) {
     Install-Module -Name ReportingServicesTools -Force

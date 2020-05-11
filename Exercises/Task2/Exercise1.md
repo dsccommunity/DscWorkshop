@@ -1,32 +1,157 @@
-# Task 2 - The pipeline
+# Task 2 - The build
 
-*Estimated time to completion: 35 minutes*
+*Estimated time to completion: 30-60 minutes*
 
-This task will guide you through the process of creating an infrastructure build and release pipeline. While the full project also creates a separate pipeline for the DSC Composite Resource module, the same principles apply so that we will concentrate on the build process of your IaaS workloads.  
+This task is about building the solution locally. For that, no infrastructure or service is required. All you need is having cloned the public DscWorkshop repository to your machine.
 
-This task assumes that you have access to dev.azure.com in order to create your own project and your own pipeline.  
+To kick off a new build, the script ```/DSC/Build.ps1``` is going to be used. Whether or not you are in a build pipeline, the build script will create all artifacts in your current environment.
 
-*By the way: You can use the PowerShell module [AutomatedLab.Common](https://github.com/automatedlab/automatedlab.common) to automate your interactions with TFS,VSTS and Azure DevOps*
+After completing this task, you have a gone through the build process for all artifacts that are required for a DSC pull server scenario (on-prem or Azure).
 
-***Remember to check the [prerequisites](../CheckPrereq.ps1)!***
+> ## Note: Remember to check the [prerequisites](../CheckPrereq.ps1) first
 
-## Create a new project in Azure DevOps
+---
 
-Whether you work with a test environment or at a customer location, you will need a repository for your infrastructure definitions - a project. Let's see how that works.
+## 2.1 Running a manual build locally
 
-1. Navigate to <https://dev.azure.com> in a browser of your choice and log in.
+1. Open Windows PowerShell as elevated Admin. Do this by pressing the Windows and then typing ```powershell.exe``` and then right-click select 'Run As Administrator'
+2. Execute the ```Get-ExecutionPolicy``` cmdlet. The resulting execution policy should be either RemoteSigned, Unrestricted or Bypass:
 
-2. Click on the "New project" button in the upper right corner and fill out the basics. It does not matter if it is a public or private repository for this lab.
-   
-    >Note: New projects automatically use git as version control system.*
+    ```code
+    Get-ExecutionPolicy
 
-3. On the left-hand side, select Repos -> Files. The page says the project is empty. The easiest way to start is importing the project from GitHub.
-   
-   Click on "Import" button. As the clone url, use <https://github.com/AutomatedLab/DscWorkshop> without authorization.  
-    ![Repo import](./img/ImportRepo.png)
+    RemoteSigned
+    ```
 
-4. Wait for a couple of seconds. The page will automatically refresh once the import job is done. All project branches, most notably 'master' and 'dev', have been imported. You should already be familiar with the structure from [Task 1](../Task1/Exercise1.md).
+    If this is not the case, execute
 
-At the moment, this project does not do anything. However, you have started with one important component: Source code control for your infrastructure. From now on, every change to an infrastructure component needs to be committed, and every change can be accounted for.
+    ```powershell
+    Set-ExecutionPolicy RemoteSigned -Force
+    ```
+
+3. Change to a suitable directory in which to clone the workshop files. As you will navigate to that folder quite often, keep it easy like
+
+    ```powershell
+    mkdir C:\Git
+    Set-Location -Path C:\Git
+    ```
+
+4. **Optional**: If you have not yet installed git, please do so now by executing the following lines of code:
+
+    ```powershell
+    Install-PackageProvider -Name nuget -Force
+    Install-Module Chocolatey -Force
+    Install-ChocolateySoftware
+    Install-ChocolateyPackage -Name git -Force
+    ```  
+
+    If you do not want to install Chocolatey, you can also browse to <https://git-scm.org> and download and install git from there.
+
+5. Ensure that the git executable is in your path to make the next exercises work. Otherwise, please use the full or relative path to git.exe in the following steps.
+
+    > Note: After installing git, you may need to close and open VSCode or the ISE again to make the process read the new path environment variable.
+
+6. In this and the following exercises we will be working with the open-source DscWorkshop repository hosted at <https://github.com/automatedlab/dscworkshop>. To clone this repository, please execute:
+
+    > Note: Please make sure you are in the 'C:\Git' folder or wherever you want to store project.
+    
+    ```powershell
+    git clone https://github.com/automatedlab/dscworkshop
+    ```
+
+7. Change into the newly cloned repository and checkout the dev branch to move into the development environment:
+
+    ```powershell
+    Set-Location -Path .\dscworkshop
+    git checkout dev
+    ```
+
+8. Open the DscWorkshop folder in VSCode and examine the repository contents. The shortcut in VSCode to open a folder is ```CTRL+K CTRL+O```. You can also press ```F1``` and type in the command you are looking for. And of course there is the classical way using the file menu.
+
+9. For a build to succeed, multiple dependencies have to be met. These are defined in files containing hashtables of key/value pairs much like a module manifest (*.psd1) file. Take a look at the content of these files by navigating to the DSC folder in VSCode and open the \*PSDepend\*.psd1 files:
+
+    PSDepend is another PowerShell module being used here which can be leveraged to define project dependencies to PowerShell modules, GitHub repositories and more.
+    To learn more about PSDepend, have a look at <https://github.com/RamblingCookieMonster/PSDepend>
+
+10. Without modifying anything yet, start the build script by executing:
+
+    > Note: It is important to go into the DSC folder and start the build script form there. Don't invoke it like ```.\DSC\Build.ps1```.
+
+    ```powershell
+    cd DSC
+    .\Build.ps1 -ResolveDependency
+    ```
+
+    This command will download all dependencies that have been defined first and then build the entire environment. This can take a short while.
+
+    While the script is running, you may want to explore the following folders. The PSDepend module downloads and stores the dependencies into these folders based on the information in the files in brackets.
+    - DSC\BuildOutput (DSC\Build\PSDepend\PSDepend.Build.psd1)
+    - DSC\DscConfigurations (DSC\Build\PSDepend\PSDepend.DscConfigurations.psd1)
+    - DSC\DscResources (DSC\Build\PSDepend\PSDepend.DscResources.psd1)
+
+11. After the build process has finished, a number of artifacts have been created. The artifacts that we need for DSC are the MOF files, Meta.MOF files and the compressed modules. Before having a closer look at the artifacts, let's have a look how nodes are defined for the dev environment. In VSCode, please navigate to the folder 'DSC\DscConfigData\AllNodes\Dev.
+
+    You should see two files here for the DSCFile01 and DSCWeb01.
+
+12. Please open the files 'DSCFile01.yml' and 'DSCWeb01.yml'. Both files are in the YAML format. YAML, like JSON, has been around since 2000/2001 and can be used to serialize data.
+
+    The file server for example looks like this:
+
+    ```yaml
+    NodeName: DSCFile01
+    Environment: Dev
+    Role: FileServer
+    Description: File Server in Dev
+    Location: Frankfurt
+
+    NetworkIpConfiguration:
+      IpAddress: 192.168.111.100
+
+    PSDscAllowPlainTextPassword: True
+    PSDscAllowDomainUser: True
+
+    LcmConfig:
+      ConfigurationRepositoryWeb:
+        Server:
+          ConfigurationNames: DSCFile01
+    ```
+
+    A node's YAML will contain data that is unique to the node, like its name or IP address. It will also contain role assignments like 'FileServer', the location of the node as well as the optional LCM configuration name to pull.
+
+13. The role of a node (FileServer) is effectively a link to another YAML file, in this case 'FileServer.yml' in the folder 'DSC\DscConfigData\Roles'. A role describes settings that are meant for a group of nodes and is the next level of generalization. Notice that the content starts with the 'Configurations' key. Nodes, Roles and Locations can all subscribe to DSC composite resources, which we call configurations:
+
+    ```yaml
+    Configurations:
+    - FilesAndFolders
+    - RegistryValues
+    ```
+
+    Each composite resource can receive parameters by specifying them a little further down in the YAML:
+
+    ```yaml
+    FilesAndFolders:
+      Items:
+        - DestinationPath: C:\GpoBackup
+          SourcePath: \\DSCDC01\SYSVOL\contoso.com\Policies
+          Type: Directory
+    ```
+
+    In this case, the composite resource 'FilesAndFolders' accepts a (very generic) parameter called 'Items'. The 'Items' parameter is simply a hashtable expecting the same settings that the File resource would use as well.
+
+    The location of a node is even more generic than the role and can be used to describe location-specific items like network topology and other settings. Same applies to the environment.
+
+14. Now it's time to focus more on the artifacts. The build process created four types of artifacts: MOF files, Meta.MOF files, Compressed modules and RSoP YAML files. Among these, the RSoP (Resultant Set of Policy) will be very helpful as these files will show you what configuration items exactly will be applied to your nodes and the parameters given to them. The concept of RSoP is very similar to Windows Group Policies and how to [use Resultant Set of Policy to Manage Group Policy](https://docs.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2012-R2-and-2012/dn789183(v=ws.11)).
+
+    Examine the RSoP files now which are in the folder 'DSC/BuildOutput\RSoP'.
+
+15. Let's take the RSoP artifact for 'DSCFile01'. If you compare the RSoP output of this node (DSC\BuildOutput\RSoP\DSCFile01.yml) to the node's config file (DSC\DscConfigData\AllNodes\Dev\DSCFile01.yml), you will notice that there are many more properties defined than in the original 'DSCFile01.yml'. Where did these come from? They are defined the node's role and location YAML files.
+
+    For understanding how Datum merges different layers, please refer to [Lookup Merging Behaviour](https://github.com/gaelcolas/Datum#lookup-merging-behaviour).
+
+16. The usable artifacts are your MOF, meta.MOF files and compressed modules - these files will be part of your release pipeline.
+
+---
+
+Congratulations. You have just built the entire development environment! Want to test this, but don't have the infrastructure (Azure DevOps Server, SQL, AD, PKI, target nodes)? Try <https://github.com/automatedlab/automatedlab>, the module that helps you with rapid prototyping of your apps ;) Included in this repository is [the entire lab script](../../Lab/03.10%20Full%20Lab%20with%20DSC%20and%20TFS.ps1).
 
 Please continue with [Exercise 2](Exercise2.md) when your are ready.
