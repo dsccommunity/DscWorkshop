@@ -55,7 +55,7 @@ $requiredModules = @{
     StorageDsc                   = '4.9.0.0'
     Chocolatey                   = '0.0.79'
     'Datum.ProtectedData'        = '0.0.1'
-    xDscDiagnostic               = '2.7.0.0'
+    xDscDiagnostics              = '2.7.0.0'
 }
 
 $requiredChocolateyPackages = @{
