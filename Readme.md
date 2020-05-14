@@ -37,9 +37,17 @@ One of the goals of this project is to manage the complexity that comes with DSC
 
 Getting into the details does not cost much time and does not require a complex lab infrastructure. You should start with the [Exercises - Task 2](./Exercises/Task2) on your personal computer. If you need to recap some DSC basics, go to [Exercises - Task 1](./Exercises/Task1). Later in the exercises a free [Azure DevOps](https://azure.microsoft.com/en-us/services/devops/) account is needed and to finish the last exercises also an [Azure Automation account](https://docs.microsoft.com/en-us/azure/automation/automation-create-standalone-account) for storing the MOF files.
 
-If you need DSC in an isolated or non-cloud ready environment, all the required components can be installed as a local lab. For that [AutomatedLab](https://automatedlab.org) (AL) is required to that handles the deployment of VMs on Azure or Hyper-V. AL takes also installs all the required software and does the necessary configurations. Deploying the lab takes 3 to 5 hours but is fully automated.
+If you need DSC in an isolated or non-cloud ready environment, all the required components can be installed as a local lab. For that [AutomatedLab](https://automatedlab.org) (AL) is required that handles the deployment of VMs on Azure or Hyper-V. AL also installs all the required software and does the necessary configurations. Deploying the lab takes 3 to 5 hours, is fully automated and includes:
 
-After having installed AL there is just one script to call that requires just one argument: [00 Lab Deployment.ps1](./Lab/00%20Lab%20Deployment.ps1).
+- Active Directory Domain
+- SQL Server 2017
+- Azure DevOps Server for hosting the code, running the builds and providing NuGet feed to Software (Chocolatey) and PowerShell modules
+- 4 to 8 Azure DevOps Build Agents
+- DSC Pull Server (SQL Server access already configured)
+- Certificate Authority for SSL support and credential encryption
+- Routing Services so all VMs can access the internet
+
+The lab script are in [Lab](.\Lab).
 
 ## Technical Details
 
