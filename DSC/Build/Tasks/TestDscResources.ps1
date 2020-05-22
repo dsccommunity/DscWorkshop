@@ -29,7 +29,7 @@ task TestDscResources {
     Get-DscResource -Module CommonTasks | Out-String | Write-Host
 
     Write-Host ------------------------------------------------------------
-    Write-Host 'Knwon DSC Resources'
+    Write-Host 'Known DSC Resources'
     Write-Host ------------------------------------------------------------
     Write-Host
     Import-LocalizedData -BindingVariable requiredResources -FileName PSDepend.DscResources.psd1 -BaseDirectory $ProjectPath\Build\PSDepend
