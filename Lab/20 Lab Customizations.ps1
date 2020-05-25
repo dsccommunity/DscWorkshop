@@ -16,6 +16,7 @@ $gitDownloadUrl = 'https://github.com/git-for-windows/git/releases/download/v2.2
 $vscodePowerShellExtensionDownloadUrl = 'https://marketplace.visualstudio.com/_apis/public/gallery/publishers/ms-vscode/vsextensions/PowerShell/2020.1.0/vspackage'
 $edgeDownloadUrl = 'http://dl.delivery.mp.microsoft.com/filestreamingservice/files/0af31313-0430-454d-908a-d55ce3df7b69/MicrosoftEdgeEnterpriseX64.msi'
 $chromeDownloadUrl = 'https://dl.google.com/tag/s/appguid%3D%7B8A69D345-D564-463C-AFF1-A69D9E530F96%7D%26iid%3D%7BC9D94BD4-6037-E88E-2D5A-F6B7D7F8F4CF%7D%26lang%3Den%26browser%3D5%26usagestats%3D0%26appname%3DGoogle%2520Chrome%26needsadmin%3Dprefers%26ap%3Dx64-stable-statsdef_1%26installdataindex%3Dempty/chrome/install/ChromeStandaloneSetup64.exe'
+$notepadPlusPlusDownloadUrl = 'https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v7.8.6/npp.7.8.6.Installer.x64.exe'
 
 #Create Azure DevOps artifacts feed
 $domainSid = Invoke-LabCommand -ActivityName 'Get domain SID' -ScriptBlock {
@@ -130,7 +131,9 @@ $gitInstaller = Get-LabInternetFile -Uri $gitDownloadUrl -Path $labSources\Softw
 Get-LabInternetFile -Uri $vscodePowerShellExtensionDownloadUrl -Path $labSources\SoftwarePackages\VSCodeExtensions\ps.vsix
 $edgeInstaller = Get-LabInternetFile -Uri $edgeDownloadUrl -Path $labSources\SoftwarePackages -PassThru
 $chromeInstaller = Get-LabInternetFile -Uri $chromeDownloadUrl -Path $labSources\SoftwarePackages -PassThru
+$notepadPlusPlusInstaller = Get-LabInternetFile -Uri $notepadPlusPlusDownloadUrl -Path $labSources\SoftwarePackages -PassThru
 
+Install-LabSoftwarePackage -Path $notepadPlusPlusInstaller.FullName -CommandLine /S -ComputerName (Get-LabVM)
 Install-LabSoftwarePackage -Path $vscodeInstaller.FullName -CommandLine /SILENT -ComputerName $devOpsServer
 Install-LabSoftwarePackage -Path $gitInstaller.FullName -CommandLine /SILENT -ComputerName ((@($devOpsServer) + $buildWorkers) | Select-Object -Unique)
 Install-LabSoftwarePackage -Path $edgeInstaller.FullName -ComputerName $devOpsServer
@@ -382,7 +385,6 @@ Invoke-LabCommand -ActivityName 'Create Share on Pull Server' -ComputerName $pul
     
     New-SmbShare -Name DscConfiguration -Path $dscConfigurationPath -FullAccess Everyone
     Add-NTFSAccess -Path $dscConfigurationPath -Account Everyone -AccessRights FullControl
-
 }
 
 Invoke-LabCommand -ActivityName 'Setting the worker service account to local system to be able to write to deployment path' -ComputerName $buildWorkers -ScriptBlock {
