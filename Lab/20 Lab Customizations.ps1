@@ -53,10 +53,10 @@ $requiredModules = @{
     xWebAdministration           = '3.1.1'
     ActiveDirectoryDsc           = '5.0.0'
     SecurityPolicyDsc            = '2.10.0.0'
-    StorageDsc                   = '4.9.0.0'
+    StorageDsc                   = '5.0.0'
     Chocolatey                   = '0.0.79'
     'Datum.ProtectedData'        = '0.0.1'
-    xDscDiagnostics              = '2.7.0.0'
+    xDscDiagnostics              = '2.8.0'
 }
 
 $requiredChocolateyPackages = @{
