@@ -6,11 +6,11 @@ $nugetFeed = Get-LabTfsFeed -ComputerName $nugetServer -FeedName PowerShell
 $pullServer = Get-LabVM -Role DSCPullServer
 $hypervHost = Get-LabVM -Role HyperV
 
-$role = $devOpsServer.Roles | Where-Object Name -like AzDevOps
+$devOpsRole = $devOpsServer.Roles | Where-Object Name -like AzDevOps
 $devOpsCred = $devOpsServer.GetCredential($lab)
 $devOpsPort = $originalPort = 8080
-if ($role.Properties.ContainsKey('Port')) {
-    $devOpsPort = $role.Properties['Port']
+if ($devOpsRole.Properties.ContainsKey('Port')) {
+    $devOpsPort = $devOpsRole.Properties['Port']
 }
 if ($lab.DefaultVirtualizationEngine -eq 'Azure') {
     $devOpsPort = (Get-LabAzureLoadBalancedPort -DestinationPort $devOpsPort -ComputerName $devOpsServer).Port

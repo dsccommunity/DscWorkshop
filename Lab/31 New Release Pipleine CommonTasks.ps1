@@ -5,12 +5,12 @@ $devOpsHostName = if ($lab.DefaultVirtualizationEngine -eq 'Azure') { $devOpsSer
 $nugetServer = Get-LabVM -Role AzDevOps
 $nugetFeed = Get-LabTfsFeed -ComputerName $nugetServer -FeedName PowerShell
 
-$role = $devOpsServer.Roles | Where-Object Name -eq AzDevOps
+$devOpsRole = $devOpsServer.Roles | Where-Object Name -eq AzDevOps
 $devOpsCred = $devOpsServer.GetCredential($lab)
 $devOpsPort = $originalPort = 8080
-if ($role.Properties.ContainsKey('Port'))
+if ($devOpsRole.Properties.ContainsKey('Port'))
 {
-    $devOpsPort = $role.Properties['Port']
+    $devOpsPort = $devOpsRole.Properties['Port']
 }
 if ($lab.DefaultVirtualizationEngine -eq 'Azure')
 {

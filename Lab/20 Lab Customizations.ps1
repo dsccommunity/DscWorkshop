@@ -3,6 +3,17 @@ $lab = Get-Lab
 $dc = Get-LabVM -Role ADDS | Select-Object -First 1
 $domainName = $lab.Domains[0].Name
 $devOpsServer = Get-LabVM -Role AzDevOps
+$devOpsHostName = if ($lab.DefaultVirtualizationEngine -eq 'Azure') { $devOpsServer.AzureConnectionInfo.DnsName } else { $devOpsServer.FQDN }
+$devOpsRole = $devOpsServer.Roles | Where-Object Name -eq AzDevOps
+$devOpsPort = $originalPort = 8080
+if ($devOpsRole.Properties.ContainsKey('Port'))
+{
+    $devOpsPort = $devOpsRole.Properties['Port']
+}
+if ($lab.DefaultVirtualizationEngine -eq 'Azure')
+{
+    $devOpsPort = (Get-LabAzureLoadBalancedPort -DestinationPort $devOpsPort -ComputerName $devOpsServer).Port
+}
 $buildWorkers = Get-LabVM -Role TfsBuildWorker
 $sqlServer = Get-LabVM -Role SQLServer2017
 $pullServer = Get-LabVM -Role DSCPullServer
@@ -155,19 +166,19 @@ Invoke-LabCommand -ActivityName 'Create link on AzureDevOps desktop' -ComputerNa
     $shell = New-Object -ComObject WScript.Shell
     $desktopPath = [System.Environment]::GetFolderPath('Desktop')
     $shortcut = $shell.CreateShortcut("$desktopPath\DscWorkshop Project.url")
-    $shortcut.TargetPath = "https://$($devOpsServer):8080/AutomatedLab/DscWorkshop"
+    $shortcut.TargetPath = "https://$($devOpsServer):$($devOpsPort)/AutomatedLab/DscWorkshop"
     $shortcut.Save()
 
     $shortcut = $shell.CreateShortcut("$desktopPath\CommonTasks Project.url")
-    $shortcut.TargetPath = "https://$($devOpsServer):8080/AutomatedLab/CommonTasks"
+    $shortcut.TargetPath = "https://$($devOpsServer)$($devOpsPort)/AutomatedLab/CommonTasks"
     $shortcut.Save()
     
     $shortcut = $shell.CreateShortcut("$desktopPath\PowerShell Feed.url")
-    $shortcut.TargetPath = "https://$($devOpsServer):8080/AutomatedLab/_packaging?_a=feed&feed=$($powerShellFeed.name)"
+    $shortcut.TargetPath = "https://$($devOpsServer):$($devOpsPort)/AutomatedLab/_packaging?_a=feed&feed=$($powerShellFeed.name)"
     $shortcut.Save()
     
     $shortcut = $shell.CreateShortcut("$desktopPath\Chocolatey Feed.url")
-    $shortcut.TargetPath = "https://$($devOpsServer):8080/AutomatedLab/_packaging?_a=feed&feed=$($chocolateyFeed.name)"
+    $shortcut.TargetPath = "https://$($devOpsServer):$($devOpsPort)/AutomatedLab/_packaging?_a=feed&feed=$($chocolateyFeed.name)"
     $shortcut.Save()
     
     $shortcut = $shell.CreateShortcut("$desktopPath\SQL RS.url")
@@ -175,7 +186,7 @@ Invoke-LabCommand -ActivityName 'Create link on AzureDevOps desktop' -ComputerNa
     $shortcut.Save()
 
     $shortcut = $shell.CreateShortcut("$desktopPath\Pull Server Endpoint.url")
-    $shortcut.TargetPath = "https://$($pullServer.FQDN):8080/PSDSCPullServer.svc/"
+    $shortcut.TargetPath = "https://$($pullServer.FQDN):$($devOpsPort)/PSDSCPullServer.svc/"
     $shortcut.Save()
 } -Variable (Get-Variable -Name devOpsServer, sqlServer, powerShellFeed, chocolateyFeed, pullServer)
 
