@@ -1,4 +1,8 @@
-﻿$lab = Get-Lab
+﻿$projectName = 'DscWorkshop'
+$projectGitUrl = 'https://github.com/DscCommunity/DscWorkshop'
+$collectionName = 'AutomatedLab'
+
+$lab = Get-Lab
 $devOpsServer = Get-LabVM -Role AzDevOps
 $devOpsHostName = if ($lab.DefaultVirtualizationEngine -eq 'Azure') { $devOpsServer.AzureConnectionInfo.DnsName } else { $devOpsServer.FQDN }
 $nugetServer = Get-LabVM -Role AzDevOps
@@ -15,10 +19,6 @@ if ($devOpsRole.Properties.ContainsKey('Port')) {
 if ($lab.DefaultVirtualizationEngine -eq 'Azure') {
     $devOpsPort = (Get-LabAzureLoadBalancedPort -DestinationPort $devOpsPort -ComputerName $devOpsServer).Port
 }
-
-$projectName = 'DscWorkshop'
-$projectGitUrl = 'https://github.com/AutomatedLab/DscWorkshop'
-$collectionName = 'AutomatedLab'
 
 # Which will make use of Azure DevOps, clone the stuff, add the necessary build step, publish the test results and so on
 # You will see two remotes, Origin (Our code on GitHub) and Azure DevOps (Our code pushed to your lab)

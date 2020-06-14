@@ -92,8 +92,11 @@ $feedPermissions += (New-Object pscustomobject -Property @{ role = 'contributor'
 $feedPermissions += (New-Object pscustomobject -Property @{ role = 'reader'; identityDescriptor = 'System.Security.Principal.WindowsIdentity;S-1-5-7' })
 
 $powerShellFeed = New-LabTfsFeed -ComputerName $nugetServer -FeedName PowerShell -FeedPermissions $feedPermissions -PassThru -ErrorAction Stop
+$replace = '$1{0}${{Separator}}{1}$4' -f $devOpsServer.Name, $originalPort
+$powerShellFeed.NugetV2Url = $powerShellFeed.NugetV2Url -replace '(https:\/\/)([\w\.]+)(?<Separator>:)(\d{2,4})(.+)', $replace
 Write-Host "Created artifacts feed 'PowerShell' on Azure DevOps Server '$nugetServer'"
 $chocolateyFeed = New-LabTfsFeed -ComputerName $nugetServer -FeedName Software -FeedPermissions $feedPermissions -PassThru -ErrorAction Stop
+$chocolateyFeed.NugetV2Url = $chocolateyFeed.NugetV2Url -replace '(https:\/\/)([\w\.]+)(?<Separator>:)(\d{2,4})(.+)', $replace
 Write-Host "Created artifacts feed 'Software' on Azure DevOps Server '$nugetServer'"
 
 # Web server
@@ -166,19 +169,19 @@ Invoke-LabCommand -ActivityName 'Create link on AzureDevOps desktop' -ComputerNa
     $shell = New-Object -ComObject WScript.Shell
     $desktopPath = [System.Environment]::GetFolderPath('Desktop')
     $shortcut = $shell.CreateShortcut("$desktopPath\DscWorkshop Project.url")
-    $shortcut.TargetPath = "https://$($devOpsServer):$($devOpsPort)/AutomatedLab/DscWorkshop"
+    $shortcut.TargetPath = "https://$($devOpsServer):$($originalPort)/AutomatedLab/DscWorkshop"
     $shortcut.Save()
 
     $shortcut = $shell.CreateShortcut("$desktopPath\CommonTasks Project.url")
-    $shortcut.TargetPath = "https://$($devOpsServer)$($devOpsPort)/AutomatedLab/CommonTasks"
+    $shortcut.TargetPath = "https://$($devOpsServer):$($originalPort)/AutomatedLab/CommonTasks"
     $shortcut.Save()
     
     $shortcut = $shell.CreateShortcut("$desktopPath\PowerShell Feed.url")
-    $shortcut.TargetPath = "https://$($devOpsServer):$($devOpsPort)/AutomatedLab/_packaging?_a=feed&feed=$($powerShellFeed.name)"
+    $shortcut.TargetPath = "https://$($devOpsServer):$($originalPort)/AutomatedLab/_packaging?_a=feed&feed=$($powerShellFeed.name)"
     $shortcut.Save()
     
     $shortcut = $shell.CreateShortcut("$desktopPath\Chocolatey Feed.url")
-    $shortcut.TargetPath = "https://$($devOpsServer):$($devOpsPort)/AutomatedLab/_packaging?_a=feed&feed=$($chocolateyFeed.name)"
+    $shortcut.TargetPath = "https://$($devOpsServer):$($originalPort)/AutomatedLab/_packaging?_a=feed&feed=$($chocolateyFeed.name)"
     $shortcut.Save()
     
     $shortcut = $shell.CreateShortcut("$desktopPath\SQL RS.url")
@@ -186,9 +189,9 @@ Invoke-LabCommand -ActivityName 'Create link on AzureDevOps desktop' -ComputerNa
     $shortcut.Save()
 
     $shortcut = $shell.CreateShortcut("$desktopPath\Pull Server Endpoint.url")
-    $shortcut.TargetPath = "https://$($pullServer.FQDN):$($devOpsPort)/PSDSCPullServer.svc/"
+    $shortcut.TargetPath = "https://$($pullServer.FQDN):$($originalPort)/PSDSCPullServer.svc/"
     $shortcut.Save()
-} -Variable (Get-Variable -Name devOpsServer, sqlServer, powerShellFeed, chocolateyFeed, pullServer)
+} -Variable (Get-Variable -Name devOpsServer, sqlServer, powerShellFeed, chocolateyFeed, pullServer, originalPort)
 
 #in server 2019 there seems to be an issue with dynamic DNS registration, doing this manually
 foreach ($domain in (Get-Lab).Domains) {
