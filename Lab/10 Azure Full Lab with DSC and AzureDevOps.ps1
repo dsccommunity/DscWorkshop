@@ -16,10 +16,10 @@ Add-LabAzureSubscription -DefaultLocationName $azureLocation
 Add-LabVirtualNetworkDefinition -Name $labName -AddressSpace 192.168.111.0/24
 
 #and the domain definition with the domain admin account
-Add-LabDomainDefinition -Name contoso.com -AdminUser Install -AdminPassword Somepass1!
+Add-LabDomainDefinition -Name contoso.com -AdminUser Install -AdminPassword Somepass1
 
 #these credentials are used for connecting to the machines. As this is a lab we use clear-text passwords
-Set-LabInstallationCredential -Username Install -Password Somepass1!
+Set-LabInstallationCredential -Username Install -Password Somepass1
 
 # Add the reference to our necessary ISO files
 Add-LabIsoImageDefinition -Name AzDevOps -Path $labSources\ISOs\mu_azure_devops_server_2019_update_1.1_x64_dvd_962550d1.iso #from https://visualstudio.microsoft.com/downloads/
