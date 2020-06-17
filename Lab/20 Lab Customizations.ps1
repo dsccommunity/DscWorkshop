@@ -91,11 +91,19 @@ $feedPermissions += (New-Object pscustomobject -Property @{ role = 'contributor'
 $feedPermissions += (New-Object pscustomobject -Property @{ role = 'contributor'; identityDescriptor = "System.Security.Principal.WindowsIdentity;$domainSid-515" })
 $feedPermissions += (New-Object pscustomobject -Property @{ role = 'reader'; identityDescriptor = 'System.Security.Principal.WindowsIdentity;S-1-5-7' })
 
-$powerShellFeed = New-LabTfsFeed -ComputerName $nugetServer -FeedName PowerShell -FeedPermissions $feedPermissions -PassThru -ErrorAction Stop
+$powerShellFeed = Get-LabTfsFeed -ComputerName $nugetServer -FeedName PowerShell -ErrorAction SilentlyContinue
+if (-not $powerShellFeed)
+{
+    $powerShellFeed = New-LabTfsFeed -ComputerName $nugetServer -FeedName PowerShell -FeedPermissions $feedPermissions -PassThru -ErrorAction Stop
+}
 $replace = '$1{0}${{Separator}}{1}$4' -f $devOpsServer.Name, $originalPort
 $powerShellFeed.NugetV2Url = $powerShellFeed.NugetV2Url -replace '(https:\/\/)([\w\.]+)(?<Separator>:)(\d{2,4})(.+)', $replace
 Write-Host "Created artifacts feed 'PowerShell' on Azure DevOps Server '$nugetServer'"
-$chocolateyFeed = New-LabTfsFeed -ComputerName $nugetServer -FeedName Software -FeedPermissions $feedPermissions -PassThru -ErrorAction Stop
+$chocolateyFeed = Get-LabTfsFeed -ComputerName $nugetServer -FeedName Software -ErrorAction SilentlyContinue
+if (-not $chocolateyFeed)
+{
+    $chocolateyFeed = New-LabTfsFeed -ComputerName $nugetServer -FeedName Software -FeedPermissions $feedPermissions -PassThru -ErrorAction Stop
+}
 $chocolateyFeed.NugetV2Url = $chocolateyFeed.NugetV2Url -replace '(https:\/\/)([\w\.]+)(?<Separator>:)(\d{2,4})(.+)', $replace
 Write-Host "Created artifacts feed 'Software' on Azure DevOps Server '$nugetServer'"
 
