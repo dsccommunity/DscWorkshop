@@ -1,6 +1,11 @@
 ﻿$hosts = Get-LabVM -Role HyperV
 
 Invoke-LabCommand -ActivityName 'Install AutomatedLab and create LabSources folder' -ComputerName $hosts -ScriptBlock {
+    if ($PSVersionTable.PSVersion.Major -lt 6 -and [Net.ServicePointManager]::SecurityProtocol -notmatch 'Tls12')
+    {
+      Write-Verbose -Message 'Adding support for TLS 1.2'
+      [Net.ServicePointManager]::SecurityProtocol += [Net.SecurityProtocolType]::Tls12
+    }
 
     #Add the AutomatedLab Telemetry setting to default to allow collection, otherwise will prompt during installation
     [System.Environment]::SetEnvironmentVariable('AUTOMATEDLAB_TELEMETRY_OPTOUT', '0')
