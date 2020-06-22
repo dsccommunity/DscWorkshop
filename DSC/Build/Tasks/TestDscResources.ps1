@@ -8,6 +8,9 @@ task TestDscResources {
     Write-Host ------------------------------------------------------------
     Write-Host "The 'CommonTasks' module provides the following configurations (DSC Composite Resources)"
     $m = Get-Module -Name CommonTasks -ListAvailable
+    if (-not $m) {
+        Write-Error "The module 'CommonTasks' containing the configurations could not be found. Please check the file 'PSDepend.DscConfigurations.psd1' and verify if the module is available in the given repository" -ErrorAction Stop
+    }
     $resourceCount = (dir -Path "$($m.ModuleBase)\DscResources").Count
     Write-Host "ResourceCount $resourceCount"
 
