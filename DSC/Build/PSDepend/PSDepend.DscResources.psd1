@@ -17,5 +17,9 @@
     SecurityPolicyDsc            = '2.10.0.0'
     StorageDsc                   = '5.0.0'
     Chocolatey                   = '0.0.79'
+    ActiveDirectoryDsc           = '6.0.1'
+    DfsDsc                       = '4.4.0.0'
+    WdsDsc                       = '0.11.0'
+    xDhcpServer                  = '2.0.0.0'
     
 }
