@@ -1,0 +1,21 @@
+NodeName: DSCFile11
+Environment: Dev
+Role: FileServer
+Description: File Server in Dev
+Location: Tokio
+
+NetworkIpConfiguration:
+  IpAddress: 192.168.111.200
+
+PSDscAllowPlainTextPassword: True
+PSDscAllowDomainUser: True
+
+LcmConfig:
+  ConfigurationRepositoryWeb:
+    Server:
+      ConfigurationNames: DSCFile11
+
+FilesAndFolders:
+  Items:
+    - DestinationPath: C:\SpecialFolder
+      Type: Directory
