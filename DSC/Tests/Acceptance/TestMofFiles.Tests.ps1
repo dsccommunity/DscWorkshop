@@ -1,4 +1,8 @@
 $here = $PSScriptRoot
+if ($global:Filter -and $global:Filter.ToString() -and -not $Filter.ToString())
+{
+    $Filter = $global:Filter
+}
 
 $datumDefinitionFile = Join-Path $here ..\..\DscConfigData\Datum.yml
 $nodeDefinitions = Get-ChildItem $here\..\..\DscConfigData\AllNodes -Recurse -Include *.yml

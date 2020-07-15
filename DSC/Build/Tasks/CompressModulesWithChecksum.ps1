@@ -1,5 +1,11 @@
 task CompressModulesWithChecksum {
 
+    if ($SkipCompressedModulesBuild)
+    {
+        Write-Host 'Skipping preparation of Compressed Modules as $SkipCompressedModulesBuild is set'
+        return
+    }
+
     if (-not (Test-Path -Path $BuildOutput\CompressedModules)) {
         mkdir -Path $BuildOutput\CompressedModules | Out-Null
     }

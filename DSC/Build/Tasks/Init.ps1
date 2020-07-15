@@ -11,6 +11,8 @@ Task Init {
         }
     }
 
+    $global:Filter = $null
+
     $lines
     Set-Location -Path $ProjectPath
     "Build System Details:"
