@@ -10,6 +10,12 @@ task LoadDatumConfigData {
         Write-Error 'No nodes found in the solution'
     }
 
+    if ($env:BHCommitMessage -match "--Added new node '(?<NodeName>\w+)'")
+    {
+        $global:Filter = $Filter = [scriptblock]::Create('$_.NodeName -eq "{0}"' -f $Matches.NodeName)
+        $global:SkipCompressedModulesBuild = $true
+    }
+
     $global:configurationData = Get-FilteredConfigurationData -Filter $Filter -CurrentJobNumber $CurrentJobNumber -TotalJobCount $TotalJobCount
 
 }
