@@ -3,6 +3,7 @@ Environment: Dev
 Role: FileServer
 Description: File Server in Dev
 Location: Frankfurt
+SomeData: '[Command=Get-Random]'
 
 NetworkIpConfiguration:
   IpAddress: 192.168.111.100
