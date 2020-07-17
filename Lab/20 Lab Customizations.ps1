@@ -68,6 +68,8 @@ $requiredModules = @{
     Chocolatey                   = '0.0.79'
     'Datum.ProtectedData'        = '0.0.1'
     xDscDiagnostics              = '2.8.0'
+    CertificateDsc               = '4.7.0.0'
+
 }
 
 $requiredChocolateyPackages = @{
