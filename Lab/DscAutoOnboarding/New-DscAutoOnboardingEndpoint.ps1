@@ -1,4 +1,15 @@
-﻿function Add-NodeToAdGroup
+﻿param (
+    [Parameter()]
+    $JeaModuleName = 'DSC',
+
+    [Parameter()]
+    $EndpointName = 'DSC',
+
+    [Parameter()]
+    $AllowedPrincipals = ("$($env:USERDOMAIN)\Domain Users", "$($env:USERDOMAIN)\Domain Computers")
+)
+
+function Add-NodeToAdGroup
 {
     param(
         [Parameter(Mandatory)]
@@ -150,7 +161,7 @@ function DscRegistration
     @{ Name = 'Get-DscMetaMofFile'; ScriptBlock = (Get-Command -Name Get-DscMetaMofFile).ScriptBlock }
 
     # Create the RoleCapabilities folder and copy in the PSRC file
-    $modulePath = Join-Path -Path $env:ProgramFiles -ChildPath "WindowsPowerShell\Modules\$jeaModuleName"
+    $modulePath = Join-Path -Path $env:ProgramFiles -ChildPath "WindowsPowerShell\Modules\$JeaModuleName"
     $rcFolder = Join-Path -Path $modulePath -ChildPath "RoleCapabilities"
     if (-not (Test-Path -Path $rcFolder))
     {
@@ -184,7 +195,7 @@ function Register-CustomPSSessionConfiguration
         "$($env:USERDOMAIN)\Domain Computers" = @{ RoleCapabilities = 'DscRegistration' }
     }
 
-    Register-PSSessionConfiguration -Name $EndpointName -Path C:\$EndpointName.pssc -Force
+    Register-PSSessionConfiguration -Name $EndpointName -Path C:\$EndpointName.pssc
 
     $pssc = Get-PSSessionConfiguration -Name $EndpointName
     $psscSd = New-Object System.Security.AccessControl.CommonSecurityDescriptor($false, $false, $pssc.SecurityDescriptorSddl)
@@ -199,39 +210,35 @@ function Register-CustomPSSessionConfiguration
         $psscSd.DiscretionaryAcl.AddAccess($accessType,$account.Translate([System.Security.Principal.SecurityIdentifier]),$accessMask,$inheritanceFlags,$propagationFlags)
     }
 
-    Set-PSSessionConfiguration -Name $EndpointName -SecurityDescriptorSddl $psscSd.GetSddlForm("All") -Force
+    Set-PSSessionConfiguration -Name $EndpointName -SecurityDescriptorSddl $psscSd.GetSddlForm("All")
     
     # Create a folder for the module
-    $modulePath = Join-Path -Path $env:ProgramFiles -ChildPath "WindowsPowerShell\Modules\$jeaModuleName"
+    $modulePath = Join-Path -Path $env:ProgramFiles -ChildPath "WindowsPowerShell\Modules\$JeaModuleName"
     if (-not (Test-Path -Path $modulePath))
     {
         mkdir -Path $modulePath | Out-Null
     }
 
     # Create an empty script module and module manifest. At least one file in the module folder must have the same name as the folder itself.
-    $path = Join-Path -Path $modulePath -ChildPath "$jeaModuleName.psm1"
+    $path = Join-Path -Path $modulePath -ChildPath "$JeaModuleName.psm1"
     if (-not (Test-Path -Path $path))
     {
         New-Item -ItemType File -Path $path | Out-Null
     }
     
-    $path = Join-Path -Path $modulePath -ChildPath "$jeaModuleName.psd1"
+    $path = Join-Path -Path $modulePath -ChildPath "$JeaModuleName.psd1"
     if (-not (Test-Path -Path $path))
     {
-        New-ModuleManifest -Path $path -RootModule "$jeaModuleName.psm1"
+        New-ModuleManifest -Path $path -RootModule "$JeaModuleName.psm1"
     }    
 }
 
 Install-WindowsFeature -Name RSAT-Role-Tools
 Install-Module powershell-yaml -Repository powershell
 
-$password = 'Somepass1' | ConvertTo-SecureString -AsPlainText -Force
-$jeaModuleName = 'DSC'
-$endpointName = 'DSC'
-
-$modulePath = Join-Path -Path $env:ProgramFiles -ChildPath "WindowsPowerShell\Modules\$jeaModuleName"
+$modulePath = Join-Path -Path $env:ProgramFiles -ChildPath "WindowsPowerShell\Modules\$JeaModuleName"
 Remove-Item -Path $modulePath -Recurse -Force -ErrorAction SilentlyContinue
 
 DscRegistration
 
-Register-CustomPSSessionConfiguration -EndpointName $endpointName -AllowedPrincipals "$($env:USERDOMAIN)\Domain Users", "$($env:USERDOMAIN)\Domain Computers"
+Register-CustomPSSessionConfiguration -EndpointName $EndpointName -AllowedPrincipals $AllowedPrincipals

@@ -3,14 +3,21 @@ param (
     [string]$DevOpsServer
 )
 
-Invoke-LabCommand -ActivityName 'Create AD Group for DscAutoJoin' -ComputerName $devOpsServer -ScriptBlock {
-    $ou = Get-ADOrganizationalUnit -Filter { Name -eq 'DSC' }
+Invoke-LabCommand -ActivityName 'Create AD Group for DscAutoOnboarding' -ComputerName $devOpsServer -ScriptBlock {
+    $ou = Get-ADOrganizationalUnit -Filter { Name -eq 'DscAutoOnboarding' }
     if (-not $ou)
     {
-        $ou = New-ADOrganizationalUnit -Name DSC -ProtectedFromAccidentalDeletion $false -PassThru
+        $ou = New-ADOrganizationalUnit -Name DscAutoOnboarding -ProtectedFromAccidentalDeletion $false -PassThru
     }
 
-    $g = New-ADGroup -Name DscNodes -GroupScope Global -Path $ou -PassThru
+    $g = Get-ADGroup -Filter { Name -eq 'DscNodes' }
+    if (-not $g) {
+        $g = New-ADGroup -Name DscNodes -GroupScope Global -Path $ou -PassThru
+    }
+    else {
+        Write-Warning "The group 'DscNodes' does already exist."
+    }
+
     $id = New-Object System.Security.Principal.NTAccount("$($devOpsServer)$")
     $ace = New-Object System.DirectoryServices.ActiveDirectoryAccessRule(
         $id,
