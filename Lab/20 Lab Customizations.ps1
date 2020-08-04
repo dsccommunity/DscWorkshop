@@ -54,8 +54,8 @@ $requiredModules = @{
     PSScriptAnalyzer             = 'latest'
     xDSCResourceDesigner         = 'latest'
     xPSDesiredStateConfiguration = '9.1.0'
-    ComputerManagementDsc        = '8.2.0'
-    NetworkingDsc                = '7.4.0.0'
+    ComputerManagementDsc        = '8.4.0'
+    NetworkingDsc                = '8.1.0'
     NTFSSecurity                 = 'latest'
     JeaDsc                       = '0.6.5'
     XmlContentDsc                = '0.0.1'
@@ -69,6 +69,9 @@ $requiredModules = @{
     'Datum.ProtectedData'        = '0.0.1'
     xDscDiagnostics              = '2.8.0'
     CertificateDsc               = '4.7.0.0'
+    DfsDsc                       = '4.4.0.0'
+    WdsDsc                       = '0.11.0'
+    xDhcpServer                  = '2.0.0.0'
 
 }
 
