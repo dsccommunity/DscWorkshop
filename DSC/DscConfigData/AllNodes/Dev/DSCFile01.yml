@@ -1,7 +1,8 @@
 NodeName: DSCFile01
 Environment: Dev
 Role: FileServer
-Description: File Server in Dev
+Description: '[Command=(Import-Csv -Path $env:BHProjectPath\DscConfigData\ExternalData.csv -Delimiter ";" | Where-Object ComputerName -eq DSCFile01).Description]'
+
 Location: Frankfurt
 
 NetworkIpConfiguration:
