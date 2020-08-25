@@ -14,7 +14,7 @@ function Get-DatumNodesRecursive
                 $node | ForEach-Object {
                     $newNode = $_."$propertyName"
                     if ($newNode -is [System.Collections.IDictionary]) {
-                        if (!$newNode.Contains('Name')) {
+                        if (-not $newNode.Contains('Name')) {
                             if ($propertyName -eq 'AllNodes') {
                                 $newNode.Add('Name', '*')
                             }
@@ -42,12 +42,7 @@ function Get-DatumNodesRecursive
         }
         else
         {
-            #$Nodes
             $Depth = 0
         }
-    }
-    else
-    {
-        #$Nodes
     }
 }
