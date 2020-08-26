@@ -2,6 +2,10 @@ Configurations:
   - FilesAndFolders
   - RegistryValues
 
+WindowsFeatures:
+  Name:
+    - File-Services
+
 FilesAndFolders:
   Items:
     - DestinationPath: C:\Test
