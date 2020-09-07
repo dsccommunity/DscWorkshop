@@ -8,6 +8,7 @@ Write-Host '4. Copying the DscAutoOboarding scripts to all VMs to be onboarded.'
 
 & $PSScriptRoot\DscAutoOnboarding\Install-DscAutoOnboarding.ps1
 
+$devOpsServer = Get-LabVM -Role AzDevOps
 $dscNodes = Get-LabVM -Filter { $_.Name -like 'DSCFile*' -or $_.Name -like 'DSCWeb*' }
 Copy-LabFileItem -Path $PSScriptRoot\DscAutoOnboarding\Start-DscAutoOnboarding.ps1 -ComputerName $dscNodes -DestinationFolderPath C:\DscAutoOnboarding
 Copy-LabFileItem -Path $PSScriptRoot\DscAutoOnboarding\DscConfigs -ComputerName $dscNodes -DestinationFolderPath C:\DscAutoOnboarding
