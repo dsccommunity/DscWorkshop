@@ -1,9 +1,6 @@
 ﻿$pullServer = Get-LabVM -Role DSCPullServer
 $sqlServer = Get-LabVM -Role SQLServer2017
 
-Invoke-LabCommand -ActivityName 'Creating DSC SQl Database' -FilePath $labSources\PostInstallationActivities\SetupDscPullServer\CreateDscSqlDatabase.ps1 `
-    -ComputerName $sqlServer -ArgumentList $pullServer.DomainAccountName -Retries 1
-
 Get-LabInternetFile -Uri https://download.microsoft.com/download/5/E/B/5EB40744-DC0A-47C0-8B0A-1830E74D3C23/ReportBuilder.msi -Path $labSources\SoftwarePackages\ReportBuilder.msi
 Get-LabInternetFile -Uri https://download.microsoft.com/download/E/6/4/E6477A2A-9B58-40F7-8AD6-62BB8491EA78/SQLServerReportingServices.exe -Path $labSources\SoftwarePackages\SQLServerReportingServices.exe
 Install-LabSoftwarePackage -Path $labsources\SoftwarePackages\ReportBuilder.msi -ComputerName $sqlServer
