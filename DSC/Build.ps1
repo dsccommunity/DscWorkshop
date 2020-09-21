@@ -130,7 +130,10 @@ if ($MyInvocation.ScriptName -notlike '*Invoke-Build.ps1') {
     }
 
     if (($Tasks -contains 'CompileRootConfiguration' -or $Tasks -contains 'CompileRootMetaMof') -or -not $Tasks) {
-        Invoke-Build -File "$ProjectPath\PostBuild.ps1"
+        Invoke-Build -File "$ProjectPath\PostBuild.ps1" -BuildOutput $BuildOutput `
+                                                        -ResourcesFolder $ResourcesFolder `
+                                                        -ConfigDataFolder $ConfigDataFolder `
+                                                        -ConfigurationsFolder $ConfigurationsFolder
     }
 
     $mofFileCount = (Get-ChildItem -Path "$BuildOutput\MOF" -Filter *.mof -ErrorAction SilentlyContinue).Count
