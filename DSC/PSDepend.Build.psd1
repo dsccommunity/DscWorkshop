@@ -20,4 +20,7 @@
     'Datum.InvokeCommand' = 'latest'
     xDscResourceDesigner  = 'latest'
     ReverseDSC            = 'latest'
+    'newtonsoft.json'     = 'latest'
+    'AutomatedLab.Common' = 'latest'
+    Az                    = 'latest'
 }

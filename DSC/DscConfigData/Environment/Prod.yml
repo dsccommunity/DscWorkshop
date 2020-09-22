@@ -5,3 +5,12 @@ FilesAndFolders:
   Items:
     - DestinationPath: C:\Test\Prod-Environment
       Type: Directory
+
+ArmSettings:
+  Location: westeurope
+  VMSize : Standard_D2_v2
+  OSImage :
+    publisher : MicrosoftWindowsServer
+    offer : WindowsServer
+    sku : 2016-Datacenter
+    version : latest

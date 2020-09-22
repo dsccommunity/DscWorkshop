@@ -10,3 +10,7 @@ AddsDomainController:
   SysvolPath: C:\Windows\SYSVOL
   SiteName: Default-First-Site-Name
   IsGlobalCatalog: True
+
+ArmSettings:
+  OSImage :
+    sku : 2019-Datacenter

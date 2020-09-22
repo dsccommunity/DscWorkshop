@@ -31,13 +31,30 @@ Task Deploy {
             return
         }
         
-        Copy-DscMof -MofPath "$BuildOutput\MOF" -TargetPath $env:DscConfiguration -Environment $env:RELEASE_ENVIRONMENTNAME
-        Copy-DscMof -MofPath "$BuildOutput\MOF" -TargetPath $env:DscConfiguration -Environment $env:RELEASE_ENVIRONMENTNAME
-        if (Test-Path -Path "$BuildOutput\CompressedModules\*") {
-            Copy-Item -Path "$BuildOutput\CompressedModules\*" -Destination $env:DscModules
+        if ($env:DscConfiguration)
+        {
+            Copy-DscMof -MofPath "$BuildOutput\MOF" -TargetPath $env:DscConfiguration -Environment $env:RELEASE_ENVIRONMENTNAME
+            Copy-DscMof -MofPath "$BuildOutput\MOF" -TargetPath $env:DscConfiguration -Environment $env:RELEASE_ENVIRONMENTNAME
         }
-        else {
-            Write-Host "The folder '$BuildOutput\CompressedModules\*' does not exist, skipping deployment of CompressedModules." 
+
+        if ($env:AutomationAccountName)
+        {
+            Add-AzAutomationMof -MofPath "$BuildOutput\MOF" -Environment $env:RELEASE_ENVIRONMENTNAME
+        }
+
+        if ($env:StorageAccountName)
+        {
+            Add-AzStorageBlob -ArmTemplatePath "$BuildOutput\ARMTemplates" -Environment $env:RELEASE_ENVIRONMENTNAME
+        }
+
+        if ($env:DscModules)
+        {
+            if (Test-Path -Path "$BuildOutput\CompressedModules\*") {
+                Copy-Item -Path "$BuildOutput\CompressedModules\*" -Destination $env:DscModules
+            }
+            else {
+                Write-Host "The folder '$BuildOutput\CompressedModules\*' does not exist, skipping deployment of CompressedModules." 
+            }
         }
     }
     

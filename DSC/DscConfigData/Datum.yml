@@ -24,6 +24,11 @@ lookup_options:
   DscTagging:
     merge_hash: deep
 
+  ArmSettings:
+    merge_hash: deep
+  ArmSettings\OSImage:
+    merge_hash: deep
+
   WindowsFeatures:
     merge_hash: deep
 
