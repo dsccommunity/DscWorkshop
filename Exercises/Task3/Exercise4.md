@@ -60,7 +60,7 @@ For now, we will only upload the MOF files to Azure Automation, but you can add 
     This is the inline script:
 
     ```powershell
-    if (Get-Command Enable-AzureRmAlias -ea silentlycontinue)
+    if (Get-Command Enable-AzureRmAlias -ea SilentlyContinue)
     {
         Enable-AzureRmAlias
     }

@@ -22,7 +22,7 @@ Whether you work with a test environment or at a customer location, you will nee
 
 3. On the left-hand side, select Repos -> Files. The page says the project is empty. The easiest way to start is importing the project from GitHub.
    
-   Click on "Import" button. As the clone url, use <https://github.com/AutomatedLab/DscWorkshop> without authorization.  
+   Click on "Import" button. As the clone url, use <https://github.com/dsccommunity/DscWorkshop> without authorization.  
     ![Repo import](./img/ImportRepo.png)
 
 4. Wait for a couple of seconds. The page will automatically refresh once the import job is done. All project branches, most notably 'master' and 'dev', have been imported. You should already be familiar with the structure from [Task 1](../Task1/Exercise1.md).

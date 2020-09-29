@@ -51,12 +51,12 @@ After completing this task, you have a gone through the build process for all ar
 
     > Note: After installing git, you may need to close and open VSCode or the ISE again to make the process read the new path environment variable.
 
-6. In this and the following exercises we will be working with the open-source DscWorkshop repository hosted at <https://github.com/automatedlab/dscworkshop>. To clone this repository, please execute:
+6. In this and the following exercises we will be working with the open-source DscWorkshop repository hosted at <https://github.com/dsccommunity/DscWorkshop>. To clone this repository, please execute:
 
     > Note: Please make sure you are in the 'C:\Git' folder or wherever you want to store project.
     
     ```powershell
-    git clone https://github.com/automatedlab/dscworkshop
+    git clone https://github.com/dsccommunity/DscWorkshop
     ```
 
 7. Change into the newly cloned repository and checkout the dev branch to move into the development environment:
@@ -152,6 +152,8 @@ After completing this task, you have a gone through the build process for all ar
 
 ---
 
-Congratulations. You have just built the entire development environment! Want to test this, but don't have the infrastructure (Azure DevOps Server, SQL, AD, PKI, target nodes)? Try <https://github.com/automatedlab/automatedlab>, the module that helps you with rapid prototyping of your apps ;) Included in this repository is [the entire lab script](../../Lab/03.10%20Full%20Lab%20with%20DSC%20and%20TFS.ps1).
+Congratulations. You have just built the entire development environment! Want to test this, but don't have the infrastructure (Azure DevOps Server, SQL, AD, PKI, target nodes)? Try <https://github.com/automatedlab/automatedlab>, the module that helps you with rapid prototyping of your apps ;) Included in this repository is the entire lab script for
+- [Azure](../../Lab/10%20HyperV%20Full%20Lab%20with%20DSC%20and%20AzureDevOps.ps1)
+- [HyperV](../../Lab/10%20HyperV%20Full%20Lab%20with%20DSC%20and%20AzureDevOps.ps1)
 
 Please continue with [Exercise 2](Exercise2.md) when your are ready.
