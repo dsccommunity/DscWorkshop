@@ -20,7 +20,8 @@ task CompileRootConfiguration {
         }
         $relevantErrors[0..2] | Out-String | ForEach-Object { Write-Warning $_ }
     }
-
-    Stop-Transcript
+    finally {
+        Stop-Transcript
+    }
     
 }
