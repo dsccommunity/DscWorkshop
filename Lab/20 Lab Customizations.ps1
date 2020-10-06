@@ -3,7 +3,6 @@ $lab = Get-Lab
 $dc = Get-LabVM -Role ADDS | Select-Object -First 1
 $domainName = $lab.Domains[0].Name
 $devOpsServer = Get-LabVM -Role AzDevOps
-$devOpsHostName = if ($lab.DefaultVirtualizationEngine -eq 'Azure') { $devOpsServer.AzureConnectionInfo.DnsName } else { $devOpsServer.FQDN }
 $devOpsRole = $devOpsServer.Roles | Where-Object Name -eq AzDevOps
 $devOpsPort = $originalPort = 8080
 if ($devOpsRole.Properties.ContainsKey('Port'))
