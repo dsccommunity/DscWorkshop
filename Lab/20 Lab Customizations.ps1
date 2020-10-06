@@ -16,6 +16,7 @@ if ($lab.DefaultVirtualizationEngine -eq 'Azure')
 $buildWorkers = Get-LabVM -Role TfsBuildWorker
 $sqlServer = Get-LabVM -Role SQLServer2017
 $pullServer = Get-LabVM -Role DSCPullServer
+$dscNodes = Get-LabVM -Filter { $_.Name -match 'file|web(\d){2}' }
 $router = Get-LabVM -Role Routing
 $nugetServer = Get-LabVM -Role AzDevOps
 $firstDomain = (Get-Lab).Domains[0]
@@ -420,6 +421,10 @@ Invoke-LabCommand -ActivityName 'Setting the worker service account to local sys
         $service | Invoke-CimMethod -MethodName Change -Arguments @{ StartName = 'LocalSystem' } | Out-Null
     }
 }
+
+Invoke-LabCommand -ActivityName "Install module 'xDscDiagnostics' required by DSC JEA endpoint" -ScriptBlock {
+    Install-Module -Name xDscDiagnostics -Repository PowerShell -Force
+} -ComputerName $dscNodes
 
 Restart-LabVM -ComputerName $devOpsServer, $buildWorkers -Wait
 
