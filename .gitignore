@@ -2,3 +2,4 @@ DSC/BuildOutput/*
 
 DSC/DscConfigurations/*
 DSC/DscResources/*
+Lab/testResults.xml
