@@ -1,47 +1,4 @@
-﻿#region Lab customizations
-$lab = Get-Lab
-$dc = Get-LabVM -Role ADDS | Select-Object -First 1
-$domainName = $lab.Domains[0].Name
-$devOpsServer = Get-LabVM -Role AzDevOps
-$devOpsRole = $devOpsServer.Roles | Where-Object Name -eq AzDevOps
-$devOpsPort = $originalPort = 8080
-if ($devOpsRole.Properties.ContainsKey('Port'))
-{
-    $devOpsPort = $devOpsRole.Properties['Port']
-}
-if ($lab.DefaultVirtualizationEngine -eq 'Azure')
-{
-    $devOpsPort = (Get-LabAzureLoadBalancedPort -DestinationPort $devOpsPort -ComputerName $devOpsServer).Port
-}
-$buildWorkers = Get-LabVM -Role TfsBuildWorker
-$sqlServer = Get-LabVM -Role SQLServer2017
-$pullServer = Get-LabVM -Role DSCPullServer
-$dscNodes = Get-LabVM -Filter { $_.Name -match 'file|web(\d){2}' }
-$router = Get-LabVM -Role Routing
-$nugetServer = Get-LabVM -Role AzDevOps
-$firstDomain = (Get-Lab).Domains[0]
-$nuGetApiKey = "$($firstDomain.Administrator.UserName)@$($firstDomain.Name):$($firstDomain.Administrator.Password)"
-
-$vsCodeDownloadUrl = 'https://go.microsoft.com/fwlink/?Linkid=852157'
-$gitDownloadUrl = 'https://github.com/git-for-windows/git/releases/download/v2.25.0.windows.1/Git-2.25.0-64-bit.exe'
-$vscodePowerShellExtensionDownloadUrl = 'https://marketplace.visualstudio.com/_apis/public/gallery/publishers/ms-vscode/vsextensions/PowerShell/2020.1.0/vspackage'
-$edgeDownloadUrl = 'http://dl.delivery.mp.microsoft.com/filestreamingservice/files/0af31313-0430-454d-908a-d55ce3df7b69/MicrosoftEdgeEnterpriseX64.msi'
-$chromeDownloadUrl = 'https://dl.google.com/tag/s/appguid%3D%7B8A69D345-D564-463C-AFF1-A69D9E530F96%7D%26iid%3D%7BC9D94BD4-6037-E88E-2D5A-F6B7D7F8F4CF%7D%26lang%3Den%26browser%3D5%26usagestats%3D0%26appname%3DGoogle%2520Chrome%26needsadmin%3Dprefers%26ap%3Dx64-stable-statsdef_1%26installdataindex%3Dempty/chrome/install/ChromeStandaloneSetup64.exe'
-$notepadPlusPlusDownloadUrl = 'https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v7.8.6/npp.7.8.6.Installer.x64.exe'
-
-#Create Azure DevOps artifacts feed
-$domainSid = Invoke-LabCommand -ActivityName 'Get domain SID' -ScriptBlock {
-
-    $domainContext = New-Object System.DirectoryServices.ActiveDirectory.DirectoryContext('Domain', $domainName)
-    $domain = [System.DirectoryServices.ActiveDirectory.Domain]::GetDomain($domainContext).GetDirectoryEntry()
-    $domainSid = [byte[]]$domain.Properties["objectSID"].Value
-    $domainSid = (New-Object System.Security.Principal.SecurityIdentifier($domainSid, 0)).Value
-    $domainSid
-
-} -ComputerName $dc -Variable (Get-Variable -Name domainName) -NoDisplay -PassThru
-#endregion
-
-$requiredModules = @{
+﻿$requiredModules = @{
     'powershell-yaml'            = 'latest'
     BuildHelpers                 = 'latest'
     datum                        = '0.39.0'
@@ -85,6 +42,51 @@ $requiredChocolateyPackages = @{
     wireshark        = '3.2.2'
     winpcap          = '4.1.3.20161116'
 }
+
+$vsCodeDownloadUrl = 'https://go.microsoft.com/fwlink/?Linkid=852157'
+$gitDownloadUrl = 'https://github.com/git-for-windows/git/releases/download/v2.25.0.windows.1/Git-2.25.0-64-bit.exe'
+$vscodePowerShellExtensionDownloadUrl = 'https://marketplace.visualstudio.com/_apis/public/gallery/publishers/ms-vscode/vsextensions/PowerShell/2020.1.0/vspackage'
+$edgeDownloadUrl = 'http://dl.delivery.mp.microsoft.com/filestreamingservice/files/0af31313-0430-454d-908a-d55ce3df7b69/MicrosoftEdgeEnterpriseX64.msi'
+$chromeDownloadUrl = 'https://dl.google.com/tag/s/appguid%3D%7B8A69D345-D564-463C-AFF1-A69D9E530F96%7D%26iid%3D%7BC9D94BD4-6037-E88E-2D5A-F6B7D7F8F4CF%7D%26lang%3Den%26browser%3D5%26usagestats%3D0%26appname%3DGoogle%2520Chrome%26needsadmin%3Dprefers%26ap%3Dx64-stable-statsdef_1%26installdataindex%3Dempty/chrome/install/ChromeStandaloneSetup64.exe'
+$notepadPlusPlusDownloadUrl = 'https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v7.8.6/npp.7.8.6.Installer.x64.exe'
+
+#-------------------------------------------------------------------------------------------------------------------------------------
+
+#region Lab customizations
+$lab = Get-Lab
+$dc = Get-LabVM -Role ADDS | Select-Object -First 1
+$domainName = $lab.Domains[0].Name
+$devOpsServer = Get-LabVM -Role AzDevOps
+$devOpsRole = $devOpsServer.Roles | Where-Object Name -eq AzDevOps
+$devOpsPort = $originalPort = 8080
+if ($devOpsRole.Properties.ContainsKey('Port'))
+{
+    $devOpsPort = $devOpsRole.Properties['Port']
+}
+if ($lab.DefaultVirtualizationEngine -eq 'Azure')
+{
+    $devOpsPort = (Get-LabAzureLoadBalancedPort -DestinationPort $devOpsPort -ComputerName $devOpsServer).Port
+}
+$buildWorkers = Get-LabVM -Role TfsBuildWorker
+$sqlServer = Get-LabVM -Role SQLServer2017
+$pullServer = Get-LabVM -Role DSCPullServer
+$dscNodes = Get-LabVM -Filter { $_.Name -match 'file|web(\d){2}' }
+$router = Get-LabVM -Role Routing
+$nugetServer = Get-LabVM -Role AzDevOps
+$firstDomain = (Get-Lab).Domains[0]
+$nuGetApiKey = "$($firstDomain.Administrator.UserName)@$($firstDomain.Name):$($firstDomain.Administrator.Password)"
+
+#Create Azure DevOps artifacts feed
+$domainSid = Invoke-LabCommand -ActivityName 'Get domain SID' -ScriptBlock {
+
+    $domainContext = New-Object System.DirectoryServices.ActiveDirectory.DirectoryContext('Domain', $domainName)
+    $domain = [System.DirectoryServices.ActiveDirectory.Domain]::GetDomain($domainContext).GetDirectoryEntry()
+    $domainSid = [byte[]]$domain.Properties["objectSID"].Value
+    $domainSid = (New-Object System.Security.Principal.SecurityIdentifier($domainSid, 0)).Value
+    $domainSid
+
+} -ComputerName $dc -Variable (Get-Variable -Name domainName) -NoDisplay -PassThru
+#endregion
 
 if (-not (Test-LabMachineInternetConnectivity -ComputerName $devOpsServer)) {
     Write-Error "The lab is not connected to the internet. Check the connectivity of the machine '$router' which is acting as a router." -ErrorAction Stop
