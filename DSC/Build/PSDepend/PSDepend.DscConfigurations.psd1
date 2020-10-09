@@ -8,6 +8,6 @@
         }
     }
 
-    CommonTasks     = '0.3.60'
+    CommonTasks     = '0.3.66'
     
 }

@@ -16,7 +16,7 @@ Extending configurations based on the customer's needs will eventually require y
 
 There should rarely be the need for hard-coded values in your composite resources. Keep in mind though that they should abstract some of the complexity of DSC. A composite resource that requires massive amounts of configuration data is probably not the best choice.
 
-We cannot give you a blueprint that covers all your needs. However, the repository <https://github.com/automatedlab/commontasks> can serve as a starting point again. The CommonTasks module is our trusted module in the build and release pipeline and collects commonly used DSC composite resources.
+We cannot give you a blueprint that covers all your needs. However, the repository <https://github.com/dsccommunity/commontasks> can serve as a starting point again. The CommonTasks module is our trusted module in the build and release pipeline and collects commonly used DSC composite resources.
 
 At your customer, this is all customer-specific code and should be collected in one or more separate PowerShell modules with their own build and release pipeline. This pipeline is trusted and will always deliver tested and working code to an internal gallery, for example [ProGet](https://inedo.com/proget), [Azure DevOps](https://dev.azure.com) or the free and open-source [NuGet](https://nuget.org).
 
@@ -25,14 +25,14 @@ At your customer, this is all customer-specific code and should be collected in 
     > Note: Before cloning, please switch to the same directory you cloned the 'DscWorkshop' project into.
 
     ```powershell
-    git clone https://github.com/automatedlab/commontasks
+    git clone https://github.com/dsccommunity/commontasks
     ```
 
     After cloning, please open the 'CommonTasks' repository in VSCode. You may want to open a new VSCode window so you can switch between both projects.
 
 2. This module contains many small DSC composite resources (in this context we call them configurations), that the 'DscWorkshop' project uses. Please open the folder 'CommonTasks\DscResources' and have a look at the composite resources defined there.
 
-    You can get a list of all resources also with this comand:
+    You can get a list of all resources also with this command:
 
     ```powershell
     Get-ChildItem -Directory -Path  ./CommonTasks/CommonTasks/DSCResources
@@ -70,7 +70,7 @@ At your customer, this is all customer-specific code and should be collected in 
 
 5. Your .psm1 file now should only contain your DSC configuration element, the composite resource. Depending on the DSC resources that you use in this composite, you can make use of Datum's cmdlet ```Get-DscSplattedResource``` or its alias ```x``` to pass parameter values to the resource in a single, beautiful line of code.
 
-    > Note: The ['WindowsServices'](https://github.com/AutomatedLab/CommonTasks/blob/master/CommonTasks/DscResources/WindowsServices/WindowsServices.schema.psm1) composite resource in 'CommonTasks' shows the difference of splatting vs. passing the parameters in the classical way. If you want to read more about how PowerShell supports splatting, have a look at [About Splatting](https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_splatting?view=powershell-6). DSC does not support splatting out-of-the-box, but Datum adds that very usful feature.
+    > Note: The ['WindowsServices'](https://github.com/dsccommunity/CommonTasks/blob/master/CommonTasks/DscResources/WindowsServices/WindowsServices.schema.psm1) composite resource in 'CommonTasks' shows the difference of splatting vs. passing the parameters in the classical way. If you want to read more about how PowerShell supports splatting, have a look at [About Splatting](https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_splatting?view=powershell-6). DSC does not support splatting out-of-the-box, but Datum adds that very usful feature.
    
     The following code uses the 'Disk' resource published in the 'StorageDsc' module to configure disk layouts. The '$DiskLayout' hashtable must have a pattern that matches exactly the parameter pattern defined in the 'StorageDsc\Disk' resource.
 
