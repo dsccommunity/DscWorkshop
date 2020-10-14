@@ -217,9 +217,6 @@ Invoke-LabCommand -ActivityName 'Set RepositoryUri and create Build Pipeline' -S
     git checkout dev *>$null
     $c = Get-Content '.\azure-pipelines On-Prem.yml' -Raw
     $c = $c -replace '  RepositoryUri: ggggg', "  RepositoryUri: $($nugetFeed.NugetV2Url)"
-    $c = $c -replace '  Domain: ddddd', "  Domain: $($nugetFeed.NugetCredential.GetNetworkCredential().Domain)"
-    $c = $c -replace '  UserName: uuuuu', "  Username: $($nugetFeed.NugetCredential.GetNetworkCredential().UserName)"
-    $c = $c -replace '  Password: ppppp', "  Password: $($nugetFeed.NugetCredential.GetNetworkCredential().Password)"
     $c | Set-Content '.\azure-pipelines.yml'
     git add .
     git commit -m 'Set RepositoryUri and create Build Pipeline'
