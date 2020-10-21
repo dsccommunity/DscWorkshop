@@ -64,7 +64,7 @@ function Send-DscTaggingData {
 
         $dscConfig = [xml](Get-Content -Path $webConfigPath)
         $dbconnectionstr = ($dscConfig.configuration.appSettings.add | Where-Object key -eq dbconnectionstr).value
-        Write-Host "dbconnectionstr is '$dbconnectionstr'"
+
         if (-not ($dbconnectionstr -match $pattern))
         {
             Write-Error "Could not read SQL server name from '$webConfigPath'"
@@ -86,12 +86,11 @@ function Send-DscTaggingData {
 
     $sqlServerName = Get-DscSqlServerName
     $update = $false
-    Write-Host "SQL Server is '$sqlServerName'"
+    Write-Host "DscDataEndpoint uses SQL Server '$sqlServerName'."
 
     $Data.psobject.Properties.Remove('RunspaceId')
     $Data.psobject.Properties.Add([System.Management.Automation.PSNoteProperty]::new('Timestamp', (Get-Date)))
     $Data.psobject.Properties.Add([System.Management.Automation.PSNoteProperty]::new('AgentId', $agentId))
-
 
     $cmd = "SELECT AgentId FROM dbo.TaggingData WHERE AgentID = '$($Data.AgentId)'"
     $existingRecord = Invoke-SqlQuery -Database DSC -Query $cmd -Server $sqlServerName
