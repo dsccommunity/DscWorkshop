@@ -428,6 +428,9 @@ Invoke-LabCommand -ActivityName "Install module 'xDscDiagnostics' required by DS
     Install-Module -Name xDscDiagnostics -Repository PowerShell -Force
 } -ComputerName $dscNodes
 
+Invoke-LabCommand -ActivityName "Create DscData JEA endpoint for allowing the LCM controller to send additional data to the DSC pull server" `
+-FilePath $PSScriptRoot\..\DscTaggingData\New-DscDataEndpoint.ps1 -ComputerName $pullServer
+
 Restart-LabVM -ComputerName $devOpsServer, $buildWorkers -Wait
 
 Write-Host "2. - Creating Snapshot 'AfterCustomizations'" -ForegroundColor Magenta

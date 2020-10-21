@@ -32,6 +32,7 @@ DscLcmController:
   ControllerInterval: 00:05:00       #   AS WELL AS THE NODES. ALSO THE SQL DATABASE GROWS PRETTY FAST IF A
   MaintenanceWindowOverride: false   #   REPORT IS SENT EVERY 5 MINUTES.
   WriteTranscripts: true             #
+  SendDscTaggingData: true           #
 
 LcmConfig:
   Settings:
