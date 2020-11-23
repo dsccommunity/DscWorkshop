@@ -29,7 +29,8 @@ configuration "RootConfiguration"
         Write-Host "`r`n$('-'*75)`r`n$($Node.Name) : $($Node.NodeName) : $(&$module { $Script:PSTopConfigurationName })" -ForegroundColor Yellow
         
         $configurationNames = Resolve-NodeProperty -PropertyPath 'Configurations'
-        
+        $global:node = $node #this makes the node variable being propagated into the configurations
+
         foreach ($configurationName in $configurationNames) {
             Write-Debug "`tLooking up params for $configurationName"
             $properties = Resolve-NodeProperty -PropertyPath $configurationName -DefaultValue @{}
