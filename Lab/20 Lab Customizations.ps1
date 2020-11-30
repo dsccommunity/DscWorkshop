@@ -372,6 +372,7 @@ Invoke-LabCommand -ActivityName 'Publishing required Chocolatey packages to inte
     }
 
     foreach ($kvp in $requiredChocolateyPackages.GetEnumerator()) {
+        Write-Host "Saving package '$($kvp.Name)', " -NoNewline
         if (-not ($p = Find-Package -Name $kvp.Name -Source Choco)) {
             Write-Error "Package '$($kvp.Name)' could not be found at the source '$publicFeedUri'"
             continue
@@ -380,7 +381,8 @@ Invoke-LabCommand -ActivityName 'Publishing required Chocolatey packages to inte
     }
 
     dir -Path $tempFolder | ForEach-Object {
-
+        
+        Write-Host "publishing package '$($kvp.Name)'"
         choco push $_.FullName -s $chocolateyFeed.NugetV2Url --api-key $chocolateyFeed.NugetApiKey
 
     }
@@ -428,8 +430,9 @@ Invoke-LabCommand -ActivityName "Install module 'xDscDiagnostics' required by DS
     Install-Module -Name xDscDiagnostics -Repository PowerShell -Force
 } -ComputerName $dscNodes
 
+Write-Warning 'Errors are '
 Invoke-LabCommand -ActivityName "Create DscData JEA endpoint for allowing the LCM controller to send additional data to the DSC pull server" `
--FilePath $PSScriptRoot\..\DscTaggingData\New-DscDataEndpoint.ps1 -ComputerName $pullServer
+-FilePath $PSScriptRoot\DscTaggingData\New-DscDataEndpoint.ps1 -ComputerName $pullServer
 
 Restart-LabVM -ComputerName $devOpsServer, $buildWorkers -Wait
 
