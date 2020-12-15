@@ -382,7 +382,7 @@ Invoke-LabCommand -ActivityName 'Publishing required Chocolatey packages to inte
 
     dir -Path $tempFolder | ForEach-Object {
         
-        Write-Host "publishing package '$($kvp.Name)'"
+        Write-Host "Publishing package '$($kvp.Name)'"
         choco push $_.FullName -s $chocolateyFeed.NugetV2Url --api-key $chocolateyFeed.NugetApiKey
 
     }
@@ -431,7 +431,7 @@ Invoke-LabCommand -ActivityName "Install module 'xDscDiagnostics' required by DS
 } -ComputerName $dscNodes
 
 Invoke-LabCommand -ActivityName "Create DscData JEA endpoint for allowing the LCM controller to send additional data to the DSC pull server" `
--FilePath $PSScriptRoot\..\DscTaggingData\New-DscDataEndpoint.ps1 -ComputerName $pullServer
+-FilePath $PSScriptRoot\DscTaggingData\New-DscDataEndpoint.ps1 -ComputerName $pullServer
 
 Restart-LabVM -ComputerName $devOpsServer, $buildWorkers -Wait
 
