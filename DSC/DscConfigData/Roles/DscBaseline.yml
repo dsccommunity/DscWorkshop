@@ -33,6 +33,7 @@ DscLcmController:
   MaintenanceWindowOverride: false   #   REPORT IS SENT EVERY 5 MINUTES.
   WriteTranscripts: true             #
   SendDscTaggingData: true           #
+  MaxLcmRuntime: 00:30:00            #
 
 LcmConfig:
   Settings:
