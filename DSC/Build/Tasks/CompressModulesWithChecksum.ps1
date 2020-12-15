@@ -2,7 +2,7 @@ task CompressModulesWithChecksum {
 
     if ($SkipCompressedModulesBuild)
     {
-        Write-Host "Skipping preparation of Compressed Modules as $SkipCompressedModulesBuild is set"
+        Write-Host 'Skipping preparation of Compressed Modules as $SkipCompressedModulesBuild is set'
         return
     }
 
@@ -12,7 +12,7 @@ task CompressModulesWithChecksum {
 
     if ($SkipCompressedModulesBuild)
     {
-        Write-Host "Skipping preparation of Compressed Modules as $SkipCompressedModulesBuild is set"
+        Write-Host 'Skipping preparation of Compressed Modules as $SkipCompressedModulesBuild is set'
         return
     }
 
