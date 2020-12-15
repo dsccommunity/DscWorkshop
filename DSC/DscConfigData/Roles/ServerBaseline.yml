@@ -19,7 +19,7 @@ NetworkIpConfiguration:
   DisableNetbios: True
 
 ChocolateyPackages:
-  Package:
+  Packages:
   - Name: winrar
     Ensure: Present
     Version: '5.90.0.20200401'

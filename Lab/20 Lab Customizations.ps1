@@ -34,21 +34,21 @@
 }
 
 $requiredChocolateyPackages = @{
-    putty            = '0.73'
-    winrar           = '5.90.0.20200401'
-    notepadplusplus  = '7.8.5'
-    'microsoft-edge' = '80.0.361.111'
-    vscode           = '1.44.0'
-    wireshark        = '3.2.2'
+    putty            = '0.74'
+    winrar           = '6.00'
+    notepadplusplus  = '7.9.1'
+    'microsoft-edge' = '87.0.664.60'
+    vscode           = '1.52.0'
+    wireshark        = '3.4.1'
     winpcap          = '4.1.3.20161116'
 }
 
 $vsCodeDownloadUrl = 'https://go.microsoft.com/fwlink/?Linkid=852157'
-$gitDownloadUrl = 'https://github.com/git-for-windows/git/releases/download/v2.25.0.windows.1/Git-2.25.0-64-bit.exe'
-$vscodePowerShellExtensionDownloadUrl = 'https://marketplace.visualstudio.com/_apis/public/gallery/publishers/ms-vscode/vsextensions/PowerShell/2020.1.0/vspackage'
-$edgeDownloadUrl = 'http://dl.delivery.mp.microsoft.com/filestreamingservice/files/0af31313-0430-454d-908a-d55ce3df7b69/MicrosoftEdgeEnterpriseX64.msi'
+$gitDownloadUrl = 'https://github.com/git-for-windows/git/releases/download/v2.29.2.windows.2/Git-2.29.2.2-64-bit.exe'
+$vscodePowerShellExtensionDownloadUrl = 'https://marketplace.visualstudio.com/_apis/public/gallery/publishers/ms-vscode/vsextensions/PowerShell-Preview/2020.9.0/vspackage'
+$edgeDownloadUrl = 'https://msedge.sf.dl.delivery.mp.microsoft.com/filestreamingservice/files/b4b09058-b46b-4286-8124-83b31bcc1b7b/MicrosoftEdgeEnterpriseX64.msi'
 $chromeDownloadUrl = 'https://dl.google.com/tag/s/appguid%3D%7B8A69D345-D564-463C-AFF1-A69D9E530F96%7D%26iid%3D%7BC9D94BD4-6037-E88E-2D5A-F6B7D7F8F4CF%7D%26lang%3Den%26browser%3D5%26usagestats%3D0%26appname%3DGoogle%2520Chrome%26needsadmin%3Dprefers%26ap%3Dx64-stable-statsdef_1%26installdataindex%3Dempty/chrome/install/ChromeStandaloneSetup64.exe'
-$notepadPlusPlusDownloadUrl = 'https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v7.8.6/npp.7.8.6.Installer.x64.exe'
+$notepadPlusPlusDownloadUrl = 'https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v7.9.1/npp.7.9.1.Installer.exe'
 
 #-------------------------------------------------------------------------------------------------------------------------------------
 
@@ -372,6 +372,7 @@ Invoke-LabCommand -ActivityName 'Publishing required Chocolatey packages to inte
     }
 
     foreach ($kvp in $requiredChocolateyPackages.GetEnumerator()) {
+        Write-Host "Saving package '$($kvp.Name)', " -NoNewline
         if (-not ($p = Find-Package -Name $kvp.Name -Source Choco)) {
             Write-Error "Package '$($kvp.Name)' could not be found at the source '$publicFeedUri'"
             continue
@@ -380,7 +381,8 @@ Invoke-LabCommand -ActivityName 'Publishing required Chocolatey packages to inte
     }
 
     dir -Path $tempFolder | ForEach-Object {
-
+        
+        Write-Host "Publishing package '$($kvp.Name)'"
         choco push $_.FullName -s $chocolateyFeed.NugetV2Url --api-key $chocolateyFeed.NugetApiKey
 
     }
@@ -429,7 +431,7 @@ Invoke-LabCommand -ActivityName "Install module 'xDscDiagnostics' required by DS
 } -ComputerName $dscNodes
 
 Invoke-LabCommand -ActivityName "Create DscData JEA endpoint for allowing the LCM controller to send additional data to the DSC pull server" `
--FilePath $PSScriptRoot\..\DscTaggingData\New-DscDataEndpoint.ps1 -ComputerName $pullServer
+-FilePath $PSScriptRoot\DscTaggingData\New-DscDataEndpoint.ps1 -ComputerName $pullServer
 
 Restart-LabVM -ComputerName $devOpsServer, $buildWorkers -Wait
 

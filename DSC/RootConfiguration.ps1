@@ -29,7 +29,8 @@ configuration "RootConfiguration"
         Write-Host "`r`n$('-'*75)`r`n$($Node.Name) : $($Node.NodeName) : $(&$module { $Script:PSTopConfigurationName })" -ForegroundColor Yellow
         
         $configurationNames = Resolve-NodeProperty -PropertyPath 'Configurations'
-        
+        $global:node = $node #this makes the node variable being propagated into the configurations
+
         foreach ($configurationName in $configurationNames) {
             Write-Debug "`tLooking up params for $configurationName"
             $properties = Resolve-NodeProperty -PropertyPath $configurationName -DefaultValue @{}
@@ -75,16 +76,16 @@ configuration "RootConfiguration"
 $cd = @{}
 $cd.Datum = $ConfigurationData.Datum
 
-foreach ($n in $configurationData.AllNodes)
+foreach ($node in $configurationData.AllNodes)
 {
-    $cd.AllNodes = @($ConfigurationData.AllNodes | Where-Object NodeName -eq $n.NodeName)
+    $cd.AllNodes = @($ConfigurationData.AllNodes | Where-Object NodeName -eq $node.NodeName)
     try
     {
         RootConfiguration -ConfigurationData $cd -OutputPath (Join-Path -Path $BuildOutput -ChildPath MOF)
     }
     catch
     {
-        Write-Host "Error occured during compilation of node '$($n.NodeName)' : $($_.Exception.Message)" -ForegroundColor Red
+        Write-Host "Error occured during compilation of node '$($node.NodeName)' : $($_.Exception.Message)" -ForegroundColor Red
         $relevantErrors = $Error | Where-Object Exception -isnot [System.Management.Automation.ItemNotFoundException]
         Write-Host ($relevantErrors[0..2] | Out-String) -ForegroundColor Red
     }

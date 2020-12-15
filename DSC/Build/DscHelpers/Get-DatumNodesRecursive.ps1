@@ -5,6 +5,7 @@ function Get-DatumNodesRecursive
 
         [int]$Depth
     )
+    
     if ($Depth -gt 0)
     {
         $expandedNodes = foreach ($node in $Nodes)

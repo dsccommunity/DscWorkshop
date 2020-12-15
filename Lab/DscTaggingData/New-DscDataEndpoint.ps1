@@ -219,4 +219,11 @@ Remove-Item -Path $modulePath -Recurse -Force -ErrorAction SilentlyContinue
 
 DscTaggingRole
 
+$trigger = New-JobTrigger -At (Get-Date).AddMinutes(1) -Once
+Register-ScheduledJob -Name StartWinRmService  -ScriptBlock {
+    Start-Service -Name WinRM
+} -Trigger $trigger -ErrorAction SilentlyContinue
+
 Register-CustomPSSessionConfiguration -EndpointName $EndpointName -AllowedPrincipals $AllowedPrincipals
+
+Unregister-ScheduledJob -Name StartWinRmService

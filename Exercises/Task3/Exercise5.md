@@ -174,4 +174,4 @@ This task assumes that you have access to dev.azure.com in order to create your 
 
     ![Azure Automation DSC overview](img/AzureAutomationAccountOverview.png)
 
-Great! Your release pipleine worked!
+Great! Your release pipeline worked!
