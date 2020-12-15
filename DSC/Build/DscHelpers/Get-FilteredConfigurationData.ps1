@@ -12,11 +12,6 @@ function Get-FilteredConfigurationData {
         $Datum = $(Get-variable Datum -ValueOnly -ErrorAction Stop)
     )
 
-    #for some reason 'Filter' is sometimes empty even if a default value is assigned to the parameter
-    if (-not $Filter) {
-        $Filter = {}
-    }
-
     $allNodes = @(Get-DatumNodesRecursive -Nodes $Datum.AllNodes -Depth 20)
     $totalNodeCount = $allNodes.Count
     
