@@ -24,5 +24,13 @@
     xDscDiagnostics              = '2.8.0'
     xDnsServer                   = '1.16.0.0'
     xFailoverCluster             = '1.14.1'
+    GPRegistryPolicyDsc          = '1.2.0'
+    AuditPolicyDsc               = '1.4.0.0'
+    SharePointDSC                = '4.5.1'
+    xExchange                    = '1.32.0'
+    SqlServerDsc                 = '15.1.1'
+    UpdateServicesDsc            = '1.2.1'
+    xWindowsEventForwarding      = '1.0.0.0'
+    OfficeOnlineServerDsc        = '1.5.0'
 
 }
