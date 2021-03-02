@@ -39,9 +39,9 @@ You can compare this build to the latest from AppVeyor: https://ci.appveyor.com/
 ### Pulling Dependencies from PSGallery
 
 Have a look at what is pulled from those files:
-- [Modules used during the Build process](./DSC/Build/PSDepend/PSDepend.build.psd1)
-- [Modules containing the DSC Configurations (DSC Composite Resource)](./DSC/Build/PSDepend/PSDepend.DscConfigurations.psd1)
-- [Modules containing the DSC Resources](./DSC/Build/PSDepend/PSDepend.DscResources.psd1)
+- [Modules used during the Build process](./DSC//PSDepend.build.psd1)
+- [Modules containing the DSC Configurations (DSC Composite Resource)](./DSC/PSDepend.DscConfigurations.psd1)
+- [Modules containing the DSC Resources](./DSC/PSDepend.DscResources.psd1)
 
 > Note that for this workshop, we have added to git some files directly under the `DscConfigurations` folder, but that's not a best practice.
 > In this `control repository`, you only want to manage trusted artefacts (built in their own pipelines) instead of directly using module sources as we're doing for this demo.
