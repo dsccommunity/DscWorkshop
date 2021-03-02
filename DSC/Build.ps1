@@ -137,13 +137,13 @@ if ($MyInvocation.ScriptName -notlike '*Invoke-Build.ps1') {
     Write-Host "Created $mofFileCount MOF files in '$BuildOutput/MOF'" -ForegroundColor Green
 
     #Debug Output
-    Write-Host "------------------------------------" -ForegroundColor Magenta
-    Write-Host "PowerShell Variables" -ForegroundColor Magenta
-    Get-Variable | Out-String | Write-Host -ForegroundColor Magenta
-    Write-Host "------------------------------------" -ForegroundColor Magenta
-    Write-Host "Environment Variables" -ForegroundColor Magenta
-    dir env: | Out-String | Write-Host -ForegroundColor Magenta
-    Write-Host "------------------------------------" -ForegroundColor Magenta
+    #Write-Host "------------------------------------" -ForegroundColor Magenta
+    #Write-Host "PowerShell Variables" -ForegroundColor Magenta
+    #Get-Variable | Out-String | Write-Host -ForegroundColor Magenta
+    #Write-Host "------------------------------------" -ForegroundColor Magenta
+    #Write-Host "Environment Variables" -ForegroundColor Magenta
+    #dir env: | Out-String | Write-Host -ForegroundColor Magenta
+    #Write-Host "------------------------------------" -ForegroundColor Magenta
     
     return
 }
