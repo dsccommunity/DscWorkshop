@@ -1,46 +1,12 @@
-﻿$requiredModules = @{
-    'powershell-yaml'            = 'latest'
-    BuildHelpers                 = 'latest'
-    datum                        = '0.39.0'
-    DscBuildHelpers              = 'latest'
-    InvokeBuild                  = 'latest'
-    Pester                       = '4.10.1'
-    ProtectedData                = 'latest'
-    PSDepend                     = 'latest'
-    PSDeploy                     = 'latest'
-    PSScriptAnalyzer             = 'latest'
-    xDSCResourceDesigner         = 'latest'
-    xPSDesiredStateConfiguration = '9.1.0'
-    ComputerManagementDsc        = '8.4.0'
-    NetworkingDsc                = '8.2.0'
-    NTFSSecurity                 = 'latest'
-    JeaDsc                       = '0.7.2'
-    XmlContentDsc                = '0.0.1'
-    PowerShellGet                = 'latest'
-    PackageManagement            = 'latest'
-    xWebAdministration           = '3.2.0'
-    ActiveDirectoryDsc           = '6.0.1'
-    SecurityPolicyDsc            = '2.10.0.0'
-    StorageDsc                   = '5.0.1'
-    Chocolatey                   = '0.0.79'
-    'Datum.ProtectedData'        = '0.0.1'
-    'Datum.InvokeCommand'        = '0.1.1'
-    xDscDiagnostics              = '2.8.0'
-    CertificateDsc               = '4.7.0.0'
-    DfsDsc                       = '4.4.0.0'
-    WdsDsc                       = '0.11.0'
-    xDhcpServer                  = '3.0.0'
-    xDnsServer                   = '1.16.0.0'
-    xFailoverCluster             = '1.14.1'
-    GPRegistryPolicyDsc          = '1.2.0'
-    AuditPolicyDsc               = '1.4.0.0'
-    SharePointDSC                = '4.5.1'
-    xExchange                    = '1.32.0'
-    SqlServerDsc                 = '15.1.1'
-    UpdateServicesDsc            = '1.2.1'
-    xWindowsEventForwarding      = '1.0.0.0'
-    OfficeOnlineServerDsc        = '1.5.0'
+﻿$here = $PSScriptRoot
 
+$psdependFiles = 'PSDepend.Build.psd1', 'PSDepend.DscConfigurations.psd1', 'PSDepend.DscResources.psd1'
+$requiredModules = @{}
+
+foreach ($psdependFile in $psdependFiles) {
+    $psdependFileData = Import-PowerShellDataFile -Path "$here\..\DSC\$psdependFile"
+    $psdependFileData.Remove('PSDependOptions')
+    $requiredModules = $requiredModules + $psdependFileData
 }
 
 $requiredChocolateyPackages = @{
