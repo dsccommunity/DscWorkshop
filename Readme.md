@@ -58,3 +58,7 @@ The lab script are in [Lab](./Lab).
 - Reporting (at least if you are using the on-prem pull server)
 - Git branching model
 - Automated testing
+
+## YAML Reference Documentation
+
+The [YAML reference documentation](https://github.com/dsccommunity/CommonTasks/blob/dev/doc/README.adoc) is located in the ./doc subfolder of the [CommonTasks](https://github.com/dsccommunity/CommonTasks) repository.

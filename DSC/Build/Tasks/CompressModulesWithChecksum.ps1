@@ -18,7 +18,7 @@ task CompressModulesWithChecksum {
 
     if ($configurationData.AllNodes -and $CurrentJobNumber -eq 1) {
         
-        $modules = Get-ModuleFromFolder -ModuleFolder "$ProjectPath\DscResources\"
+        $modules = Get-ModuleFromFolder -ModuleFolder $ResourcesFolder
         $compressedModulesPath = "$BuildOutput\CompressedModules"
 
         foreach ($module in $modules) {
