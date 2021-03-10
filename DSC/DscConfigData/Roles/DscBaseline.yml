@@ -8,7 +8,7 @@ DscTagging:
   Version: 0.3.0
 
 DscLcmMaintenanceWindows:
-  MaintenanceWindow:
+  MaintenanceWindows:
     - Name: Always
       StartTime: 00:00:00
       Timespan: 24:00:00
