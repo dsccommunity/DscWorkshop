@@ -32,5 +32,6 @@
     UpdateServicesDsc            = '1.2.1'
     xWindowsEventForwarding      = '1.0.0.0'
     OfficeOnlineServerDsc        = '1.5.0'
+    xBitlocker                   = '1.4.0.0'
 
 }
