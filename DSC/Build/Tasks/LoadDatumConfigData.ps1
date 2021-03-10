@@ -3,6 +3,7 @@ task LoadDatumConfigData {
     Import-Module -Name PowerShell-Yaml -Scope Global
     Import-Module -Name Datum -Scope Global
 
+    $global:node = $null #very imporant, otherwise the 2nd build in the same session won't work
     $datumDefinitionFile = Join-Path -Resolve -Path $configDataPath -ChildPath 'Datum.yml'
     Write-Build Green "Loading Datum Definition from '$datumDefinitionFile'"
     $global:datum = New-DatumStructure -DefinitionFile $datumDefinitionFile

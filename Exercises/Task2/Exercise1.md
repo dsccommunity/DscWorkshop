@@ -85,9 +85,9 @@ After completing this task, you have a gone through the build process for all ar
     This command will download all dependencies that have been defined first and then build the entire environment. This can take a short while.
 
     While the script is running, you may want to explore the following folders. The PSDepend module downloads and stores the dependencies into these folders based on the information in the files in brackets.
-    - DSC\BuildOutput (DSC\Build\PSDepend\PSDepend.Build.psd1)
-    - DSC\DscConfigurations (DSC\Build\PSDepend\PSDepend.DscConfigurations.psd1)
-    - DSC\DscResources (DSC\Build\PSDepend\PSDepend.DscResources.psd1)
+    - DSC\BuildOutput (DSC\PSDepend.Build.psd1)
+    - DSC\DscConfigurations (DSC\PSDepend.DscConfigurations.psd1)
+    - DSC\DscResources (DSC\PSDepend.DscResources.psd1)
 
 11. After the build process has finished, a number of artifacts have been created. The artifacts that we need for DSC are the MOF files, Meta.MOF files and the compressed modules. Before having a closer look at the artifacts, let's have a look how nodes are defined for the dev environment. In VSCode, please navigate to the folder 'DSC\DscConfigData\AllNodes\Dev.
 

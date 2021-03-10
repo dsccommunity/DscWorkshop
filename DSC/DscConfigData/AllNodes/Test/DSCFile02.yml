@@ -5,7 +5,14 @@ Description: '[Command=(Import-Csv -Path $env:BHProjectPath\DscConfigData\Extern
 Location: Frankfurt
 
 NetworkIpConfiguration:
-  IpAddress: 192.168.111.110
+  Interfaces:
+    - InterfaceAlias: Ethernet
+      IpAddress: 192.168.111.110
+      Prefix: 24
+      Gateway: 192.168.111.50
+      DnsServer:
+        - 192.168.111.10
+      DisableNetbios: true
 
 PSDscAllowPlainTextPassword: True
 PSDscAllowDomainUser: True

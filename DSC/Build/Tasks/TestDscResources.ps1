@@ -38,7 +38,7 @@ task TestDscResources {
         Write-Host 'Known DSC Resources'
         Write-Host ------------------------------------------------------------
         Write-Host
-        Import-LocalizedData -BindingVariable requiredResources -FileName PSDepend.DscResources.psd1 -BaseDirectory $ProjectPath\Build\PSDepend
+        Import-LocalizedData -BindingVariable requiredResources -FileName PSDepend.DscResources.psd1 -BaseDirectory $ProjectPath
         $requiredResources = @($requiredResources.GetEnumerator() | Where-Object { $_.Name -ne 'PSDependOptions' })
         $requiredResources.GetEnumerator() | Foreach-Object {
             $rr = $_
