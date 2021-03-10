@@ -22,7 +22,7 @@ Add-LabDomainDefinition -Name contoso.com -AdminUser Install -AdminPassword Some
 Set-LabInstallationCredential -Username Install -Password Somepass1
 
 # Add the reference to our necessary ISO files
-Add-LabIsoImageDefinition -Name AzDevOps -Path $labSources\ISOs\mu_azure_devops_server_2020_x64_dvd_633b160b.iso #from https://visualstudio.microsoft.com/downloads/
+Add-LabIsoImageDefinition -Name AzDevOps -Path $labSources\ISOs\mu_azure_devops_server_2020.0.1_x64_dvd_6622c455.iso #from https://docs.microsoft.com/en-us/azure/devops/server/download/azuredevopsserver?view=azure-devops
 
 #defining default parameter values, as these ones are the same for all the machines
 $PSDefaultParameterValues = @{
@@ -30,7 +30,7 @@ $PSDefaultParameterValues = @{
     'Add-LabMachineDefinition:ToolsPath'       = "$labSources\Tools"
     'Add-LabMachineDefinition:DomainName'      = 'contoso.com'
     'Add-LabMachineDefinition:DnsServer1'      = '192.168.111.10'
-    'Add-LabMachineDefinition:OperatingSystem' = 'Windows Server 2016 Datacenter (Desktop Experience)'
+    'Add-LabMachineDefinition:OperatingSystem' = 'Windows Server 2019 Datacenter (Desktop Experience)'
 }
 
 #The PostInstallationActivity is just creating some users
@@ -40,7 +40,7 @@ $postInstallActivity += Get-LabPostInstallationActivity -ScriptFileName PrepareR
 Add-LabMachineDefinition -Name DSCDC01 -Memory 1GB -Roles RootDC -IpAddress 192.168.111.10 -PostInstallationActivity $postInstallActivity
 
 # SQL and PKI
-Add-LabMachineDefinition -Name DSCCASQL01 -Memory 3GB -Roles CaRoot, SQLServer2017
+Add-LabMachineDefinition -Name DSCCASQL01 -Memory 3GB -Roles CaRoot, SQLServer2019
 
 # DSC Pull Server with SQL server backing, TFS Build Worker
 $roles = @(
