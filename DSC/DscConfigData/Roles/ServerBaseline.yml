@@ -11,15 +11,15 @@ WindowsFeatures:
 SecurityBase:
   Role: Baseline
 
-NetworkIpConfiguration:
-  Prefix: 24
-  Gateway: 192.168.111.50
-  DnsServer: 192.168.111.10
-  InterfaceAlias: Ethernet
-  DisableNetbios: True
+#NetworkIpConfiguration:
+#  Prefix: 24
+#  Gateway: 192.168.111.50
+#  DnsServer: 192.168.111.10
+#  InterfaceAlias: Ethernet
+#  DisableNetbios: True
 
 ChocolateyPackages:
-  Package:
+  Packages:
   - Name: winrar
     Ensure: Present
     Version: '5.90.0.20200401'

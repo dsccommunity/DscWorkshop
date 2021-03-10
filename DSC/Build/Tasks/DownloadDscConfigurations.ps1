@@ -1,5 +1,5 @@
 task DownloadDscConfigurations {
-    $PSDependConfigurationDefinition = "$ProjectPath\Build\PSDepend\PSDepend.DscConfigurations.psd1"
+    $PSDependConfigurationDefinition = "$ProjectPath\PSDepend.DscConfigurations.psd1"
     if (Test-Path $PSDependConfigurationDefinition) {
         Write-Build Green 'Pull dependencies from PSDepend.DscConfigurations.psd1'
         $psDependParams = @{

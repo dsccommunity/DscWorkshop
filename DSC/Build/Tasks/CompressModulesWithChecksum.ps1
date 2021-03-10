@@ -1,12 +1,24 @@
 task CompressModulesWithChecksum {
 
+    if ($SkipCompressedModulesBuild)
+    {
+        Write-Host 'Skipping preparation of Compressed Modules as $SkipCompressedModulesBuild is set'
+        return
+    }
+
     if (-not (Test-Path -Path $BuildOutput\CompressedModules)) {
         mkdir -Path $BuildOutput\CompressedModules | Out-Null
     }
 
+    if ($SkipCompressedModulesBuild)
+    {
+        Write-Host 'Skipping preparation of Compressed Modules as $SkipCompressedModulesBuild is set'
+        return
+    }
+
     if ($configurationData.AllNodes -and $CurrentJobNumber -eq 1) {
         
-        $modules = Get-ModuleFromFolder -ModuleFolder "$ProjectPath\DscResources\"
+        $modules = Get-ModuleFromFolder -ModuleFolder $ResourcesFolder
         $compressedModulesPath = "$BuildOutput\CompressedModules"
 
         foreach ($module in $modules) {

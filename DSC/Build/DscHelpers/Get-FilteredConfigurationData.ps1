@@ -13,6 +13,7 @@ function Get-FilteredConfigurationData {
     )
 
     $allNodes = @(Get-DatumNodesRecursive -Nodes $Datum.AllNodes -Depth 20)
+    $totalNodeCount = $allNodes.Count
     
     Write-Host "Node count: $($allNodes.Count)"
     
@@ -20,6 +21,11 @@ function Get-FilteredConfigurationData {
         Write-Host "Filter: $($Filter.ToString())"
         $allNodes = [System.Collections.Hashtable[]]$allNodes.Where($Filter)
         Write-Host "Node count after applying filter: $($allNodes.Count)"
+    }
+
+    if (-not $allNodes.Count)
+    {
+        Write-Error "No node data found. There are in total $totalNodeCount nodes defined, but no node was selected. You may want to verify the filter: '$Filter'."
     }
 
     $CurrentJobNumber--

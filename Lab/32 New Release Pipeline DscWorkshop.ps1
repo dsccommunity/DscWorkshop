@@ -1,4 +1,8 @@
-﻿$lab = Get-Lab
+﻿$projectName = 'DscWorkshop'
+$projectGitUrl = 'https://github.com/DscCommunity/DscWorkshop'
+$collectionName = 'AutomatedLab'
+
+$lab = Get-Lab
 $devOpsServer = Get-LabVM -Role AzDevOps
 $devOpsHostName = if ($lab.DefaultVirtualizationEngine -eq 'Azure') { $devOpsServer.AzureConnectionInfo.DnsName } else { $devOpsServer.FQDN }
 $nugetServer = Get-LabVM -Role AzDevOps
@@ -6,19 +10,15 @@ $nugetFeed = Get-LabTfsFeed -ComputerName $nugetServer -FeedName PowerShell
 $pullServer = Get-LabVM -Role DSCPullServer
 $hypervHost = Get-LabVM -Role HyperV
 
-$role = $devOpsServer.Roles | Where-Object Name -like AzDevOps
+$devOpsRole = $devOpsServer.Roles | Where-Object Name -like AzDevOps
 $devOpsCred = $devOpsServer.GetCredential($lab)
 $devOpsPort = $originalPort = 8080
-if ($role.Properties.ContainsKey('Port')) {
-    $devOpsPort = $role.Properties['Port']
+if ($devOpsRole.Properties.ContainsKey('Port')) {
+    $devOpsPort = $devOpsRole.Properties['Port']
 }
 if ($lab.DefaultVirtualizationEngine -eq 'Azure') {
     $devOpsPort = (Get-LabAzureLoadBalancedPort -DestinationPort $devOpsPort -ComputerName $devOpsServer).Port
 }
-
-$projectName = 'DscWorkshop'
-$projectGitUrl = 'https://github.com/AutomatedLab/DscWorkshop'
-$collectionName = 'AutomatedLab'
 
 # Which will make use of Azure DevOps, clone the stuff, add the necessary build step, publish the test results and so on
 # You will see two remotes, Origin (Our code on GitHub) and Azure DevOps (Our code pushed to your lab)
@@ -514,7 +514,6 @@ $releaseEnvironments = @(
 #endregion Build and Release Definitions
 
 $repo = Get-TfsGitRepository -InstanceName $devOpsHostName -Port $devOpsPort -CollectionName $collectionName -ProjectName $projectName -Credential $devOpsCred -UseSsl -SkipCertificateCheck
-$repo.remoteUrl = $repo.remoteUrl -replace $originalPort, $devOpsPort
 
 $param = @{
     Uri        = "https://$($devOpsHostName):$devOpsPort/$collectionName/_apis/git/repositories/{$($repo.id)}/refs?api-version=4.1"
@@ -530,9 +529,6 @@ Invoke-LabCommand -ActivityName 'Set RepositoryUri and create Build Pipeline' -S
     git checkout dev *>$null
     $c = Get-Content '.\azure-pipelines On-Prem.yml' -Raw
     $c = $c -replace '  RepositoryUri: ggggg', "  RepositoryUri: $($nugetFeed.NugetV2Url)"
-    $c = $c -replace '  Domain: ddddd', "  Domain: $($nugetFeed.NugetCredential.GetNetworkCredential().Domain)"
-    $c = $c -replace '  UserName: uuuuu', "  Username: $($nugetFeed.NugetCredential.GetNetworkCredential().UserName)"
-    $c = $c -replace '  Password: ppppp', "  Password: $($nugetFeed.NugetCredential.GetNetworkCredential().Password)"
     $c | Set-Content '.\azure-pipelines.yml'
     git add .
     git commit -m 'Set RepositoryUri and create Build Pipeline'

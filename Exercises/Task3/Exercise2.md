@@ -10,7 +10,7 @@ This task assumes that you have access to dev.azure.com in order to create your 
 
 ## Create a new build pipeline
 
-Again, this step can easily be automated. ~~If you are interested in how this may look like, take a look at the [project code](../../Lab/31%20New%20Release%20Pipleine%20CommonTasks.ps1) in either of the pipeline lab scripts. We are using a hashtable containing all build tasks and pass it to the cmdlets exposed by AutomatedLab.Common.~~
+Again, this step can easily be automated. ~~If you are interested in how this may look like, take a look at the [project code](../../Lab/31%20New%20Release%20Pipeline%20CommonTasks.ps1) in either of the pipeline lab scripts. We are using a hashtable containing all build tasks and pass it to the cmdlets exposed by AutomatedLab.Common.~~
 
 Our template approach consists of using a trusted, internal (i.e. private) gallery for PowerShell modules. Internal does not necessarily mean on-premises, but means a gallery that you trust in which is usually self-hosted.
 

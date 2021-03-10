@@ -1,11 +1,18 @@
 NodeName: DSCFile03
 Environment: Prod
 Role: FileServer
-Description: File Server in Prod
+Description: '[Command=(Import-Csv -Path $env:BHProjectPath\DscConfigData\ExternalData.csv -Delimiter ";" | Where-Object ComputerName -eq DSCFile03).Description]'
 Location: Frankfurt
 
 NetworkIpConfiguration:
-  IpAddress: 192.168.111.120
+  Interfaces:
+    - InterfaceAlias: Ethernet
+      IpAddress: 192.168.111.120
+      Prefix: 24
+      Gateway: 192.168.111.50
+      DnsServer:
+        - 192.168.111.10
+      DisableNetbios: true
 
 PSDscAllowPlainTextPassword: True
 PSDscAllowDomainUser: True

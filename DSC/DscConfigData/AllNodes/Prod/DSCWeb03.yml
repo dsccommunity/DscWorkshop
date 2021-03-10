@@ -1,11 +1,18 @@
 NodeName: DSCWeb03
 Environment: Prod
 Role: WebServer
-Description: Web Server in Prod
+Description: '[Command=(Import-Csv -Path $env:BHProjectPath\DscConfigData\ExternalData.csv -Delimiter ";" | Where-Object ComputerName -eq DSCWeb03).Description]'
 Location: Singapore
 
 NetworkIpConfiguration:
-  IpAddress: 192.168.111.121
+  Interfaces:
+    - InterfaceAlias: Ethernet
+      IpAddress: 192.168.111.121
+      Prefix: 24
+      Gateway: 192.168.111.50
+      DnsServer:
+        - 192.168.111.10
+      DisableNetbios: true
 
 PSDscAllowPlainTextPassword: True
 PSDscAllowDomainUser: True

@@ -1,13 +1,31 @@
 $here = $PSScriptRoot
 
-$datumDefinitionFile = Join-Path $here ..\..\DscConfigData\Datum.yml
-$nodeDefinitions = Get-ChildItem $here\..\..\DscConfigData\AllNodes -Recurse -Include *.yml
-$environments = (Get-ChildItem $here\..\..\DscConfigData\AllNodes -Directory).BaseName
-$roleDefinitions = Get-ChildItem $here\..\..\DscConfigData\Roles -Recurse -Include *.yml
+$datumDefinitionFile = "$ProjectPath\DscConfigData\Datum.yml"
+$nodeDefinitions = Get-ChildItem $ProjectPath\DscConfigData\AllNodes -Recurse -Include *.yml
+$environments = (Get-ChildItem $ProjectPath\DscConfigData\AllNodes -Directory).BaseName
+$roleDefinitions = Get-ChildItem $ProjectPath\DscConfigData\Roles -Recurse -Include *.yml
 $datum = New-DatumStructure -DefinitionFile $datumDefinitionFile
-$configurationData = Get-FilteredConfigurationData -Datum $datum -Filter $filter
+$allDefinitions = Get-ChildItem $ProjectPath\DscConfigData -Recurse -Include *.yml
+$configurationData = try {
+    Get-FilteredConfigurationData -Datum $datum -Filter $filter
+}
+catch { 
+    Write-Error "'Get-FilteredConfigurationData' did not return any data. Please check if all YAML files are valid and don't have syntax errors"
+}
 
 $nodeNames = [System.Collections.ArrayList]::new()
+
+Describe 'Validate All Definition Files' -Tag Integration {
+    $allDefinitions.ForEach{
+        # A Node cannot be empty
+        $content = Get-Content -Path $_ -Raw
+        $fileName = $_.Name
+
+        It "'$fileName' is a valid yaml" {
+            { $content | ConvertFrom-Yaml } | Should -Not -Throw
+        }
+    }
+}
 
 Describe 'Datum Tree Definition' -Tag Integration {
     It 'Exists in DscConfigData Folder' {
@@ -19,11 +37,15 @@ Describe 'Datum Tree Definition' -Tag Integration {
         { $datumYamlContent | ConvertFrom-Yaml } | Should -Not -Throw
     }
 
+    It "'Get-FilteredConfigurationData' returned data" {
+        $configurationData | Should -Not -BeNullOrEmpty
+    }
+
 }
 
 Describe 'Node Definition Files' -Tag Integration {
-    $environments = dir .\DscConfigData\Environment\ | Select-Object -ExpandProperty BaseName
-    $locations = dir .\DscConfigData\Locations\ | Select-Object -ExpandProperty BaseName
+    $environments = Get-ChildItem .\DscConfigData\Environment\ | Select-Object -ExpandProperty BaseName
+    $locations = Get-ChildItem .\DscConfigData\Locations\ | Select-Object -ExpandProperty BaseName
 
     $nodeDefinitions.ForEach{
         # A Node cannot be empty

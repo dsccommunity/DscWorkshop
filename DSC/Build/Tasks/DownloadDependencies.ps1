@@ -1,7 +1,7 @@
 task DownloadDependencies -if ($DownloadResourcesAndConfigurations -or $Tasks -contains 'DownloadDependencies') DownloadDscConfigurations, DownloadDscResources -Before SetPsModulePath
 
 task DownloadDscResources {
-    $PSDependResourceDefinition = "$ProjectPath\Build\PSDepend\PSDepend.DscResources.psd1"
+    $PSDependResourceDefinition = "$ProjectPath\PSDepend.DscResources.psd1"
     if (Test-Path $PSDependResourceDefinition) {
         $psDependParams = @{
             Path    = $PSDependResourceDefinition

@@ -1,5 +1,9 @@
 Task Init {
 
+    if ($PSVersionTable.PSEdition -ne 'Desktop') {
+        Write-Error "The build script required Windows PowerShell 5.1 to work" 
+    }
+
     if (-not $env:BHProjectName) {
         try {
             Write-Host "Calling 'Set-BuildEnvironment' with path '$ProjectPath'"
@@ -10,6 +14,8 @@ Task Init {
             throw $_
         }
     }
+
+    $global:Filter = $null
 
     $lines
     Set-Location -Path $ProjectPath

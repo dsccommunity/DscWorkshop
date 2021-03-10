@@ -1,11 +1,18 @@
 NodeName: DSCWeb02
 Environment: Test
 Role: WebServer
-Description: Web Server in Test
+Description: '[Command=(Import-Csv -Path $env:BHProjectPath\DscConfigData\ExternalData.csv -Delimiter ";" | Where-Object ComputerName -eq DSCWeb02).Description]'
 Location: Singapore
 
 NetworkIpConfiguration:
-  IpAddress: 192.168.111.111
+  Interfaces:
+    - InterfaceAlias: Ethernet
+      IpAddress: 192.168.111.111
+      Prefix: 24
+      Gateway: 192.168.111.50
+      DnsServer:
+        - 192.168.111.10
+      DisableNetbios: true
 
 PSDscAllowPlainTextPassword: True
 PSDscAllowDomainUser: True

@@ -10,10 +10,11 @@
 
     InvokeBuild           = 'latest'
     BuildHelpers          = 'latest'
-    Pester                = 'latest'
+    Pester                = '4.10.1'
     PSScriptAnalyzer      = 'latest'
     DscBuildHelpers       = 'latest'
-    Datum                 = 'latest'
+    Datum                 = '0.39.0'
     'powershell-yaml'     = 'latest'
     'Datum.ProtectedData' = 'latest'
+    'Datum.InvokeCommand' = 'latest'
 }

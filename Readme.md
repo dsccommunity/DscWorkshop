@@ -7,89 +7,58 @@ Master | [![Build status](https://ci.appveyor.com/api/projects/status/9yynk81k3k
 
 [![GitHub issues](https://img.shields.io/github/issues/AutomatedLab/DscWorkshop.svg)](https://github.com/AutomatedLab/DscWorkshop/issues)
 
-Remember to **charge your laptop** before the workshop!
+## Abstract
 
-**If the build fails, please download the latest version of AutomatedLab and pull the repository again**
+This project serves as a blueprint for projects utilizing [DSC](https://docs.microsoft.com/en-us/powershell/scripting/dsc/overview/overview?view=powershell-7) in a medium or complex scope. It comes with a single build script to create all DSC artifacts for push or pull scenarios with the most flexible and scalable solution to manage [configuration data](https://docs.microsoft.com/en-us/powershell/scripting/dsc/configurations/configData?view=powershell-7).
 
-## Goal:
-  - Introduce the [Release Pipeline Model](https://aka.ms/TRPM) with one possible implementation using DSC
-  - Use the code to setup a lab environment at work/home and learn how to roll your own DSC Pipeline
-  - Share our experiences of rolling out DSC in production environments within highly regulated industries 
+This project does not use DSC as an isolated technology. DSC is just one part in a pipeline that leverages a few Microsoft products and open-source.
 
+The is a fast-track learning path in [Exercises](./Exercises)
 
-## Overview:
+### Credits
+This project is inspired by [Gael Colas'](https://twitter.com/gaelcolas) [DscInfraSample](https://github.com/gaelcolas/DscInfraSample) and Gael's opinions have an impact on its evolution.
 
-1. Introduction
-2. [AutomatedLab](https://youtu.be/lrPlRvFR5fA) and Existing Infrastructure
-3. The Release [Pipeline](https://gaelcolas.files.wordpress.com/2018/04/samplemodule_pipeline.mp4), and how to apply to your [infrastructure](https://gaelcolas.files.wordpress.com/2018/04/demo_dsc_sol.mp4)
-4. Building a trusted release process 
-5. Bringing Existing Infrastructure under DSC Control, with [Datum](https://gaelcolas.files.wordpress.com/2018/04/datum_quick.mp4)
+The overall concept follows [The Release Pipeline Model](https://aka.ms/trpm), a whitepaper written by [Michael Greene](https://twitter.com/migreene) and [Steven Murawski](https://twitter.com/StevenMurawski) that is a must-read and describing itself like this:
 
+> There are benefits to be gained when patterns and practices from developer techniques are applied to operations. Notably, a fully automated solution where infrastructure is managed as code and all changes are automatically validated before reaching production. This is a process shift that is recognized among industry innovators. For organizations already leveraging these processes, it should be clear how to leverage Microsoft platforms. For organizations that are new to the topic, it should be clear how to bring this process to your environment and what it means to your organizational culture. This document explains the components of a Release Pipeline for configuration as code, the value to operations, and solutions that are used when designing a new Release Pipeline architecture.
 
-## Before you start
+## Technical Summary
 
-The best way to follow along is to get your Git and Github setup.
+In the past few years many projects using DSC have not produced the desired output or have even failed. One of the main reasons is the tooling required to automate the process of building the DSC artifacts (MOF, Meta MOF, Compresses Modules) and automated testing is not implemented.
 
-### 1. Fork the [AutomatedLab/DscWorkshop](https://github.com/AutomatedLab/DscWorkshop) project 
+One of the goals of this project is to manage the complexity that comes with DSC. The needs to be proper tooling that solves these issues:
 
-Once logged into Github, fork the following repository: https://github.com/AutomatedLab/DscWorkshop by clicking on the `FORK` button on the right of the page.
+- **Configuration Management** must be flexible and scalable. The DSC documentation is technically correct but does not lead people the right way. If one follows [Using configuration data in DSC](https://docs.microsoft.com/en-us/powershell/scripting/dsc/configurations/configData?view=powershell-7) and [Separating configuration and environment data](https://docs.microsoft.com/en-us/powershell/scripting/dsc/configurations/separatingenvdata?view=powershell-7), the outcome will be unmanageable if the configuration data gets more complex like dealing with roles, differences between locations and / or environments.. The solution to this problem is [Datum](https://github.com/gaelcolas/Datum), which is described in detail in the [Exercises](./Exercises).
+- Building the solution and creating the artifacts requires a **Single Build Script**. This get very difficult if the build process has any manual steps or preparations that need to be done. After you have done your changes and want to create new artifacts, running the [Build.ps1 script](./DSC/Build.ps1). This build script runs locally or inside a release pipeline (tested on Azure DevOps, Azure DevOps Sever, AppVeyor, GitLab).
+- The lack of **Dependency Resolution** makes it impossible to move a solution from local build to a CI/CD pipeline. Many DSC solutions require downloading a bunch of dependencies prior being able to run the build. This project uses [PSDepend](https://github.com/RamblingCookieMonster/PSDepend/) to download all required resources from either the PowerShell gallery or your internal repository feed.
+- **Automated Testing** is essential to verify the integrity of the configuration data. This project uses [Pester](https://pester.dev/) for this. Additionally, the artifacts must be tested in the development as well as the test environment prior deploying them to them to the production environment. This process should be fully automated as well.
 
-This will create a fork under your name: 
-i.e. `https://github.com/<your github handle>/DscWorkshop`
+## Getting started
 
-Where you will be able to push your changes.
+Getting into the details does not cost much time and does not require a complex lab infrastructure. You should start with the [Exercises - Task 2](./Exercises/Task2) on your personal computer. If you need to recap some DSC basics, go to [Exercises - Task 1](./Exercises/Task1). Later in the exercises a free [Azure DevOps](https://azure.microsoft.com/en-us/services/devops/) account is needed and to finish the last exercises also an [Azure Automation account](https://docs.microsoft.com/en-us/azure/automation/automation-create-standalone-account) for storing the MOF files.
 
-### 2. Git clone your fork locally
+If you need DSC in an isolated or non-cloud ready environment, all the required components can be installed as a local lab. For that [AutomatedLab](https://automatedlab.org) (AL) is required that handles the deployment of VMs on Azure or Hyper-V. AL also installs all the required software and does the necessary configurations. Deploying the lab takes 3 to 5 hours, is fully automated and includes:
 
-Now that you have it under your name, you can clone **your** fork onto your laptop.
+- Active Directory Domain
+- SQL Server 2017
+- Azure DevOps Server for hosting the code, running the builds and providing NuGet feed to Software (Chocolatey) and PowerShell modules
+- 4 to 8 Azure DevOps Build Agents
+- DSC Pull Server (SQL Server access already configured)
+- Certificate Authority for SSL support and credential encryption
+- Routing Services so all VMs can access the internet
 
-In your Github page you can use the green button 'Clone or Download' on your forked Github page `https://github.com/<your github handle>/DscWorkshop.git`
+The lab script are in [Lab](./Lab).
 
-Or use the following command in your command line:
-```
-git clone https://github.com/<your github handle>/DscWorkshop.git
-```
+## Technical Details
 
-### 3. Set up your laptop
+- Configuration management that allows multiple layers of data (psd1 files and hash tables can’t be the solution)
+- Tooling to fully automated the build and release process
+- Dependency resolution
+- Maintenance windows (which the LCM does not support)
+- Reporting (at least if you are using the on-prem pull server)
+- Git branching model
+- Automated testing
 
-You need Git in your path, a permissive `ExecutionPolicy` set so you can run scripts, and internet access so you can pull from the gallery.
+## YAML Reference Documentation
 
-Run the following as administrator:
-```PowerShell
-Set-ExecutionPolicy -ExecutionPolicy Bypass
-Install-Module Chocolatey
-Install-ChocolateySoftware
-Install-ChocolateyPackage git
-Install-ChocolateyPackage VisualStudioCode
-# Setting up Machine level Path environment variable (for persistence)
-[Environment]::SetEnvironmentVariable('Path',($Env:Path + ';' + 'C:\Program Files\Git\bin'),'Machine')
-# Setting up Process level variable
-[Environment]::SetEnvironmentVariable('Path',($Env:Path + ';' + 'C:\Program Files\Git\bin'),'Process')
-```
-
-Should you want to work with the AutomatedLab part, pull their dependencies listed [here](./01%20AutomatedLab.md#prerequisites).
-
-For Building DSC Artefacts and composing your configurations, you should be all set.
-
-------
-
-## How to follow along with this lab
-
-You can do any of the following:
-
-- Follow the lab, setting up your lab VMs with AutomatedLab. Deploying required services (AD, SQL, TFS...) allows you to experiment with the typical infrastructure
-
-- Only play with the DSC Pipeline locally on your machine, creating roles, nodes, and compiling artefacts.
-
-- Browse the code and ask questions
-
-
-There will be a few slides to introduce concepts, share our tips and tricks, and loads of Q&A, so you can work with others to progress faster!
-
-Make it your own.
-
-
-## Next Steps
-
-1. [AutomatedLab's DscWorkshop Lab](./01%20AutomatedLab.md)
-2. [Building DSC Artefacts](./02%20Building_DSC_Artefacts.md)
+The [YAML reference documentation](https://github.com/dsccommunity/CommonTasks/blob/dev/doc/README.adoc) is located in the ./doc subfolder of the [CommonTasks](https://github.com/dsccommunity/CommonTasks) repository.

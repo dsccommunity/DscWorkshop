@@ -1,25 +1,24 @@
-﻿$lab = Get-Lab
+﻿$projectName = 'CommonTasks'
+$projectGitUrl = 'https://github.com/DscCommunity/CommonTasks'
+$collectionName = 'AutomatedLab'
+$lab = Get-Lab
 $domain = $lab.Domains[0]
 $devOpsServer = Get-LabVM -Role AzDevOps
 $devOpsHostName = if ($lab.DefaultVirtualizationEngine -eq 'Azure') { $devOpsServer.AzureConnectionInfo.DnsName } else { $devOpsServer.FQDN }
 $nugetServer = Get-LabVM -Role AzDevOps
 $nugetFeed = Get-LabTfsFeed -ComputerName $nugetServer -FeedName PowerShell
 
-$role = $devOpsServer.Roles | Where-Object Name -eq AzDevOps
+$devOpsRole = $devOpsServer.Roles | Where-Object Name -eq AzDevOps
 $devOpsCred = $devOpsServer.GetCredential($lab)
 $devOpsPort = $originalPort = 8080
-if ($role.Properties.ContainsKey('Port'))
+if ($devOpsRole.Properties.ContainsKey('Port'))
 {
-    $devOpsPort = $role.Properties['Port']
+    $devOpsPort = $devOpsRole.Properties['Port']
 }
 if ($lab.DefaultVirtualizationEngine -eq 'Azure')
 {
     $devOpsPort = (Get-LabAzureLoadBalancedPort -DestinationPort $devOpsPort -ComputerName $devOpsServer).Port
 }
-
-$projectName = 'CommonTasks'
-$projectGitUrl = 'https://github.com/AutomatedLab/CommonTasks'
-$collectionName = 'AutomatedLab'
 
 # Which will make use of Azure DevOps, clone the stuff, add the necessary build step, publish the test results and so on
 # You will see two remotes, Origin (Our code on GitHub) and Azure DevOps (Our code pushed to your lab)
@@ -201,7 +200,6 @@ $releaseEnvironments = @(
 #endregion
 
 $repo = Get-TfsGitRepository -InstanceName $devOpsHostName -Port $devOpsPort -CollectionName $collectionName -ProjectName $projectName -Credential $devOpsCred -UseSsl -SkipCertificateCheck
-$repo.remoteUrl = $repo.remoteUrl -replace $originalPort, $devOpsPort
 
 $param =  @{
     Uri = "https://$($devOpsHostName):$devOpsPort/$collectionName/_apis/git/repositories/{$($repo.id)}/refs?api-version=4.1"
@@ -219,9 +217,6 @@ Invoke-LabCommand -ActivityName 'Set RepositoryUri and create Build Pipeline' -S
     git checkout dev *>$null
     $c = Get-Content '.\azure-pipelines On-Prem.yml' -Raw
     $c = $c -replace '  RepositoryUri: ggggg', "  RepositoryUri: $($nugetFeed.NugetV2Url)"
-    $c = $c -replace '  Domain: ddddd', "  Domain: $($nugetFeed.NugetCredential.GetNetworkCredential().Domain)"
-    $c = $c -replace '  UserName: uuuuu', "  Username: $($nugetFeed.NugetCredential.GetNetworkCredential().UserName)"
-    $c = $c -replace '  Password: ppppp', "  Password: $($nugetFeed.NugetCredential.GetNetworkCredential().Password)"
     $c | Set-Content '.\azure-pipelines.yml'
     git add .
     git commit -m 'Set RepositoryUri and create Build Pipeline'

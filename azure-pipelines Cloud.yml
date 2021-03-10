@@ -45,6 +45,7 @@ jobs:
         ArtifactName: RSOP
 
     - task: PublishBuildArtifacts@1
+      condition: and(succeeded(), not(startsWith(variables['BHCommitMessage'], '--Added new node')))
       displayName: 'Compressed Modules'
       inputs:
         PathtoPublish: '$(Build.SourcesDirectory)\DSC\BuildOutput\CompressedModules'

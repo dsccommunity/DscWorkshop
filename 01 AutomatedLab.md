@@ -53,8 +53,9 @@ Name   |   Role | RAM
 --- | --- | ---
 DSCDC01|RootDC|0.5GB
 DSCCASQL01|CaRoot,SQLServer2017|3GB
-DSCPULL01|DSCPullServer,TfsBuildWorker,WebServer|2GB
-DSCTFS01|Tfs2018,TfsBuildWorker|2GB
+DSCPull01|DSCPullServer,TfsBuildWorker,WebServer|2GB
+DSCSO01|AzureDevops 2020|4GB
+DSCHost01|Hyper-V Host, AzureDevOps Build Worker|8GB
 DSCFile01|FileServer|1GB
 DSCWeb01|WebServer|1GB
 DSCFile02|FileServer|1GB

@@ -32,7 +32,13 @@ Task Deploy {
         }
         
         Copy-DscMof -MofPath "$BuildOutput\MOF" -TargetPath $env:DscConfiguration -Environment $env:RELEASE_ENVIRONMENTNAME
-        Copy-Item -Path "$BuildOutput\CompressedModules\*" -Destination $env:DscModules
+        Copy-DscMof -MofPath "$BuildOutput\MOF" -TargetPath $env:DscConfiguration -Environment $env:RELEASE_ENVIRONMENTNAME
+        if (Test-Path -Path "$BuildOutput\CompressedModules\*") {
+            Copy-Item -Path "$BuildOutput\CompressedModules\*" -Destination $env:DscModules
+        }
+        else {
+            Write-Host "The folder '$BuildOutput\CompressedModules\*' does not exist, skipping deployment of CompressedModules." 
+        }
     }
     
 }

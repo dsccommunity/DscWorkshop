@@ -14,7 +14,7 @@ task TestConfigData {
     Write-Host "testsPath is: $testsPath"
     Write-Host "BuildOutput is: $BuildOutput"
     
-    $testResults = Invoke-Pester -Script $testsPath -PassThru -OutputFile $testResultsPath -OutputFormat NUnitXml -Tag Integration -Show Failed, Summary
+    $testResults = Invoke-Pester -Script "$testsPath\ConfigData" -PassThru -OutputFile $testResultsPath -OutputFormat NUnitXml -Tag Integration -Show Failed, Summary
 
     assert ($testResults.FailedCount -eq 0)
 

@@ -49,7 +49,8 @@ function Resolve-Dependency {
 
     $psDependParams = @{
         Force = $true
-        Path  = "$ProjectPath\Build\PSDepend\PSDepend.Build.psd1"
+        Path  = "$ProjectPath\PSDepend.Build.psd1"
+        Target = $buildModulesPath
     }
     if ($PSBoundParameters.ContainsKey('Verbose')) {
         $psDependParams.Add('Verbose', $Verbose)

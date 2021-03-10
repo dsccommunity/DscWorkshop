@@ -1,21 +1,90 @@
-﻿#region Lab customizations
+﻿$requiredModules = @{
+    'powershell-yaml'            = 'latest'
+    BuildHelpers                 = 'latest'
+    datum                        = '0.39.0'
+    DscBuildHelpers              = 'latest'
+    InvokeBuild                  = 'latest'
+    Pester                       = '4.10.1'
+    ProtectedData                = 'latest'
+    PSDepend                     = 'latest'
+    PSDeploy                     = 'latest'
+    PSScriptAnalyzer             = 'latest'
+    xDSCResourceDesigner         = 'latest'
+    xPSDesiredStateConfiguration = '9.1.0'
+    ComputerManagementDsc        = '8.4.0'
+    NetworkingDsc                = '8.2.0'
+    NTFSSecurity                 = 'latest'
+    JeaDsc                       = '0.7.2'
+    XmlContentDsc                = '0.0.1'
+    PowerShellGet                = 'latest'
+    PackageManagement            = 'latest'
+    xWebAdministration           = '3.2.0'
+    ActiveDirectoryDsc           = '6.0.1'
+    SecurityPolicyDsc            = '2.10.0.0'
+    StorageDsc                   = '5.0.1'
+    Chocolatey                   = '0.0.79'
+    'Datum.ProtectedData'        = '0.0.1'
+    'Datum.InvokeCommand'        = '0.1.1'
+    xDscDiagnostics              = '2.8.0'
+    CertificateDsc               = '4.7.0.0'
+    DfsDsc                       = '4.4.0.0'
+    WdsDsc                       = '0.11.0'
+    xDhcpServer                  = '3.0.0'
+    xDnsServer                   = '1.16.0.0'
+    xFailoverCluster             = '1.14.1'
+    GPRegistryPolicyDsc          = '1.2.0'
+    AuditPolicyDsc               = '1.4.0.0'
+    SharePointDSC                = '4.5.1'
+    xExchange                    = '1.32.0'
+    SqlServerDsc                 = '15.1.1'
+    UpdateServicesDsc            = '1.2.1'
+    xWindowsEventForwarding      = '1.0.0.0'
+    OfficeOnlineServerDsc        = '1.5.0'
+
+}
+
+$requiredChocolateyPackages = @{
+    putty            = '0.74'
+    winrar           = '6.00'
+    notepadplusplus  = '7.9.1'
+    'microsoft-edge' = '87.0.664.60'
+    vscode           = '1.52.0'
+    wireshark        = '3.4.1'
+    winpcap          = '4.1.3.20161116'
+}
+
+$vsCodeDownloadUrl = 'https://go.microsoft.com/fwlink/?Linkid=852157'
+$gitDownloadUrl = 'https://github.com/git-for-windows/git/releases/download/v2.29.2.windows.2/Git-2.29.2.2-64-bit.exe'
+$vscodePowerShellExtensionDownloadUrl = 'https://marketplace.visualstudio.com/_apis/public/gallery/publishers/ms-vscode/vsextensions/PowerShell-Preview/2020.9.0/vspackage'
+$edgeDownloadUrl = 'https://msedge.sf.dl.delivery.mp.microsoft.com/filestreamingservice/files/b4b09058-b46b-4286-8124-83b31bcc1b7b/MicrosoftEdgeEnterpriseX64.msi'
+$chromeDownloadUrl = 'https://dl.google.com/tag/s/appguid%3D%7B8A69D345-D564-463C-AFF1-A69D9E530F96%7D%26iid%3D%7BC9D94BD4-6037-E88E-2D5A-F6B7D7F8F4CF%7D%26lang%3Den%26browser%3D5%26usagestats%3D0%26appname%3DGoogle%2520Chrome%26needsadmin%3Dprefers%26ap%3Dx64-stable-statsdef_1%26installdataindex%3Dempty/chrome/install/ChromeStandaloneSetup64.exe'
+$notepadPlusPlusDownloadUrl = 'https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v7.9.1/npp.7.9.1.Installer.exe'
+
+#-------------------------------------------------------------------------------------------------------------------------------------
+
+#region Lab customizations
 $lab = Get-Lab
 $dc = Get-LabVM -Role ADDS | Select-Object -First 1
 $domainName = $lab.Domains[0].Name
 $devOpsServer = Get-LabVM -Role AzDevOps
+$devOpsRole = $devOpsServer.Roles | Where-Object Name -eq AzDevOps
+$devOpsPort = $originalPort = 8080
+if ($devOpsRole.Properties.ContainsKey('Port'))
+{
+    $devOpsPort = $devOpsRole.Properties['Port']
+}
+if ($lab.DefaultVirtualizationEngine -eq 'Azure')
+{
+    $devOpsPort = (Get-LabAzureLoadBalancedPort -DestinationPort $devOpsPort -ComputerName $devOpsServer).Port
+}
 $buildWorkers = Get-LabVM -Role TfsBuildWorker
 $sqlServer = Get-LabVM -Role SQLServer2017
 $pullServer = Get-LabVM -Role DSCPullServer
+$dscNodes = Get-LabVM -Filter { $_.Name -match 'file|web(\d){2}' }
 $router = Get-LabVM -Role Routing
 $nugetServer = Get-LabVM -Role AzDevOps
 $firstDomain = (Get-Lab).Domains[0]
 $nuGetApiKey = "$($firstDomain.Administrator.UserName)@$($firstDomain.Name):$($firstDomain.Administrator.Password)"
-
-$vsCodeDownloadUrl = 'https://go.microsoft.com/fwlink/?Linkid=852157'
-$gitDownloadUrl = 'https://github.com/git-for-windows/git/releases/download/v2.25.0.windows.1/Git-2.25.0-64-bit.exe'
-$vscodePowerShellExtensionDownloadUrl = 'https://marketplace.visualstudio.com/_apis/public/gallery/publishers/ms-vscode/vsextensions/PowerShell/2020.1.0/vspackage'
-$edgeDownloadUrl = 'http://dl.delivery.mp.microsoft.com/filestreamingservice/files/0af31313-0430-454d-908a-d55ce3df7b69/MicrosoftEdgeEnterpriseX64.msi'
-$chromeDownloadUrl = 'https://dl.google.com/tag/s/appguid%3D%7B8A69D345-D564-463C-AFF1-A69D9E530F96%7D%26iid%3D%7BC9D94BD4-6037-E88E-2D5A-F6B7D7F8F4CF%7D%26lang%3Den%26browser%3D5%26usagestats%3D0%26appname%3DGoogle%2520Chrome%26needsadmin%3Dprefers%26ap%3Dx64-stable-statsdef_1%26installdataindex%3Dempty/chrome/install/ChromeStandaloneSetup64.exe'
 
 #Create Azure DevOps artifacts feed
 $domainSid = Invoke-LabCommand -ActivityName 'Get domain SID' -ScriptBlock {
@@ -29,45 +98,6 @@ $domainSid = Invoke-LabCommand -ActivityName 'Get domain SID' -ScriptBlock {
 } -ComputerName $dc -Variable (Get-Variable -Name domainName) -NoDisplay -PassThru
 #endregion
 
-$requiredModules = @{
-    'powershell-yaml'            = 'latest'
-    BuildHelpers                 = 'latest'
-    datum                        = 'latest'
-    DscBuildHelpers              = 'latest'
-    InvokeBuild                  = 'latest'
-    Pester                       = 'latest'
-    ProtectedData                = 'latest'
-    PSDepend                     = 'latest'
-    PSDeploy                     = 'latest'
-    PSScriptAnalyzer             = 'latest'
-    xDSCResourceDesigner         = 'latest'
-    xPSDesiredStateConfiguration = '9.1.0'
-    ComputerManagementDsc        = '8.0.0'
-    NetworkingDsc                = '7.4.0.0'
-    NTFSSecurity                 = 'latest'
-    JeaDsc                       = '0.6.5'
-    XmlContentDsc                = '0.0.1'
-    PowerShellGet                = 'latest'
-    PackageManagement            = 'latest'
-    xWebAdministration           = '3.1.1'
-    ActiveDirectoryDsc           = '5.0.0'
-    SecurityPolicyDsc            = '2.10.0.0'
-    StorageDsc                   = '4.9.0.0'
-    Chocolatey                   = '0.0.79'
-    'Datum.ProtectedData'        = '0.0.1'
-    xDscDiagnostics              = '2.7.0.0'
-}
-
-$requiredChocolateyPackages = @{
-    putty            = '0.73'
-    winrar           = '5.90.0.20200401'
-    notepadplusplus  = '7.8.5'
-    'microsoft-edge' = '80.0.361.111'
-    vscode           = '1.44.0'
-    wireshark        = '3.2.2'
-    winpcap          = '4.1.3.20161116'
-}
-
 if (-not (Test-LabMachineInternetConnectivity -ComputerName $devOpsServer)) {
     Write-Error "The lab is not connected to the internet. Check the connectivity of the machine '$router' which is acting as a router." -ErrorAction Stop
 }
@@ -79,9 +109,20 @@ $feedPermissions += (New-Object pscustomobject -Property @{ role = 'contributor'
 $feedPermissions += (New-Object pscustomobject -Property @{ role = 'contributor'; identityDescriptor = "System.Security.Principal.WindowsIdentity;$domainSid-515" })
 $feedPermissions += (New-Object pscustomobject -Property @{ role = 'reader'; identityDescriptor = 'System.Security.Principal.WindowsIdentity;S-1-5-7' })
 
-$powerShellFeed = New-LabTfsFeed -ComputerName $nugetServer -FeedName PowerShell -FeedPermissions $feedPermissions -PassThru -ErrorAction Stop
+$powerShellFeed = Get-LabTfsFeed -ComputerName $nugetServer -FeedName PowerShell -ErrorAction SilentlyContinue
+if (-not $powerShellFeed)
+{
+    $powerShellFeed = New-LabTfsFeed -ComputerName $nugetServer -FeedName PowerShell -FeedPermissions $feedPermissions -PassThru -ErrorAction Stop
+}
+$replace = '$1{0}${{Separator}}{1}$4' -f $devOpsServer.Name, $originalPort
+$powerShellFeed.NugetV2Url = $powerShellFeed.NugetV2Url -replace '(https:\/\/)([\w\.]+)(?<Separator>:)(\d{2,4})(.+)', $replace
 Write-Host "Created artifacts feed 'PowerShell' on Azure DevOps Server '$nugetServer'"
-$chocolateyFeed = New-LabTfsFeed -ComputerName $nugetServer -FeedName Software -FeedPermissions $feedPermissions -PassThru -ErrorAction Stop
+$chocolateyFeed = Get-LabTfsFeed -ComputerName $nugetServer -FeedName Software -ErrorAction SilentlyContinue
+if (-not $chocolateyFeed)
+{
+    $chocolateyFeed = New-LabTfsFeed -ComputerName $nugetServer -FeedName Software -FeedPermissions $feedPermissions -PassThru -ErrorAction Stop
+}
+$chocolateyFeed.NugetV2Url = $chocolateyFeed.NugetV2Url -replace '(https:\/\/)([\w\.]+)(?<Separator>:)(\d{2,4})(.+)', $replace
 Write-Host "Created artifacts feed 'Software' on Azure DevOps Server '$nugetServer'"
 
 # Web server
@@ -130,7 +171,9 @@ $gitInstaller = Get-LabInternetFile -Uri $gitDownloadUrl -Path $labSources\Softw
 Get-LabInternetFile -Uri $vscodePowerShellExtensionDownloadUrl -Path $labSources\SoftwarePackages\VSCodeExtensions\ps.vsix
 $edgeInstaller = Get-LabInternetFile -Uri $edgeDownloadUrl -Path $labSources\SoftwarePackages -PassThru
 $chromeInstaller = Get-LabInternetFile -Uri $chromeDownloadUrl -Path $labSources\SoftwarePackages -PassThru
+$notepadPlusPlusInstaller = Get-LabInternetFile -Uri $notepadPlusPlusDownloadUrl -Path $labSources\SoftwarePackages -PassThru
 
+Install-LabSoftwarePackage -Path $notepadPlusPlusInstaller.FullName -CommandLine /S -ComputerName (Get-LabVM)
 Install-LabSoftwarePackage -Path $vscodeInstaller.FullName -CommandLine /SILENT -ComputerName $devOpsServer
 Install-LabSoftwarePackage -Path $gitInstaller.FullName -CommandLine /SILENT -ComputerName ((@($devOpsServer) + $buildWorkers) | Select-Object -Unique)
 Install-LabSoftwarePackage -Path $edgeInstaller.FullName -ComputerName $devOpsServer
@@ -152,19 +195,19 @@ Invoke-LabCommand -ActivityName 'Create link on AzureDevOps desktop' -ComputerNa
     $shell = New-Object -ComObject WScript.Shell
     $desktopPath = [System.Environment]::GetFolderPath('Desktop')
     $shortcut = $shell.CreateShortcut("$desktopPath\DscWorkshop Project.url")
-    $shortcut.TargetPath = "https://$($devOpsServer):8080/AutomatedLab/DscWorkshop"
+    $shortcut.TargetPath = "https://$($devOpsServer):$($originalPort)/AutomatedLab/DscWorkshop"
     $shortcut.Save()
 
     $shortcut = $shell.CreateShortcut("$desktopPath\CommonTasks Project.url")
-    $shortcut.TargetPath = "https://$($devOpsServer):8080/AutomatedLab/CommonTasks"
+    $shortcut.TargetPath = "https://$($devOpsServer):$($originalPort)/AutomatedLab/CommonTasks"
     $shortcut.Save()
     
     $shortcut = $shell.CreateShortcut("$desktopPath\PowerShell Feed.url")
-    $shortcut.TargetPath = "https://$($devOpsServer):8080/AutomatedLab/_packaging?_a=feed&feed=$($powerShellFeed.name)"
+    $shortcut.TargetPath = "https://$($devOpsServer):$($originalPort)/AutomatedLab/_packaging?_a=feed&feed=$($powerShellFeed.name)"
     $shortcut.Save()
     
     $shortcut = $shell.CreateShortcut("$desktopPath\Chocolatey Feed.url")
-    $shortcut.TargetPath = "https://$($devOpsServer):8080/AutomatedLab/_packaging?_a=feed&feed=$($chocolateyFeed.name)"
+    $shortcut.TargetPath = "https://$($devOpsServer):$($originalPort)/AutomatedLab/_packaging?_a=feed&feed=$($chocolateyFeed.name)"
     $shortcut.Save()
     
     $shortcut = $shell.CreateShortcut("$desktopPath\SQL RS.url")
@@ -172,9 +215,9 @@ Invoke-LabCommand -ActivityName 'Create link on AzureDevOps desktop' -ComputerNa
     $shortcut.Save()
 
     $shortcut = $shell.CreateShortcut("$desktopPath\Pull Server Endpoint.url")
-    $shortcut.TargetPath = "https://$($pullServer.FQDN):8080/PSDSCPullServer.svc/"
+    $shortcut.TargetPath = "https://$($pullServer.FQDN):$($originalPort)/PSDSCPullServer.svc/"
     $shortcut.Save()
-} -Variable (Get-Variable -Name devOpsServer, sqlServer, powerShellFeed, chocolateyFeed, pullServer)
+} -Variable (Get-Variable -Name devOpsServer, sqlServer, powerShellFeed, chocolateyFeed, pullServer, originalPort)
 
 #in server 2019 there seems to be an issue with dynamic DNS registration, doing this manually
 foreach ($domain in (Get-Lab).Domains) {
@@ -339,6 +382,7 @@ Invoke-LabCommand -ActivityName 'Publishing required Chocolatey packages to inte
     }
 
     foreach ($kvp in $requiredChocolateyPackages.GetEnumerator()) {
+        Write-Host "Saving package '$($kvp.Name)', " -NoNewline
         if (-not ($p = Find-Package -Name $kvp.Name -Source Choco)) {
             Write-Error "Package '$($kvp.Name)' could not be found at the source '$publicFeedUri'"
             continue
@@ -347,7 +391,8 @@ Invoke-LabCommand -ActivityName 'Publishing required Chocolatey packages to inte
     }
 
     dir -Path $tempFolder | ForEach-Object {
-
+        
+        Write-Host "Publishing package '$($kvp.Name)'"
         choco push $_.FullName -s $chocolateyFeed.NugetV2Url --api-key $chocolateyFeed.NugetApiKey
 
     }
@@ -382,7 +427,6 @@ Invoke-LabCommand -ActivityName 'Create Share on Pull Server' -ComputerName $pul
     
     New-SmbShare -Name DscConfiguration -Path $dscConfigurationPath -FullAccess Everyone
     Add-NTFSAccess -Path $dscConfigurationPath -Account Everyone -AccessRights FullControl
-
 }
 
 Invoke-LabCommand -ActivityName 'Setting the worker service account to local system to be able to write to deployment path' -ComputerName $buildWorkers -ScriptBlock {
@@ -391,6 +435,13 @@ Invoke-LabCommand -ActivityName 'Setting the worker service account to local sys
         $service | Invoke-CimMethod -MethodName Change -Arguments @{ StartName = 'LocalSystem' } | Out-Null
     }
 }
+
+Invoke-LabCommand -ActivityName "Install module 'xDscDiagnostics' required by DSC JEA endpoint" -ScriptBlock {
+    Install-Module -Name xDscDiagnostics -Repository PowerShell -Force
+} -ComputerName $dscNodes
+
+Invoke-LabCommand -ActivityName "Create DscData JEA endpoint for allowing the LCM controller to send additional data to the DSC pull server" `
+-FilePath $PSScriptRoot\DscTaggingData\New-DscDataEndpoint.ps1 -ComputerName $pullServer
 
 Restart-LabVM -ComputerName $devOpsServer, $buildWorkers -Wait
 
