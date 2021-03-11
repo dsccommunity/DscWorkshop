@@ -9,6 +9,9 @@ foreach ($psdependFile in $psdependFiles) {
     $requiredModules = $requiredModules + $psdependFileData
 }
 
+#Adding modules that are not defined in the PSDepend files but required in the lab
+$requiredModules.NTFSSecurity = 'latest'
+
 $requiredChocolateyPackages = @{
     putty            = '0.74'
     winrar           = '6.00'
