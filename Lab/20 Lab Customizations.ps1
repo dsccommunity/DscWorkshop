@@ -1,47 +1,16 @@
-﻿$requiredModules = @{
-    'powershell-yaml'            = 'latest'
-    BuildHelpers                 = 'latest'
-    datum                        = '0.39.0'
-    DscBuildHelpers              = 'latest'
-    InvokeBuild                  = 'latest'
-    Pester                       = '4.10.1'
-    ProtectedData                = 'latest'
-    PSDepend                     = 'latest'
-    PSDeploy                     = 'latest'
-    PSScriptAnalyzer             = 'latest'
-    xDSCResourceDesigner         = 'latest'
-    xPSDesiredStateConfiguration = '9.1.0'
-    ComputerManagementDsc        = '8.4.0'
-    NetworkingDsc                = '8.2.0'
-    NTFSSecurity                 = 'latest'
-    JeaDsc                       = '0.7.2'
-    XmlContentDsc                = '0.0.1'
-    PowerShellGet                = 'latest'
-    PackageManagement            = 'latest'
-    xWebAdministration           = '3.2.0'
-    ActiveDirectoryDsc           = '6.0.1'
-    SecurityPolicyDsc            = '2.10.0.0'
-    StorageDsc                   = '5.0.1'
-    Chocolatey                   = '0.0.79'
-    'Datum.ProtectedData'        = '0.0.1'
-    'Datum.InvokeCommand'        = '0.1.1'
-    xDscDiagnostics              = '2.8.0'
-    CertificateDsc               = '4.7.0.0'
-    DfsDsc                       = '4.4.0.0'
-    WdsDsc                       = '0.11.0'
-    xDhcpServer                  = '3.0.0'
-    xDnsServer                   = '1.16.0.0'
-    xFailoverCluster             = '1.14.1'
-    GPRegistryPolicyDsc          = '1.2.0'
-    AuditPolicyDsc               = '1.4.0.0'
-    SharePointDSC                = '4.5.1'
-    xExchange                    = '1.32.0'
-    SqlServerDsc                 = '15.1.1'
-    UpdateServicesDsc            = '1.2.1'
-    xWindowsEventForwarding      = '1.0.0.0'
-    OfficeOnlineServerDsc        = '1.5.0'
+﻿$here = $PSScriptRoot
 
+$psdependFiles = 'PSDepend.Build.psd1', 'PSDepend.DscConfigurations.psd1', 'PSDepend.DscResources.psd1'
+$requiredModules = @{}
+
+foreach ($psdependFile in $psdependFiles) {
+    $psdependFileData = Import-PowerShellDataFile -Path "$here\..\DSC\$psdependFile"
+    $psdependFileData.Remove('PSDependOptions')
+    $requiredModules = $requiredModules + $psdependFileData
 }
+
+#Adding modules that are not defined in the PSDepend files but required in the lab
+$requiredModules.NTFSSecurity = 'latest'
 
 $requiredChocolateyPackages = @{
     putty            = '0.74'
@@ -54,11 +23,11 @@ $requiredChocolateyPackages = @{
 }
 
 $vsCodeDownloadUrl = 'https://go.microsoft.com/fwlink/?Linkid=852157'
-$gitDownloadUrl = 'https://github.com/git-for-windows/git/releases/download/v2.29.2.windows.2/Git-2.29.2.2-64-bit.exe'
-$vscodePowerShellExtensionDownloadUrl = 'https://marketplace.visualstudio.com/_apis/public/gallery/publishers/ms-vscode/vsextensions/PowerShell-Preview/2020.9.0/vspackage'
+$gitDownloadUrl = 'https://github.com/git-for-windows/git/releases/download/v2.30.2.windows.1/Git-2.30.2-64-bit.exe'
+$vscodePowerShellExtensionDownloadUrl = 'https://marketplace.visualstudio.com/_apis/public/gallery/publishers/ms-vscode/vsextensions/PowerShell-Preview/2021.2.1/vspackage'
 $edgeDownloadUrl = 'https://msedge.sf.dl.delivery.mp.microsoft.com/filestreamingservice/files/b4b09058-b46b-4286-8124-83b31bcc1b7b/MicrosoftEdgeEnterpriseX64.msi'
 $chromeDownloadUrl = 'https://dl.google.com/tag/s/appguid%3D%7B8A69D345-D564-463C-AFF1-A69D9E530F96%7D%26iid%3D%7BC9D94BD4-6037-E88E-2D5A-F6B7D7F8F4CF%7D%26lang%3Den%26browser%3D5%26usagestats%3D0%26appname%3DGoogle%2520Chrome%26needsadmin%3Dprefers%26ap%3Dx64-stable-statsdef_1%26installdataindex%3Dempty/chrome/install/ChromeStandaloneSetup64.exe'
-$notepadPlusPlusDownloadUrl = 'https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v7.9.1/npp.7.9.1.Installer.exe'
+$notepadPlusPlusDownloadUrl = 'https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v7.9.3/npp.7.9.3.Installer.exe'
 
 #-------------------------------------------------------------------------------------------------------------------------------------
 
@@ -392,7 +361,7 @@ Invoke-LabCommand -ActivityName 'Publishing required Chocolatey packages to inte
 
     dir -Path $tempFolder | ForEach-Object {
         
-        Write-Host "Publishing package '$($kvp.Name)'"
+        Write-Host "Publishing package '$($_.FullName)'"
         choco push $_.FullName -s $chocolateyFeed.NugetV2Url --api-key $chocolateyFeed.NugetApiKey
 
     }
