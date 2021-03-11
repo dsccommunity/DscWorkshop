@@ -358,7 +358,7 @@ Invoke-LabCommand -ActivityName 'Publishing required Chocolatey packages to inte
 
     dir -Path $tempFolder | ForEach-Object {
         
-        Write-Host "Publishing package '$($kvp.Name)'"
+        Write-Host "Publishing package '$($_.FullName)'"
         choco push $_.FullName -s $chocolateyFeed.NugetV2Url --api-key $chocolateyFeed.NugetApiKey
 
     }
