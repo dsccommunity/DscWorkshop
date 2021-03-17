@@ -40,9 +40,13 @@
     UpdateServicesDsc            = '1.2.1'
     xWindowsEventForwarding      = '1.0.0.0'
     OfficeOnlineServerDsc        = '1.5.0'
+<<<<<<< HEAD
 <<<<<<< HEAD:DSC/PSDepend.DscResources.psd1
     xBitlocker                   = '1.4.0.0'
 =======
 >>>>>>> f0d317e (Added additional resources according to changed in CommonTasks):DSC/Build/PSDepend/PSDepend.DscResources.psd1
+=======
+    xBitlocker                   = '1.4.0.0'
+>>>>>>> ef959f8 (Updated vesion numbers and using latest version of CommonTasks.)
 
 }
