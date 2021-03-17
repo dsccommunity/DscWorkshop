@@ -112,5 +112,6 @@ function Test-LabDscConfiguration {
 function Start-LabDscConfiguration {
     $computers = Get-ADComputer -Filter { Name -like 'DSCWeb*' -or Name -like 'DSCFile*' } | Select-Object -ExpandProperty DNSHostName
     
-    Start-DscConfiguration -ComputerName $computers -UseExisting -Wait -Verbose   
+    Start-DscConfiguration -ComputerName $computers -UseExisting -Wait -Verbose -Force
+
 }

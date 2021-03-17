@@ -42,7 +42,7 @@ lookup_options:
     merge_hash: deep
 
   LcmConfig:
-    merge_hash: hash
+    merge_hash: deep
   LcmConfig\Settings:
     merge_hash: deep
   LcmConfig\ReportServerWeb: deep
