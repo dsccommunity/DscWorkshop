@@ -21,7 +21,6 @@ $requiredChocolateyPackages = @{
     'microsoft-edge' = '89.0.774.50'
     vscode           = '1.54.1'
     wireshark        = '3.4.4'
-
     winpcap          = '4.1.3.20161116'
 }
 
