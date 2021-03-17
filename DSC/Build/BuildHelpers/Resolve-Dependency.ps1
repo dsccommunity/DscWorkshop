@@ -50,7 +50,10 @@ function Resolve-Dependency {
     $psDependParams = @{
         Force = $true
         Path  = "$ProjectPath\PSDepend.Build.psd1"
+<<<<<<< HEAD
         Target = $buildModulesPath
+=======
+>>>>>>> ca4160b (Moving PSDepend files to ProjectPath for easier discovery)
     }
     if ($PSBoundParameters.ContainsKey('Verbose')) {
         $psDependParams.Add('Verbose', $Verbose)
