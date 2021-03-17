@@ -23,7 +23,11 @@
     xDhcpServer                  = '3.0.0'
     xDscDiagnostics              = '2.8.0'
     xDnsServer                   = '1.16.0.0'
+<<<<<<< HEAD:DSC/PSDepend.DscResources.psd1
     xFailoverCluster             = '1.15.0'
+=======
+    xFailoverCluster             = '1.14.1'
+>>>>>>> f0d317e (Added additional resources according to changed in CommonTasks):DSC/Build/PSDepend/PSDepend.DscResources.psd1
     GPRegistryPolicyDsc          = '1.2.0'
     AuditPolicyDsc               = '1.4.0.0'
     SharePointDSC                = '4.5.1'
@@ -32,6 +36,9 @@
     UpdateServicesDsc            = '1.2.1'
     xWindowsEventForwarding      = '1.0.0.0'
     OfficeOnlineServerDsc        = '1.5.0'
+<<<<<<< HEAD:DSC/PSDepend.DscResources.psd1
     xBitlocker                   = '1.4.0.0'
+=======
+>>>>>>> f0d317e (Added additional resources according to changed in CommonTasks):DSC/Build/PSDepend/PSDepend.DscResources.psd1
 
 }
