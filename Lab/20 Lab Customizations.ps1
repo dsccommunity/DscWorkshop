@@ -1,6 +1,6 @@
-﻿$here = $PSScriptRoot
+$here = $PSScriptRoot
 
-$psdependFiles = 'PSDepend.Build.psd1', 'PSDepend.DscConfigurations.psd1', 'PSDepend.DscResources.psd1'
+$psdependFiles = 'PSDepend.Build.psd1', 'PSDepend.DscResources.psd1'
 $requiredModules = @{}
 
 foreach ($psdependFile in $psdependFiles) {
@@ -11,14 +11,16 @@ foreach ($psdependFile in $psdependFiles) {
 
 #Adding modules that are not defined in the PSDepend files but required in the lab
 $requiredModules.NTFSSecurity = 'latest'
+$requiredModules.PSDepend     = 'latest'
+$requiredModules.PSDeploy     = 'latest'
 
 $requiredChocolateyPackages = @{
     putty            = '0.74'
-    winrar           = '6.00'
-    notepadplusplus  = '7.9.1'
-    'microsoft-edge' = '87.0.664.60'
-    vscode           = '1.52.0'
-    wireshark        = '3.4.1'
+    winrar           = '6.0.0.20210102'
+    notepadplusplus  = '7.9.3'
+    'microsoft-edge' = '89.0.774.50'
+    vscode           = '1.54.1'
+    wireshark        = '3.4.4'
     winpcap          = '4.1.3.20161116'
 }
 
