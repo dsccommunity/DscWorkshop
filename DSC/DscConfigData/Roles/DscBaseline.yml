@@ -34,6 +34,7 @@ DscLcmController:
   WriteTranscripts: true             #
   SendDscTaggingData: true           #
   MaxLcmRuntime: 00:30:00            #
+  LogHistoryTimeSpan: 7.00:00:00     #
 
 LcmConfig:
   Settings:
