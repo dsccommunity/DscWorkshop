@@ -49,7 +49,7 @@ if ($lab.DefaultVirtualizationEngine -eq 'Azure')
     $devOpsPort = (Get-LabAzureLoadBalancedPort -DestinationPort $devOpsPort -ComputerName $devOpsServer).Port
 }
 $buildWorkers = Get-LabVM -Role TfsBuildWorker
-$sqlServer = Get-LabVM -Role SQLServer2017
+$sqlServer = Get-LabVM -Role SQLServer2017, SQLServer2019
 $pullServer = Get-LabVM -Role DSCPullServer
 $dscNodes = Get-LabVM -Filter { $_.Name -match 'file|web(\d){2}' }
 $router = Get-LabVM -Role Routing
