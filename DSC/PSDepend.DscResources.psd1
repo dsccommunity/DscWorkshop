@@ -22,8 +22,8 @@
     WdsDsc                       = '0.11.0'
     xDhcpServer                  = '3.0.0'
     xDscDiagnostics              = '2.8.0'
-    xDnsServer                   = '1.16.0.0'
-    xFailoverCluster             = '1.15.0'
+    xDnsServer                   = '2.0.0'
+    xFailoverCluster             = '1.16.0'
     GPRegistryPolicyDsc          = '1.2.0'
     AuditPolicyDsc               = '1.4.0.0'
     SharePointDSC                = '4.5.1'
@@ -33,5 +33,6 @@
     xWindowsEventForwarding      = '1.0.0.0'
     OfficeOnlineServerDsc        = '1.5.0'
     xBitlocker                   = '1.4.0.0'
+    ActiveDirectoryCSDsc         = '5.0.0'
 
 }
