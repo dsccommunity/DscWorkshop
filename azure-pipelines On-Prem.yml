@@ -9,7 +9,7 @@ variables:
 jobs:
 - job: DscBuild
   strategy:
-    parallel: 4
+    parallel: 1
   pool:
     name: Default
   workspace:
