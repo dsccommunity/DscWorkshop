@@ -26,7 +26,7 @@
     xFailoverCluster             = '1.16.0'
     GPRegistryPolicyDsc          = '1.2.0'
     AuditPolicyDsc               = '1.4.0.0'
-    SharePointDSC                = '4.5.1'
+    SharePointDSC                = '4.6.0'
     xExchange                    = '1.32.0'
     SqlServerDsc                 = '15.1.1'
     UpdateServicesDsc            = '1.2.1'
