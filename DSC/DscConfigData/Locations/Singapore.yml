@@ -5,3 +5,7 @@ FilesAndFolders:
   Items:
     - DestinationPath: C:\Test\Singapore
       Type: Directory
+
+DscTagging:
+  Layers:
+    - Locations\Singapore

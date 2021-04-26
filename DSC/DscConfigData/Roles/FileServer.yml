@@ -33,3 +33,7 @@ RegistryValues:
 
 SecurityBaseline:
   Role: FileServer
+
+DscTagging:
+  Layers:
+    - Roles\FileServer

@@ -1,8 +1,13 @@
 NodeName: DSCWeb03
 Environment: Prod
 Role: WebServer
-Description: '[Command=(Import-Csv -Path $env:BHProjectPath\DscConfigData\ExternalData.csv -Delimiter ";" | Where-Object ComputerName -eq DSCWeb03).Description]'
+Description: Web Server in Prod
 Location: Singapore
+Baseline: Server
+
+ComputerSettings:
+  Name: DSCWeb03
+  Description: Web Server in Prod
 
 NetworkIpConfiguration:
   Interfaces:
@@ -21,3 +26,7 @@ LcmConfig:
   ConfigurationRepositoryWeb:
     Server:
       ConfigurationNames: DSCWeb03
+
+DscTagging:
+  Layers:
+    - AllNodes\Prod\DscWeb03

@@ -5,3 +5,7 @@ FilesAndFolders:
   Items:
     - DestinationPath: C:\Test\Frankfurt
       Type: Directory
+
+DscTagging:
+  Layers:
+    - Locations\Frankfurt

@@ -1,9 +1,12 @@
 NodeName: DSCWeb01
 Environment: Dev
 Role: WebServer
-Description: '[Command=(Import-Csv -Path $env:BHProjectPath\DscConfigData\ExternalData.csv -Delimiter ";" | Where-Object ComputerName -eq DSCWeb01).Description]'
+Description: Web Server in Dev
 Location: Singapore
-SomeData: '[Command=Get-Random]'
+
+ComputerSettings:
+  Name: DSCWeb01
+  Description: Web Server in Dev
 
 NetworkIpConfiguration:
   Interfaces:
@@ -22,3 +25,7 @@ LcmConfig:
   ConfigurationRepositoryWeb:
     Server:
       ConfigurationNames: DSCWeb01
+
+DscTagging:
+  Layers:
+    - AllNodes\Dev\DscWeb01

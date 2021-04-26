@@ -1,5 +1,7 @@
 DscTagging:
   Environment: Dev
+  Layers:
+    - Environment\Dev
 
 FilesAndFolders:
   Items:
