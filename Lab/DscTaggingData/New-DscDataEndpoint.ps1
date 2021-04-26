@@ -89,7 +89,7 @@ function Send-DscTaggingData {
     Write-Host "DscDataEndpoint uses SQL Server '$sqlServerName'."
 
     $Data.psobject.Properties.Remove('RunspaceId')
-    $Data.psobject.Properties.Add([System.Management.Automation.PSNoteProperty]::new('Timestamp', (Get-Date)))
+    $Data.psobject.Properties.Add([System.Management.Automation.PSNoteProperty]::new('Timestamp', [string](Get-Date)))
     $Data.psobject.Properties.Add([System.Management.Automation.PSNoteProperty]::new('AgentId', $agentId))
 
     $cmd = "SELECT AgentId FROM dbo.TaggingData WHERE AgentID = '$($Data.AgentId)'"
