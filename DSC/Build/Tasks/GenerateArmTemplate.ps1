@@ -5,20 +5,39 @@
         $null = New-Item -ItemType Directory -Path $outputPath 
     }
 
-    # Resource Group Name: ENVIRONMENT_LOCATION
-    foreach ($environmentName in $global:datum.Environment.ToHashTable().Keys)
+    if (-not $env:SharedAccessSignature)
     {
-        if ($null -eq $datum.AllNodes.$environmentName)
-        {
-            continue 
-        }
+        Write-Build Yellow 'No shared access signature stored in $env:SharedAccessSignature, templates will need to be manually updated'
+    }
 
+    # Collect resolved node configuration    
+    $rsopData = if ($configurationData.AllNodes)
+    {
+        Write-Build Green "Generating RSOP output for $($configurationData.AllNodes.Count) nodes."
+        $configurationData.AllNodes |
+        Where-Object Name -ne * |
+        ForEach-Object {
+            $nodeRSOP = Get-DatumRsop -Datum $datum -AllNodes ([ordered]@{ } + $_)
+            $nodeRSOP
+        }
+    }
+    else
+    {
+        Write-Build Green "No data for generating RSOP output."
+    }
+
+    $environments = $rsopData.Environment | Sort-Object -Unique
+    $locations = $rsopData.Location | Sort-Object -Unique
+
+    Write-Build Green "Generating ARM templates for $($environments.Count) environments"
+    foreach ($environmentName in $environments)
+    {
         $globalTemplateName = Join-Path -Path $outputPath -ChildPath "$($environmentName).json"
         $globalTemplate = @{
             '$schema'      = "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#"
             contentVersion = '1.0.0.0'                
             parameters     = @{
-                machineSize                   = @{
+                machineSize                    = @{
                     "type"          = "string"
                     "defaultValue"  = "small"
                     "allowedValues" = @(
@@ -144,12 +163,12 @@
             resources      = @()
         }
 
-        foreach ($site in $datum.Locations.ToHashTable().Keys)
+        foreach ($site in $locations)
         {
             $globalTemplate.resources += @{
                 "type"       = "Microsoft.Resources/deployments"
                 "name"       = "$($environmentName)$($site)"
-                "apiVersion" = "2016-09-01"
+                "apiVersion" = "[providers('Microsoft.Resources','deployments').apiVersions[0]]"
                 "properties" = @{
                     "mode"         = "Incremental"
                     "templateLink" = @{
@@ -278,7 +297,7 @@
             $siteTemplate.resources += @{
                 "type"       = "Microsoft.Resources/deployments"
                 "name"       = "$($environmentName)$($site)CoreInfrastructure"
-                "apiVersion" = "2016-09-01"
+                "apiVersion" = "[providers('Microsoft.Resources','deployments').apiVersions[0]]"
                 "properties" = @{
                     "mode"         = "Incremental"
                     "templateLink" = @{
@@ -340,7 +359,7 @@
                 resources      = @()
             }
 
-            $filteredNodes = $datum.AllNodes.$environmentName.ToHashTable().Values.Where( { $_.Location -eq $site })
+            $filteredNodes = $rsopData.Where( { $_.Location -eq $site })
             foreach ($nodeRole in ($filteredNodes | Group-Object -Property { $_.Role }))
             {
                 $roleTemplateName = Join-Path -Path $outputPath -ChildPath "$($environmentName)_$($site)_$($nodeRole.Name).json"
@@ -387,7 +406,7 @@
                     # Network-Adapter
                     $count = 1
                     $adapters = @()
-                    [object[]]$templateAdapter = Resolve-NodeProperty -PropertyPath NetworkIpConfiguration -Node $node -DatumTree $datum
+                    [object[]]$templateAdapter = $node.NetworkIpConfiguration.Interfaces
                     foreach ($adapter in $templateAdapter)
                     {
                         if ([string]::IsNullOrWhiteSpace($adapter.IpAddress))
@@ -421,7 +440,7 @@
                             "comments"   = "DSC extension config for {0}" -f $node.NodeName
                             "type"       = "Microsoft.Compute/virtualMachines/extensions"
                             "name"       = "{0}/Microsoft.Powershell.DSC" -f $node.NodeName
-                            "apiVersion" = "2017-03-30"
+                            "apiVersion" = "[providers('Microsoft.Compute','virtualMachines/extensions').apiVersions[0]]"
                             "location"   = "[resourceGroup().location]"
                             "dependsOn"  = @(
                                 "[concat('Microsoft.Compute/virtualMachines/', '{0}')]" -f $node.NodeName
@@ -437,7 +456,7 @@
                                         "RegistrationKey" = @{
                                             "userName" = "whatever"
                                             "password" = "[listKeys(resourceId(parameters('automationAccountResourceGroup'), 'Microsoft.Automation/automationAccounts/', parameters('automationAccountName')), '2015-01-01-preview').Keys[0].value]"
-                                          }
+                                        }
                                     }
                                 } 
                                 "settings"                = @{
@@ -456,7 +475,7 @@
 
                         $roleTemplate.resources += @{
                             "type"       = "Microsoft.Network/networkInterfaces"
-                            "apiVersion" = "2019-11-01"
+                            "apiVersion" = "[providers('Microsoft.Network','networkInterfaces').apiVersions[0]]"
                             "name"       = "{0}-nic{1}" -f $node.NodeName, $count
                             "location"   = "[resourceGroup().location]"
                             <#"dependsOn"  = @(
@@ -501,26 +520,22 @@
                         $nicCount ++
                     }
 
-                    $diskGuid = (New-Guid).Guid -replace '-'
                     $roleTemplate.resources += @{
                         "type"       = "Microsoft.Compute/virtualMachines"
-                        "apiVersion" = "2019-12-01"
+                        "apiVersion" = "[providers('Microsoft.Compute','virtualMachines').apiVersions[0]]"
                         "name"       = $node.NodeName
                         "location"   = "[resourceGroup().location]"
-                        "dependsOn"  = $adapters #+ "[resourceId('Microsoft.Compute/availabilitySets', 'Lab1')]" # TODO
+                        "dependsOn"  = $adapters
                         "properties" = @{
-                            <#"availabilitySet" = @{
-                                "id" = "[resourceId('Microsoft.Compute/availabilitySets', 'Lab1')]"
-                            }#>
                             "hardwareProfile" = @{
-                                "vmSize" = Resolve-NodeProperty -Node $Node -Datum $Datum -PropertyPath ArmSettings/VMSize
+                                "vmSize" = $node.ArmSettings.VMSize
                             }
                             "storageProfile"  = @{
                                 "imageReference" = @{
-                                    sku       = Resolve-NodeProperty -Node $Node -Datum $Datum -PropertyPath ArmSettings/OSImage/sku
-                                    publisher = Resolve-NodeProperty -Node $Node -Datum $Datum -PropertyPath ArmSettings/OSImage/publisher
-                                    offer     = Resolve-NodeProperty -Node $Node -Datum $Datum -PropertyPath ArmSettings/OSImage/offer
-                                    version   = Resolve-NodeProperty -Node $Node -Datum $Datum -PropertyPath ArmSettings/OSImage/version
+                                    sku       = $Node.ArmSettings.OSImage.sku
+                                    publisher = $Node.ArmSettings.OSImage.publisher
+                                    offer     = $Node.ArmSettings.OSImage.offer
+                                    version   = $Node.ArmSettings.OSImage.version
                                 }
                                 "osDisk"         = @{
                                     "osType"       = "Windows"
@@ -589,7 +604,7 @@
                 $siteTemplate.resources += @{
                     "type"       = "Microsoft.Resources/deployments"
                     "name"       = "$($environmentName)$($site)$($node.Role)"
-                    "apiVersion" = "2016-09-01"
+                    "apiVersion" = "[providers('Microsoft.Resources','deployments').apiVersions[0]]"
                     "condition"  = "[equals(parameters('$conditionParameterName'), 'True')]"
                     "dependsOn"  = @(
                         "Microsoft.Resources/deployments/$($environmentName)$($site)CoreInfrastructure"
@@ -615,15 +630,15 @@
             # VNet
             foreach ($vnet in $vnets.GetEnumerator())
             {
-                $nsg = Resolve-NodeProperty -PropertyPath ArmSettings/NetworkSecurityGroup -Default $null -Node $node -Datum $datum
+                $nsg = $node.ArmSettings.NetworkSecurityGroups
                 if ($nsg)
                 {
-                    [object[]]$rules = $nsg.GetEnumerator().Where( { $_.Name -eq "$($vnet.Value.VnetName)-nsg" }).SecurityRules
+                    [object[]]$rules = $nsg.Where( { $_.Name -eq "$($vnet.Value.VnetName)-nsg" }).SecurityRules
                 }
 
                 $nsgResource = @{
                     "type"       = "Microsoft.Network/networkSecurityGroups"
-                    "apiVersion" = "2019-11-01"
+                    "apiVersion" = "[providers('Microsoft.Network','networkSecurityGroups').apiVersions[0]]"
                     "name"       = '{0}-nsg' -f $vnet.Value.VnetName
                     "location"   = "[resourceGroup().location]"
                     "properties" = @{ }
@@ -638,7 +653,7 @@
 
                 $template.resources += @{
                     "type"       = "Microsoft.Network/virtualNetworks"
-                    "apiVersion" = "2019-11-01"
+                    "apiVersion" = "[providers('Microsoft.Network','virtualNetworks').apiVersions[0]]"
                     "name"       = $vnet.Value.VnetName
                     "location"   = "[resourceGroup().location]"
                     "dependsOn"  = @(

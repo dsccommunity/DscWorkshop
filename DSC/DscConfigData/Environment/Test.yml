@@ -14,3 +14,4 @@ ArmSettings:
     offer : WindowsServer
     sku : 2016-Datacenter
     version : latest
+  #SubscriptionId: abc-123 # OPTIONAL

@@ -24,11 +24,6 @@ lookup_options:
   DscTagging:
     merge_hash: deep
 
-  ArmSettings:
-    merge_hash: deep
-  ArmSettings\OSImage:
-    merge_hash: deep
-
   WindowsFeatures:
     merge_hash: deep
 
@@ -45,6 +40,21 @@ lookup_options:
 
   NetworkIpConfiguration:
     merge_hash: deep
+
+  ArmSettings:
+    merge_hash: deep    
+  ArmSettings\OSImage:
+    merge_hash: deep
+  ArmSettings\NetworkSecurityGroups:
+    merge_hash_array: UniqueKeyValTuples
+    merge_options:
+      tuple_keys:
+        - Name
+  ArmSettings\NetworkSecurityGroups\SecurityRules:
+    merge_hash_array: UniqueKeyValTuples
+    merge_options:
+      tuple_keys:
+        - name
 
   LcmConfig:
     merge_hash: deep

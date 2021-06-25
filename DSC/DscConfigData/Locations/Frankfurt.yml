@@ -5,3 +5,61 @@ FilesAndFolders:
   Items:
     - DestinationPath: C:\Test\Frankfurt
       Type: Directory
+
+
+ArmSettings:
+  Location: westeurope
+  NetworkSecurityGroups:
+    - Name : Dev-Frankfurt-Ethernet-VNET
+      SecurityRules:
+        - name : NecessaryPorts
+          properties : 
+            # sourceAddressPrefixes: 
+            priority: 100
+            sourceAddressPrefix: "*"
+            destinationPortRanges:
+              - 3389
+              - 5985
+              - 5986
+            direction: Inbound
+            destinationAddressPrefix: VirtualNetwork
+            sourcePortRange: "*"
+            access: Allow
+            # destinationAddressPrefixes:
+            protocol : TCP
+            # sourcePortRanges :
+    - Name : Test-Frankfurt-Ethernet-VNET
+      SecurityRules:
+        - name : NecessaryPorts
+          properties : 
+            # sourceAddressPrefixes: 
+            priority: 100
+            sourceAddressPrefix: "*"
+            destinationPortRanges:
+              - 3389
+              - 5985
+              - 5986
+            direction: Inbound
+            destinationAddressPrefix: VirtualNetwork
+            sourcePortRange: "*"
+            access: Allow
+            # destinationAddressPrefixes:
+            protocol : TCP
+            # sourcePortRanges :
+    - Name : Prod-Frankfurt-Ethernet-VNET
+      SecurityRules:
+        - name : NecessaryPorts
+          properties : 
+            # sourceAddressPrefixes: 
+            priority: 100
+            sourceAddressPrefix: "192.168.111.0/24"
+            destinationPortRanges:
+              - 22
+              - 5986
+            direction: Inbound
+            destinationAddressPrefix: VirtualNetwork
+            sourcePortRange: "*"
+            access: Allow
+            # destinationAddressPrefixes:
+            protocol : TCP
+            # sourcePortRanges :

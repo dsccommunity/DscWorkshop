@@ -6,6 +6,10 @@ Description: '[Command=(Import-Csv -Path $env:BHProjectPath\DscConfigData\Extern
 Location: Frankfurt
 SomeData: '[Command=Get-Random]'
 
+ArmSettings:
+  OSImage :
+    sku : 2019-Datacenter
+
 NetworkIpConfiguration:
   Interfaces:
     - InterfaceAlias: Ethernet
