@@ -158,7 +158,7 @@
                 }
             }
             variables      = @{
-                "armArtifactLocation" = "[parameters('artifactLocation'))]"
+                "armArtifactLocation" = "[parameters('artifactLocation')]"
             }
             resources      = @()
         }
@@ -528,14 +528,14 @@
                         "dependsOn"  = $adapters
                         "properties" = @{
                             "hardwareProfile" = @{
-                                "vmSize" = $node.ArmSettings.VMSize
+                                "vmSize" = Lookup -Node $node -PropertyPath ArmSettings/VMSize
                             }
                             "storageProfile"  = @{
                                 "imageReference" = @{
-                                    sku       = $Node.ArmSettings.OSImage.sku
-                                    publisher = $Node.ArmSettings.OSImage.publisher
-                                    offer     = $Node.ArmSettings.OSImage.offer
-                                    version   = $Node.ArmSettings.OSImage.version
+                                    sku       = Lookup -Node $Node -PropertyPath ArmSettings/OSImage/sku
+                                    publisher = Lookup -Node $Node -PropertyPath ArmSettings/OSImage/publisher
+                                    offer     = Lookup -Node $Node -PropertyPath ArmSettings/OSImage/offer
+                                    version   = Lookup -Node $Node -PropertyPath ArmSettings/OSImage/version
                                 }
                                 "osDisk"         = @{
                                     "osType"       = "Windows"
