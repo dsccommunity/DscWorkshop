@@ -1,6 +1,6 @@
 param (
     [string[]]
-    $ModuleToLeaveLoaded = (property ModuleToLeaveLoaded @('InvokeBuild', 'PSReadline', 'PackageManagement', 'ISESteroids', 'PowerShellGet') )
+    $ModuleToLeaveLoaded = (property ModuleToLeaveLoaded @('InvokeBuild', 'PSReadline', 'PackageManagement', 'ISESteroids', 'powershell-yaml', 'PowerShellGet') )
 )
 task SetPsModulePath {
     if (-not ([System.IO.Path]::IsPathRooted($BuildOutput)))
