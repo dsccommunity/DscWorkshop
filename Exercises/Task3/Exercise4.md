@@ -100,7 +100,7 @@ For now, we will only upload the MOF files to Azure Automation, but you can add 
     $automationAccountName = $env:AutomationAccountName
     $storageContainerName = 'DscModules'
 
-    $path = "$($env:SYSTEM_ARTIFACTSDIRECTORY)\$($env:RELEASE_PRIMARYARTIFACTSOURCEALIAS)\Compressed Modules"
+    $path = "$($env:SYSTEM_ARTIFACTSDIRECTORY)\$($env:RELEASE_PRIMARYARTIFACTSOURCEALIAS)\CompressedModules"
 
     if (Get-Command Enable-AzureRMAlias -ErrorAction SilentlyContinue)
         {
