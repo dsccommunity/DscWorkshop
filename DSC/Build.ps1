@@ -159,7 +159,6 @@ if (-not $Tasks) {
     task . Init,
     CleanBuildOutput,
     SetPsModulePath,
-    ConnectAz,
     LoadDatumConfigData,
     TestConfigData,
     VersionControl,
