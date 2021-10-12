@@ -41,6 +41,9 @@ lookup_options:
   NetworkIpConfiguration:
     merge_hash: deep
 
+  ComputerSettings:
+    merge_hash : deep
+
   ArmSettings:
     merge_hash: deep    
   ArmSettings\OSImage:

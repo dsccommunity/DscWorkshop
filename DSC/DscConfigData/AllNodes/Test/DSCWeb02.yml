@@ -1,7 +1,7 @@
 NodeName: DSCWeb02
 Environment: Test
 Role: WebServer
-Description: '[Command=(Import-Csv -Path $env:BHProjectPath\DscConfigData\ExternalData.csv -Delimiter ";" | Where-Object ComputerName -eq DSCWeb02).Description]'
+Description: '[x={(Import-Csv -Path $env:BHProjectPath\DscConfigData\ExternalData.csv -Delimiter ";" | Where-Object ComputerName -eq DSCWeb02).Description]}'
 Location: Singapore
 
 NetworkIpConfiguration:
@@ -17,7 +17,9 @@ NetworkIpConfiguration:
 PSDscAllowPlainTextPassword: True
 PSDscAllowDomainUser: True
 
-LcmConfig:
-  ConfigurationRepositoryWeb:
-    Server:
-      ConfigurationNames: DSCWeb02
+ComputerSettings:
+  Name : '[x={$($Node.NodeName)}]'
+  Description : '[x={$($Node.Description)}]'
+ConfigurationRepositoryWeb:
+  Server:
+    ConfigurationNames: '[x={$($Node.NodeName)}]'

@@ -1,10 +1,10 @@
 NodeName: DSCFile01
 Environment: Dev
 Role: FileServer
-Description: '[Command=(Import-Csv -Path $env:BHProjectPath\DscConfigData\ExternalData.csv -Delimiter ";" | Where-Object ComputerName -eq DSCFile01).Description]'
+Description: '[x={(Import-Csv -Path $env:BHProjectPath\DscConfigData\ExternalData.csv -Delimiter ";" | Where-Object ComputerName -eq DSCFile01).Description}]'
 
 Location: Frankfurt
-SomeData: '[Command=Get-Random]'
+SomeData: '[x={Get-Random}]'
 
 ArmSettings:
   OSImage :
@@ -23,7 +23,9 @@ NetworkIpConfiguration:
 PSDscAllowPlainTextPassword: True
 PSDscAllowDomainUser: True
 
-LcmConfig:
-  ConfigurationRepositoryWeb:
-    Server:
-      ConfigurationNames: DSCFile01
+ComputerSettings:
+  Name : '[x={$($Node.NodeName)}]'
+  Description : '[x={$($Node.Description)}]'
+ConfigurationRepositoryWeb:
+  Server:
+    ConfigurationNames: '[x={$($Node.NodeName)}]'
