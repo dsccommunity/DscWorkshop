@@ -2,7 +2,7 @@ function Resolve-Dependency {
     [CmdletBinding()]
     param()
 
-    Write-Host "Downloading dependencies, this may take a while" -ForegroundColor Green
+    Write-Host 'Downloading dependencies, this may take a while' -ForegroundColor Green
     if (-not (Get-PackageProvider -Name NuGet -ForceBootstrap)) {
         $providerBootstrapParams = @{
             Name           = 'nuget'
@@ -50,7 +50,8 @@ function Resolve-Dependency {
     $psDependParams = @{
         Force = $true
         Path  = "$ProjectPath\PSDepend.Build.psd1"
-        Target = $buildModulesPath
+        #was removed in some private projects for unknown reason
+        #Target = $buildModulesPath 
     }
     if ($PSBoundParameters.ContainsKey('Verbose')) {
         $psDependParams.Add('Verbose', $Verbose)
