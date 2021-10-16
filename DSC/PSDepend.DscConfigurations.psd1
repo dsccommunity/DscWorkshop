@@ -8,6 +8,6 @@
         }
     }
 
-    CommonTasks     = '0.3.212'
+    CommonTasks     = '0.3.239'
 
 }
