@@ -1,0 +1,4 @@
+{
+    "powershell.codeFormatting.preset": "OTBS",
+    "powershell.powerShellDefaultVersion": "Windows PowerShell (x64)"
+}
