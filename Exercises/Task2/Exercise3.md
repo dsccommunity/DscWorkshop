@@ -35,9 +35,21 @@ Create a new file in 'DSC\DscConfigData\Roles' named 'WsusServer.yml'. Paste the
   Role: WsusServer
   Description: WSUS Server in Test
   Location: Frankfurt
+  Baseline: Server
+
+  ComputerSettings:
+    Name: DSCWS01
+    Description: WSUS Server in Test
 
   NetworkIpConfiguration:
-    IpAddress: 192.168.111.120
+    Interfaces:
+      - InterfaceAlias: Ethernet
+        IpAddress: 192.168.111.113
+        Prefix: 24
+        Gateway: 192.168.111.50
+        DnsServer:
+          - 192.168.111.10
+        DisableNetbios: true
 
   PSDscAllowPlainTextPassword: True
   PSDscAllowDomainUser: True
@@ -46,9 +58,14 @@ Create a new file in 'DSC\DscConfigData\Roles' named 'WsusServer.yml'. Paste the
     ConfigurationRepositoryWeb:
       Server:
         ConfigurationNames: DSCWS01
+
+  DscTagging:
+    Layers:
+      - AllNodes\Test\DSCWS01
   ```
 
 > Note: The YAML rendering does not always show the indention correctly. Please have a look at another node file to check the indention.
+> To discover yaml syntax errors upfront, the VS Code plug-in [YAML](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml) should help.
 
 Once again, it is that easy. New roles (i.e. WsusServer), environments (i.e. Test) and nodes (i.e. DSCWS01) just require adding YAML files. The devil is in the details: Providing the appropriate configuration data for your configurations like the network configuration requires knowledge of the underlying infrastructure of course.
 
@@ -60,7 +77,7 @@ In order to build the new node 'DSCWS01' which uses the 'WsusServer' role, simpl
 
 After the build has completed take a look at the new nodes resulting files.
 
-> **NOTE: YAML syntax can be tricky so if you have errors during the build it very likely due to not well formed YAML.**
+> **NOTE: YAML syntax can be tricky so if you have errors during the build it very likely due to not well formed YAML. Please use also the previously mentioned YAML VS Code plug-in.**
 
 ## 2.4 Modify a role
 

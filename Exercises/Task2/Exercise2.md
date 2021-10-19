@@ -24,14 +24,26 @@ You are tasked with on-boarding a new node (DSCFile04) to your environment. The 
     ```yaml
     NodeName: DSCFile04
     .
-    .
     Description: 'SIN secondary file server'
-    .
     .
     Location: Singapore
     .
+    ComputerSettings:
+      Name: DSCFile01
     .
-    ConfigurationNames : DSCFile04
+    NetworkIpConfiguration:
+    Interfaces:
+      - InterfaceAlias: Ethernet
+        IpAddress: 192.168.111.112
+    .
+    LcmConfig:
+      ConfigurationRepositoryWeb:
+        Server:
+          ConfigurationNames: DSCFile01
+    .
+    DscTagging:
+      Layers:
+        - AllNodes\Dev\DscFile04
     ```
 
 3. This simple file is already enough for your new node. Produce new artifacts now by committing your changes and running a build again. You can commit the change by means of the VSCode UI or using the git command. You can find some guidance here:

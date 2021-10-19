@@ -14,7 +14,7 @@ You are tasked with creating another layer that better reflects separate fire se
 
 1. To create a new layer, you need to find an appropriate structure. Since the file system is already quite good when it comes to displaying hierarchical data, we can add a subfolder called FireSections which should contain for example Section1.yml and Section2.yml. The file subscribes to the 'RegistryValues' configuration to write a registry key to the nodes containing the fire section. You may either use VSCode to create the folder and the files or run the following commands:
 
-> Note: Before running the commands, make sure you are in the DscWorkshop directory.
+> **Note: Before running the commands, make sure you are in the directory ```DscWorkshop\DSC```**.
 
 ```powershell
 @'
@@ -22,28 +22,36 @@ Configurations:
   - RegistryValues
 
 RegistryValues:
-    Values:
+  Values:
     - Key: HKEY_LOCAL_MACHINE\SOFTWARE\Dsc
       ValueName: FireSection
       ValueData: 1
       ValueType: DWORD
       Ensure: Present
       Force: true
-'@ | New-Item -Path .\DSC\DscConfigData\FireSections\Section1.yml -Force
+
+DscTagging:
+  Layers:
+    - FireSections\Section1
+'@ | New-Item -Path .\DscConfigData\FireSections\Section1.yml -Force
 
 @'
 Configurations:
   - RegistryValues
 
 RegistryValues:
-    Values:
+  Values:
     - Key: HKEY_LOCAL_MACHINE\SOFTWARE\Dsc
       ValueName: FireSection
       ValueData: 2
       ValueType: DWORD
       Ensure: Present
       Force: true
-'@ | New-Item -Path .\DSC\DscConfigData\FireSections\Section2.yml -Force
+
+DscTagging:
+  Layers:
+    - FireSections\Section2
+'@ | New-Item -Path .\DscConfigData\FireSections\Section2.yml -Force
 ```
 
 2. Please start a new build and examine the RSoP files for the new fire section information once completed. Don't try too hard to find the information. It is expected that it's not there. Why?
@@ -69,12 +77,13 @@ RegistryValues:
 
     | Name      | Description |
     |-|-|
+    | ```Baselines\Security``` | The security basline overwrites everything|
     | ```AllNodes\$($Node.Environment)\$($Node.NodeName)``` | The settings unique to one node|
     | ```Environment$($Node.Environment)``` | The settings that are environment specific|
     | ```Environment$($Node.Location)``` | The settings that are location specific|
     | ```Roles\$($Node.Role)``` | The settings unique to the role of a node|
-    | ```Roles\ServerBaseline``` | The baseline settings that should apply to all nodes and roles|
-    | ```MetaConfig\DscBaseline``` | DSC specific settings like intervals, maintenance windows  and version info
+    | ```Baselines\$($Node.Baseline)``` | The baseline settings that should apply to all nodes and roles|
+    | ```Baselines\DscLcm``` | DSC specific settings like intervals, maintenance windows  and version info
 
     The settings get more generic the further down you go in the list. This way, your node will always win and will always be able to override settings that have been defined on a more global scale like the environment. This is because the default lookup is set to 'MostSpecific', so the most specific setting wins.
 

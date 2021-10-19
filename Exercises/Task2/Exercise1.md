@@ -59,12 +59,24 @@ After completing this task, you have a gone through the build process for all ar
     git clone https://github.com/dsccommunity/DscWorkshop
     ```
 
-7. Change into the newly cloned repository and checkout the dev branch to move into the development environment:
+7. Change into the newly cloned repository and checkout the dev branch to move into the development
 
     ```powershell
     Set-Location -Path .\dscworkshop
+    ```
+
+    To get the branch you are currently using, just type:
+    ```powershell
+    git branch
+    ```
+
+    If the command did not return 'dev', please switch for the 'dev' branch like this:
+  
+    ```powershell
     git checkout dev
     ```
+
+    > Note: If you want to read more about this, have a look at the documentation about [git branches](https://git-scm.com/book/en/v2/Git-Branching-Branches-in-a-Nutshell)
 
 8. Open the DscWorkshop folder in VSCode and examine the repository contents. The shortcut in VSCode to open a folder is ```CTRL+K CTRL+O```. You can also press ```F1``` and type in the command you are looking for. And of course there is the classical way using the file menu.
 
@@ -82,12 +94,14 @@ After completing this task, you have a gone through the build process for all ar
     .\Build.ps1 -ResolveDependency
     ```
 
-    This command will download all dependencies that have been defined first and then build the entire environment. This can take a short while.
+    This command will download all dependencies that have been defined first and then build the entire environment. Downloading all the dependencies can take This can take a short while.
 
     While the script is running, you may want to explore the following folders. The PSDepend module downloads and stores the dependencies into these folders based on the information in the files in brackets.
     - DSC\BuildOutput (DSC\PSDepend.Build.psd1)
     - DSC\DscConfigurations (DSC\PSDepend.DscConfigurations.psd1)
     - DSC\DscResources (DSC\PSDepend.DscResources.psd1)
+  
+    >Note: Depending on you machine's speed, your internet connection and the performance of the PowerShell Gallery, the initial build with downloading all the resources may take 20 to 30 minutes. Subsequent builds should take around 3 minutes.
 
 11. After the build process has finished, a number of artifacts have been created. The artifacts that we need for DSC are the MOF files, Meta.MOF files and the compressed modules. Before having a closer look at the artifacts, let's have a look how nodes are defined for the dev environment. In VSCode, please navigate to the folder 'DSC\DscConfigData\AllNodes\Dev.
 
@@ -103,17 +117,38 @@ After completing this task, you have a gone through the build process for all ar
     Role: FileServer
     Description: File Server in Dev
     Location: Frankfurt
+    Baseline: Server
+
+    ComputerSettings:
+    Name: DSCFile01
+    Description: File Server in Dev
 
     NetworkIpConfiguration:
-      IpAddress: 192.168.111.100
+    Interfaces:
+        - InterfaceAlias: Ethernet
+        IpAddress: 192.168.111.100
+        Prefix: 24
+        Gateway: 192.168.111.50
+        DnsServer:
+            - 192.168.111.10
+        DisableNetbios: true
 
     PSDscAllowPlainTextPassword: True
     PSDscAllowDomainUser: True
 
     LcmConfig:
-      ConfigurationRepositoryWeb:
+    ConfigurationRepositoryWeb:
         Server:
-          ConfigurationNames: DSCFile01
+        ConfigurationNames: DSCFile01
+
+    DscTagging:
+    Layers:
+        - AllNodes\Dev\DscFile01
+
+    FilesAndFolders:
+    Items:
+        - DestinationPath: Z:\DoesNotWork
+        Type: Directory
     ```
 
     A node's YAML will contain data that is unique to the node, like its name or IP address. It will also contain role assignments like 'FileServer', the location of the node as well as the optional LCM configuration name to pull.
@@ -136,13 +171,13 @@ After completing this task, you have a gone through the build process for all ar
           Type: Directory
     ```
 
-    In this case, the composite resource 'FilesAndFolders' accepts a (very generic) parameter called 'Items'. The 'Items' parameter is simply a hashtable expecting the same settings that the File resource would use as well.
+    In this case, the composite resource 'FilesAndFolders' accepts a (very generic) parameter called 'Items'. The 'Items' parameter is simply a hashtable expecting the same settings that the [File resource](https://docs.microsoft.com/en-us/powershell/scripting/dsc/reference/resources/windows/fileResource?view=powershell-7.1) would use as well.
 
     The location of a node is even more generic than the role and can be used to describe location-specific items like network topology and other settings. Same applies to the environment.
 
 14. Now it's time to focus more on the artifacts. The build process created four types of artifacts: MOF files, Meta.MOF files, Compressed modules and RSoP YAML files. Among these, the RSoP (Resultant Set of Policy) will be very helpful as these files will show you what configuration items exactly will be applied to your nodes and the parameters given to them. The concept of RSoP is very similar to Windows Group Policies and how to [use Resultant Set of Policy to Manage Group Policy](https://docs.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2012-R2-and-2012/dn789183(v=ws.11)).
 
-    Examine the RSoP files now which are in the folder 'DSC/BuildOutput\RSoP'.
+    Examine the RSoP files now which are in the folder 'DSC\BuildOutput\RSoP'.
 
 15. Let's take the RSoP artifact for 'DSCFile01'. If you compare the RSoP output of this node (DSC\BuildOutput\RSoP\DSCFile01.yml) to the node's config file (DSC\DscConfigData\AllNodes\Dev\DSCFile01.yml), you will notice that there are many more properties defined than in the original 'DSCFile01.yml'. Where did these come from? They are defined the node's role and location YAML files.
 
