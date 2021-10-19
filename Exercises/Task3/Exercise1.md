@@ -6,7 +6,7 @@ This task will guide you through the process of creating an infrastructure build
 
 This task assumes that you have access to dev.azure.com in order to create your own project and your own pipeline.  
 
-*By the way: You can use the PowerShell module [AutomatedLab.Common](https://github.com/automatedlab/automatedlab.common) to automate your interactions with TFS,VSTS and Azure DevOps*
+> *By the way: You can use the PowerShell module [AutomatedLab.Common](https://github.com/automatedlab/automatedlab.common) to automate your interactions with TFS,VSTS and Azure DevOps*
 
 ***Remember to check the [prerequisites](../CheckPrereq.ps1)!***
 

@@ -10,6 +10,8 @@ This task assumes that you have access to dev.azure.com in order to create your 
 
 ## Create a new build pipeline
 
+> Note: In the exercise we do not use a YAML pipeline but the old graphical way of defining one. This way is better for learning how a pipeline can be defined and how things work. Later you surely want to switch to YAML.
+
 Again, this step can easily be automated. ~~If you are interested in how this may look like, take a look at the [project code](../../Lab/31%20New%20Release%20Pipeline%20CommonTasks.ps1) in either of the pipeline lab scripts. We are using a hashtable containing all build tasks and pass it to the cmdlets exposed by AutomatedLab.Common.~~
 
 Our template approach consists of using a trusted, internal (i.e. private) gallery for PowerShell modules. Internal does not necessarily mean on-premises, but means a gallery that you trust in which is usually self-hosted.
@@ -26,11 +28,11 @@ To create your own build (Continuous Integration) pipeline, follow the next step
 
 3. The next menu lets you 'Select a source'. Please select 'Azure Repos Git'. The required information will be added automatically. Please switch the 'Default branch for manual and scheduled builds' to 'dev' and press the 'Continue' button.
 
-4. On the "Select a template" page, select the "Empty job" right on the very top of the page.
+4. On the "Select a template" page, select the "Empty pipeline" which is on the very bottom the last time this documentation was updated.
 
 You have created an empty pipeline now. The next tasks will give the pipeline some work to do.
 
-Our build process can run on the hosted agent. A build agent is just a small service/daemon running on a VM that is capable of executing scripts and so on.
+Our build process can run on the hosted agent. A build agent is just a small service/daemon running on a VM that is capable of executing scripts and so on. A new VM is deployed every time you start a build and destroyed once the build is finished.
 
 On premises, you might want to select a dedicated agent pool for DSC configuration compilation jobs for example.
 
