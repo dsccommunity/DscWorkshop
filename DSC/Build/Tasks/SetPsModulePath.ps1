@@ -1,10 +1,19 @@
 param (
     [string[]]
-    $ModuleToLeaveLoaded = (property ModuleToLeaveLoaded @('InvokeBuild', 'PSReadline', 'PackageManagement', 'ISESteroids', 'PowerShellGet') )
+    $ModuleToLeaveLoaded = (property ModuleToLeaveLoaded @('InvokeBuild',
+            'PSReadline',
+            'PackageManagement',
+            'ISESteroids',
+            'PowerShellGet',
+            'PowerShellEditorServices.Commands',
+            'PowerShellEditorServices.VSCode',
+            'Get-DatumNodesRecursive',
+            'Get-FilteredConfigurationData'
+        )
+    )
 )
 task SetPsModulePath {
-    if (-not ([System.IO.Path]::IsPathRooted($BuildOutput)))
-    {        
+    if (-not ([System.IO.Path]::IsPathRooted($BuildOutput))) {        
         $BuildOutput = Join-Path -Path $ProjectPath -ChildPath $BuildOutput        
     }
     
@@ -20,7 +29,7 @@ task SetPsModulePath {
     Set-PSModulePath -ModuleToLeaveLoaded $moduleToLeaveLoaded -PathsToSet $pathToSet
 
     "`n"
-    "PSModulePath:"
+    'PSModulePath:'
     $env:PSModulePath -split ';'
     "`n"
     

@@ -1,8 +1,13 @@
 NodeName: DSCFile03
 Environment: Prod
 Role: FileServer
-Description: '[Command=(Import-Csv -Path $env:BHProjectPath\DscConfigData\ExternalData.csv -Delimiter ";" | Where-Object ComputerName -eq DSCFile03).Description]'
+Description: File Server in Prod
 Location: Frankfurt
+Baseline: Server
+
+ComputerSettings:
+  Name: DSCFile03
+  Description: File Server in Prod
 
 NetworkIpConfiguration:
   Interfaces:
@@ -21,3 +26,7 @@ LcmConfig:
   ConfigurationRepositoryWeb:
     Server:
       ConfigurationNames: DSCFile03
+
+DscTagging:
+  Layers:
+    - AllNodes\Prod\DscFile03

@@ -4,33 +4,35 @@ param (
 )
 
 task CompileDatumRsop {
-    
-    if (-not [System.IO.Path]::IsPathRooted($rsopFolder)) {
-        $rsopOutputPath = Join-Path -Path $BuildOutput -ChildPath $rsopFolder
-    }
-    else {
-        $RsopOutputPath = $rsopFolder
-    }
+ 
+    Start-Transcript -Path "$BuildOutput\Logs\CompileDatumRsop.log"
 
-    if (-not (Test-Path -Path $rsopOutputPath)) {
-        mkdir -Path $rsopOutputPath -Force | Out-Null
-    }
+    try {
+        $rsopOutputPath = if (-not [System.IO.Path]::IsPathRooted($RsopFolder)) {
+            Join-Path -Path $BuildOutput -ChildPath $RsopFolder
+        }
+        else {
+            $RsopFolder
+        }
+        if (-not (Test-Path -Path $rsopOutputPath)) {
+            mkdir -Path $rsopOutputPath -Force | Out-Null
+        }
 
-    $rsopOutputPathVersion = Join-Path -Path $RsopOutputPath -ChildPath $BuildVersion
-    if (-not (Test-Path -Path $rsopOutputPathVersion)) {
-        mkdir -Path $rsopOutputPathVersion -Force | Out-Null
-    }
-
-    if ($configurationData.AllNodes) {
-        Write-Build Green "Generating RSOP output for $($configurationData.AllNodes.Count) nodes."
-        $configurationData.AllNodes |
-        Where-Object Name -ne * |
-        ForEach-Object {
-            $nodeRSOP = Get-DatumRsop -Datum $datum -AllNodes ([ordered]@{ } + $_)
-            $nodeRSOP | ConvertTo-Json -Depth 40 | ConvertFrom-Json | Convertto-Yaml -OutFile (Join-Path -Path $rsopOutputPathVersion -ChildPath "$($_.Name).yml") -Force
+        if ($configurationData.AllNodes) {
+            Write-Build Green "Generating RSOP output for $($configurationData.AllNodes.Count) nodes..."
+            $configurationData.AllNodes |
+            Where-Object Name -ne * |
+            ForEach-Object {
+                Write-Build Green "`t$($_.Name)"
+                $nodeRsop = Get-DatumRsop -Datum $datum -AllNodes ([ordered]@{ } + $_)
+                $nodeRsop | ConvertTo-Json -Depth 40 | ConvertFrom-Json | Convertto-Yaml -OutFile (Join-Path -Path $rsopOutputPath -ChildPath "$($_.Name).yml") -Force
+            }
+        }
+        else {
+            Write-Build Green "No data for generating RSOP output."
         }
     }
-    else {
-        Write-Build Green "No data for generating RSOP output."
+    finally {
+        Stop-Transcript
     }
 }

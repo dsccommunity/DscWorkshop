@@ -96,14 +96,27 @@ if ($buildModulesPath -notin $psModulePathElemets) {
 }
 
 #importing all resources from 'Build' directory
+Get-ChildItem -Path "$PSScriptRoot/Build" -Recurse -Include *.psm1 |
+    ForEach-Object {
+        
+        try {
+            Import-Module -Name $_.FullName -Scope Global -Force -ErrorAction Stop
+            Write-Verbose "Imported file $($_.BaseName)"
+        }
+        catch {
+            Write-Warning "Could not import file $($_.BaseName)"
+        }
+    }
+
 Get-ChildItem -Path "$PSScriptRoot/Build" -Recurse -Include *.ps1 |
     ForEach-Object {
-    Write-Verbose "Importing file $($_.BaseName)"
-    try {
-        . $_.FullName
+        
+        try {
+            . $_.FullName
+            Write-Verbose "Imported file $($_.BaseName)"
+        }
+        catch { }
     }
-    catch { }
-}
 
 if (-not (Get-Module -Name InvokeBuild -ListAvailable) -and -not $ResolveDependency) {
     Write-Error "Requirements are missing. Please call the script again with the switch 'ResolveDependency'"
@@ -130,10 +143,7 @@ if ($MyInvocation.ScriptName -notlike '*Invoke-Build.ps1') {
     }
 
     if (($Tasks -contains 'CompileRootConfiguration' -or $Tasks -contains 'CompileRootMetaMof') -or -not $Tasks) {
-        Invoke-Build -File "$ProjectPath\PostBuild.ps1" -BuildOutput $BuildOutput `
-                                                        -ResourcesFolder $ResourcesFolder `
-                                                        -ConfigDataFolder $ConfigDataFolder `
-                                                        -ConfigurationsFolder $ConfigurationsFolder
+        Invoke-Build -File "$ProjectPath\PostBuild.ps1"
     }
 
     $mofFileCount = (Get-ChildItem -Path "$BuildOutput\MOF" -Filter *.mof -ErrorAction SilentlyContinue).Count
@@ -171,8 +181,8 @@ else {
     task . $Tasks
 }
 
-Write-Host "Running the folling tasks:" -ForegroundColor Magenta
-${*}.All[-1].Jobs | ForEach-Object {"`t$_" } | Write-Host
+Write-Host 'Running the folling tasks:' -ForegroundColor Magenta
+${*}.All[-1].Jobs | ForEach-Object { "`t$_" } | Write-Host
 Write-Host
-${*}.All[-1].Jobs -join', ' | Write-Host -ForegroundColor Magenta
+${*}.All[-1].Jobs -join ', ' | Write-Host -ForegroundColor Magenta
 Write-Host

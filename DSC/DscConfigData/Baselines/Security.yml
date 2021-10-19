@@ -1,0 +1,14 @@
+Configurations:
+  - SecurityBase
+  - WindowsFeatures
+
+WindowsFeatures:
+  Name:
+    - -Telnet-Client
+
+SecurityBase:
+  Role: Baseline
+
+DscTagging:
+  Layers:
+    - Baselines\Security

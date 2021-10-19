@@ -13,11 +13,11 @@ FilesAndFolders:
     - DestinationPath: C:\Test\Test1File1.txt
       Type: File
       Contents: Some test data
-      DependsOn: '[File]C\Test'
+      DependsOn: '[File]file_C__Test'
     - DestinationPath: C:\Test\Test1File2.txt
       Type: File
       Contents: Some test data
-      DependsOn: '[File]C\Test'
+      DependsOn: '[File]file_C__Test'
     - DestinationPath: C:\GpoBackup
       SourcePath: \\DSCDC01\SYSVOL\contoso.com\Policies
       Type: Directory
@@ -33,3 +33,7 @@ RegistryValues:
 
 SecurityBaseline:
   Role: FileServer
+
+DscTagging:
+  Layers:
+    - Roles\FileServer

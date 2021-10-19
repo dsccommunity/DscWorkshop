@@ -14,11 +14,11 @@ FilesAndFolders:
     - DestinationPath: C:\Inetpub\TestApp1\default.html
       Type: File
       Contents: This is TestApp1
-      DependsOn: '[File]C\Inetpub\TestApp1'
+      DependsOn: '[File]file_C__Inetpub_TestApp1'
     - DestinationPath: C:\Inetpub\TestApp2\default.html
       Type: File
       Contents: This is TestApp2
-      DependsOn: '[File]C\Inetpub\TestApp2'
+      DependsOn: '[File]file_C__Inetpub_TestApp2'
 
 WebApplicationPools:
   Items:
@@ -67,3 +67,7 @@ WindowsServices:
       DisplayName: Dummy Service on Web Servers
       StartupType: Automatic
       Path: C:\DummyService.exe
+
+DscTagging:
+  Layers:
+    - Roles\WebServer
