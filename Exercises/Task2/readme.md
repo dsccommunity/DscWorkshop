@@ -14,8 +14,8 @@ Add a new role to the configuration.
 
 ## [Exercise 4](Exercise4.md)
 
-Add a new role to the configuration.
+Add another layer to your hierarchy.
 
 ## [Stretch Goal](StretchGoal.md)
 
-Add a new role to the configuration.
+Create a custom Configuration (DSC Composite Resource).

@@ -158,3 +158,5 @@ At your customer, this is all customer-specific code and should be collected in 
     If the build has finished, examine the MOF files in the 'BuildOutput' folder. You should see the config you have made reflected there.
 
 Congratulations! You have walked through the entire process of making this repository your own! We hope you are successful with this concept - we certainly are.
+
+Please continue with [the next task](../Task3/readme.md) when your are ready.
