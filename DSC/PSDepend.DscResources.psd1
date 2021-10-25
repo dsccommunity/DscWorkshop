@@ -4,12 +4,13 @@
         Target         = 'DscResources'
         DependencyType = 'PSGalleryModule'
         Parameters     = @{
-            Repository = 'PSGallery'
+            Repository      = 'PSGallery'
+            AllowPreRelease = $true
         }
     }
 
     xPSDesiredStateConfiguration = '9.1.0'
-    ComputerManagementDsc        = '8.4.0'
+    ComputerManagementDsc        = '8.5.0'
     NetworkingDsc                = '8.2.0'
     JeaDsc                       = '0.7.2'
     XmlContentDsc                = '0.0.1'
@@ -22,11 +23,11 @@
     WdsDsc                       = '0.11.0'
     xDhcpServer                  = '3.0.0'
     xDscDiagnostics              = '2.8.0'
-    xDnsServer                   = '2.0.0'
+    DnsServerDsc                 = '3.0.0'
     xFailoverCluster             = '1.16.0'
     GPRegistryPolicyDsc          = '1.2.0'
     AuditPolicyDsc               = '1.4.0.0'
-    SharePointDSC                = '4.7.0'
+    SharePointDSC                = '4.8.0'
     xExchange                    = '1.32.0'
     SqlServerDsc                 = '15.2.0'
     UpdateServicesDsc            = '1.2.1'
@@ -37,6 +38,7 @@
     'xHyper-V'                   = '3.17.0.0'
     DSCR_PowerPlan               = '1.3.0'
     FileSystemDsc                = '1.1.1'
+    PackageManagement            = '1.4.7'
     PowerShellGet                = '2.2.5'
-    ConfigMgrCBDsc               = '1.0.1'
+    ConfigMgrCBDsc               = '2.1.0-preview0006' # Gallery version has extremely old SQL dependencies
 }
