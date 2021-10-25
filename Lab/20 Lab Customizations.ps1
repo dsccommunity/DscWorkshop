@@ -15,19 +15,17 @@ $requiredModules.PSDepend     = 'latest'
 $requiredModules.PSDeploy     = 'latest'
 
 $requiredChocolateyPackages = @{
-    putty            = '0.74'
-    winrar           = '6.0.0.20210102'
-    notepadplusplus  = '7.9.3'
-    'microsoft-edge' = '89.0.774.50'
-    vscode           = '1.54.1'
-    wireshark        = '3.4.4'
+    putty            = '0.76'
+    winrar           = '6.0.2'
+    notepadplusplus  = '8.1.9'
+    vscode           = '1.61.2'
+    wireshark        = '3.4.9'
     winpcap          = '4.1.3.20161116'
 }
 
 $vsCodeDownloadUrl = 'https://go.microsoft.com/fwlink/?Linkid=852157'
 $gitDownloadUrl = 'https://github.com/git-for-windows/git/releases/download/v2.30.2.windows.1/Git-2.30.2-64-bit.exe'
 $vscodePowerShellExtensionDownloadUrl = 'https://marketplace.visualstudio.com/_apis/public/gallery/publishers/ms-vscode/vsextensions/PowerShell-Preview/2021.2.1/vspackage'
-$edgeDownloadUrl = 'https://msedge.sf.dl.delivery.mp.microsoft.com/filestreamingservice/files/b4b09058-b46b-4286-8124-83b31bcc1b7b/MicrosoftEdgeEnterpriseX64.msi'
 $chromeDownloadUrl = 'https://dl.google.com/tag/s/appguid%3D%7B8A69D345-D564-463C-AFF1-A69D9E530F96%7D%26iid%3D%7BC9D94BD4-6037-E88E-2D5A-F6B7D7F8F4CF%7D%26lang%3Den%26browser%3D5%26usagestats%3D0%26appname%3DGoogle%2520Chrome%26needsadmin%3Dprefers%26ap%3Dx64-stable-statsdef_1%26installdataindex%3Dempty/chrome/install/ChromeStandaloneSetup64.exe'
 $notepadPlusPlusDownloadUrl = 'https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v7.9.3/npp.7.9.3.Installer.exe'
 
@@ -140,19 +138,13 @@ Invoke-LabCommand -Activity 'Creating folders and shares' -ComputerName (Get-Lab
 $vscodeInstaller = Get-LabInternetFile -Uri $vscodeDownloadUrl -Path $labSources\SoftwarePackages -PassThru
 $gitInstaller = Get-LabInternetFile -Uri $gitDownloadUrl -Path $labSources\SoftwarePackages -PassThru
 Get-LabInternetFile -Uri $vscodePowerShellExtensionDownloadUrl -Path $labSources\SoftwarePackages\VSCodeExtensions\ps.vsix
-$edgeInstaller = Get-LabInternetFile -Uri $edgeDownloadUrl -Path $labSources\SoftwarePackages -PassThru
 $chromeInstaller = Get-LabInternetFile -Uri $chromeDownloadUrl -Path $labSources\SoftwarePackages -PassThru
 $notepadPlusPlusInstaller = Get-LabInternetFile -Uri $notepadPlusPlusDownloadUrl -Path $labSources\SoftwarePackages -PassThru
 
 Install-LabSoftwarePackage -Path $notepadPlusPlusInstaller.FullName -CommandLine /S -ComputerName (Get-LabVM)
 Install-LabSoftwarePackage -Path $vscodeInstaller.FullName -CommandLine /SILENT -ComputerName $devOpsServer
 Install-LabSoftwarePackage -Path $gitInstaller.FullName -CommandLine /SILENT -ComputerName ((@($devOpsServer) + $buildWorkers) | Select-Object -Unique)
-Install-LabSoftwarePackage -Path $edgeInstaller.FullName -ComputerName $devOpsServer
 Install-LabSoftwarePackage -Path $chromeInstaller.FullName -ComputerName ((@($devOpsServer) + $buildWorkers) | Select-Object -Unique) -CommandLine '/silent /install'
-Invoke-LabCommand -ActivityName 'Enable WIA for Edge' -ScriptBlock {
-    New-Item -Path HKCU:\SOFTWARE\Policies\Microsoft\Edge
-    New-ItemProperty -Path HKCU:\SOFTWARE\Policies\Microsoft\Edge -Name AuthServerAllowlist -Value * -PropertyType String -Force
-} -ComputerName ((@($devOpsServer) + $buildWorkers) | Select-Object -Unique)
 Restart-LabVM -ComputerName $devOpsServer #somehow required to finish all parts of the VSCode installation
 
 Copy-LabFileItem -Path $labSources\SoftwarePackages\VSCodeExtensions -ComputerName $devOpsServer
