@@ -20,4 +20,11 @@
     'Datum.InvokeCommand' = 'latest'
     xDscResourceDesigner  = 'latest'
     ReverseDSC            = 'latest'
+    Plaster               = 'latest'
+    Sampler               = 'latest'
+    ChangelogManagement   = 'latest'
+    ModuleBuilder         = 'latest'
+    Configuration         = 'latest'
+    Metadata              = 'latest'
+
 }
