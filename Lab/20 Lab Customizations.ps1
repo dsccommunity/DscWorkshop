@@ -1,4 +1,20 @@
+if (-not (Get-Lab -ErrorAction SilentlyContinue).Name -eq 'DscWorkshop') {
+    Import-Lab -Name DscWorkshop -NoValidation -ErrorAction Stop
+}
+
 $here = $PSScriptRoot
+
+Write-Host 'Stopping all VMs...'
+Stop-LabVM -All -Wait
+Write-Host 'Starting Domain Controller VMs...'
+Start-LabVM -RoleName ADDS -Wait
+Write-Host 'Starting SQL Server VMs...'
+Start-LabVM -RoleName SQLServer -Wait
+Write-Host 'Starting Azure DevOps VMs...'
+Start-LabVM -RoleName AzDevOps -Wait
+Write-Host 'Starting remaining VMs...'
+Start-LabVM -RoleName FileServer, WebServer, HyperV -Wait
+Write-Host 'Restarted all machines'
 
 $psdependFiles = 'PSDepend.Build.psd1', 'PSDepend.DscResources.psd1'
 $requiredModules = @{}
@@ -287,30 +303,20 @@ Invoke-LabCommand -ActivityName 'Downloading required modules from PSGallery' -C
 
 Invoke-LabCommand -ActivityName 'Publishing required modules to internal repository' -ComputerName $devOpsServer -ScriptBlock {
 
-    Write-Host "Publishing $($requiredModules.Count) modules to the internal repository (loop 1)"
-    
-    foreach ($requiredModule in $requiredModules.GetEnumerator()) {
-        $module = Get-Module $requiredModule.Key -ListAvailable | Sort-Object -Property Version -Descending | Select-Object -First 1
-        $version = $module.Version
-        if ($module.PrivateData.PSData.Prerelease) {
-            $version = "$version-$($module.PrivateData.PSData.Prerelease)"
-        }
-        Write-Host "`t'$($module.Name) - $version'"
-        if (-not (Find-Module -Name $module.Name -Repository PowerShell -ErrorAction SilentlyContinue)) {
-            Publish-Module -Name $module.Name -RequiredVersion $version -Repository PowerShell -NuGetApiKey $nuGetApiKey -AllowPrerelease -Force -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
-        }
-    }
-    
-    Write-Host "Publishing $($requiredModules.Count) modules to the internal repository (loop 2)"
-    foreach ($requiredModule in $requiredModules.GetEnumerator()) {
-        $module = Get-Module $requiredModule.Key -ListAvailable | Sort-Object -Property Version -Descending | Select-Object -First 1
-        $version = $module.Version
-        if ($module.PrivateData.PSData.Prerelease) {
-            $version = "$version-$($module.PrivateData.PSData.Prerelease)"
-        }
-        Write-Host "`t'$($module.Name) - $version'"
-        if (-not (Find-Module -Name $module.Name -Repository PowerShell -ErrorAction SilentlyContinue)) {
-            Publish-Module -Name $module.Name -RequiredVersion $version -Repository PowerShell -NuGetApiKey $nuGetApiKey -AllowPrerelease -Force -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
+    $loopCount = 3
+    Write-Host "Publishing modules to internal gallery $loopCount times. This is reuqired due to cross dependencies within the module list."
+    foreach ($loop in (1..$loopCount)) {
+        Write-Host "Publishing $($requiredModules.Count) modules to the internal repository (loop $loop)"
+        foreach ($requiredModule in $requiredModules.GetEnumerator()) {
+            $module = Get-Module $requiredModule.Key -ListAvailable | Sort-Object -Property Version -Descending | Select-Object -First 1
+            $version = $module.Version
+            if ($module.PrivateData.PSData.Prerelease) {
+                $version = "$version-$($module.PrivateData.PSData.Prerelease)"
+            }
+            Write-Host "`t'$($module.Name) - $version'"
+            if (-not (Find-Module -Name $module.Name -Repository PowerShell -ErrorAction SilentlyContinue)) {
+                Publish-Module -Name $module.Name -RequiredVersion $version -Repository PowerShell -NuGetApiKey $nuGetApiKey -AllowPrerelease -Force -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
+            }
         }
     }
     
