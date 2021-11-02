@@ -13,7 +13,6 @@ trigger:
 
 variables:
   buildFolderName: output
-  buildArtifactName: output
   testResultFolderName: testResults
   defaultBranch: main
 
@@ -44,9 +43,41 @@ stages:
               ModuleVersion: $(gitVersion.NuGetVersionV2)
 
           - task: PublishPipelineArtifact@1
-            displayName: 'Publish Build Artifact'
+            displayName: 'Publish Output Folder'
             inputs:
               targetPath: '$(buildFolderName)/'
-              artifact: $(buildArtifactName)
+              artifact: 'output'
+              publishLocation: 'pipeline'
+              parallel: true
+
+          - task: PublishPipelineArtifact@1
+            displayName: 'Publish MOF Files'
+            inputs:
+              targetPath: '$(buildFolderName)/MOF'
+              artifact: 'MOF'
+              publishLocation: 'pipeline'
+              parallel: true
+
+          - task: PublishPipelineArtifact@1
+            displayName: 'Publish Meta MOF Files'
+            inputs:
+              targetPath: '$(buildFolderName)/MetaMOF'
+              artifact: 'MetaMOF'
+              publishLocation: 'pipeline'
+              parallel: true
+
+          - task: PublishPipelineArtifact@1
+            displayName: 'Publish Compressed Modules'
+            inputs:
+              targetPath: '$(buildFolderName)/CompressedModules'
+              artifact: 'CompressedModules'
+              publishLocation: 'pipeline'
+              parallel: true
+
+          - task: PublishPipelineArtifact@1
+            displayName: 'Publish RSOP Files'
+            inputs:
+              targetPath: '$(buildFolderName)/RSOP'
+              artifact: 'RSOP'
               publishLocation: 'pipeline'
               parallel: true

@@ -23,8 +23,8 @@ variables:
 stages:
   - stage: Build
     jobs:
-      - job: Package_Module
-        displayName: 'Package Module'
+      - job: Dsc_Build
+        displayName: 'Build DSC Artifacts'
         pool:
           name: Default
         workspace:
@@ -72,7 +72,31 @@ stages:
               ModuleVersion: $(gitVersion.NuGetVersionV2)
 
           - task: PublishBuildArtifacts@1
-            displayName: 'Publish Build Artifact'
+            displayName: 'Publish Output Folder'
             inputs:
               PathtoPublish: '$(buildFolderName)/'
-              ArtifactName: $(buildArtifactName)
+              ArtifactName: '$(buildFolderName)'
+
+          - task: PublishBuildArtifacts@1
+            displayName: 'Publish MOF Files'
+            inputs:
+              PathtoPublish: '$(buildFolderName)/MOF'
+              ArtifactName: MOF
+
+          - task: PublishBuildArtifacts@1
+            displayName: 'Publish Meta MOF Files'
+            inputs:
+              PathtoPublish: '$(buildFolderName)/MEtaMOF'
+              ArtifactName: MetaMOF
+
+          - task: PublishBuildArtifacts@1
+            displayName: 'Publish Compressed Modules'
+            inputs:
+              PathtoPublish: '$(buildFolderName)/CompressedModules'
+              ArtifactName: 'Compressed Modules'
+
+          - task: PublishBuildArtifacts@1
+            displayName: 'Publish RSOP Files'
+            inputs:
+              PathtoPublish: '$(buildFolderName)/RSOP'
+              ArtifactName: RSOP
