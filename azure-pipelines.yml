@@ -20,11 +20,12 @@ variables:
 stages:
   - stage: Build
     jobs:
-      - job: Package_Module
-        displayName: 'Package Module'
+      - job: Compile_Dsc
+        displayName: 'Compile DSC Configuration'
         pool:
           vmImage: 'windows-2019'
         steps:
+
           - task: GitVersion@5
             name: gitVersion
             displayName: 'Evaluate Next Version'
