@@ -1,0 +1,25 @@
+NodeName: DSCFile01
+Environment: Dev
+Role: FileServer
+Description: '[Command=(Import-Csv -Path $env:BHProjectPath\DscConfigData\ExternalData.csv -Delimiter ";" | Where-Object ComputerName -eq DSCFile01).Description]'
+
+Location: Frankfurt
+SomeData: '[Command=Get-Random]'
+
+NetworkIpConfiguration:
+  Interfaces:
+    - InterfaceAlias: Ethernet
+      IpAddress: 192.168.111.100
+      Prefix: 24
+      Gateway: 192.168.111.50
+      DnsServer:
+        - 192.168.111.10
+      DisableNetbios: true
+
+PSDscAllowPlainTextPassword: True
+PSDscAllowDomainUser: True
+
+LcmConfig:
+  ConfigurationRepositoryWeb:
+    Server:
+      ConfigurationNames: DSCFile01

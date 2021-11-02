@@ -1,5 +1,16 @@
-DSC/BuildOutput/*
+output/
 
-DSC/DscConfigurations/*
-DSC/DscResources/*
-Lab/testResults.xml
+**.bak
+*.local.*
+!**/README.md
+.kitchen/
+
+*.suo
+*.user
+*.coverage
+.vs
+.psproj
+.sln
+markdownissues.txt
+node_modules
+package-lock.json
