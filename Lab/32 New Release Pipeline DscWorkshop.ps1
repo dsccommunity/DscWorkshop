@@ -1,5 +1,9 @@
-﻿$projectName = 'DscWorkshop'
-$projectGitUrl = 'https://github.com/DscCommunity/DscWorkshop'
+﻿if (-not (Get-Lab -ErrorAction SilentlyContinue).Name -eq 'DscWorkshop') {
+    Import-Lab -Name DscWorkshop -NoValidation -ErrorAction Stop
+}
+
+$projectName = 'DscWorkshop'
+$projectGitUrl = 'https://github.com/raandree/DscWorkshop'
 $collectionName = 'AutomatedLab'
 
 $lab = Get-Lab
