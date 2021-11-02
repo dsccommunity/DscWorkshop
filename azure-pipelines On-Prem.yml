@@ -1,0 +1,78 @@
+trigger:
+  branches:
+    include:
+    - main
+  paths:
+    exclude:
+    - CHANGELOG.md
+  tags:
+    include:
+    - "v*"
+    exclude:
+    - "*-*"
+
+variables:
+  buildFolderName: output
+  buildArtifactName: output
+  testResultFolderName: testResults
+  defaultBranch: main
+  PSModuleFeed: PowerShell
+  GalleryApiToken: NA
+  RepositoryUri: RepositoryUri_WillBeChanged #will be replaced during DscWorkshop lab deployment
+
+stages:
+  - stage: Build
+    jobs:
+      - job: Package_Module
+        displayName: 'Package Module'
+        pool:
+          name: Default
+        workspace:
+          clean: all
+        steps:
+          - task: GitVersion@5
+            name: gitVersion
+            displayName: 'Evaluate Next Version'
+            inputs:
+              runtime: 'full'
+              configFilePath: 'GitVersion.yml'
+
+          - task: PowerShell@2
+            name: displayEnvironmentVariables
+            displayName: 'Display Environment Variables'
+            inputs:
+              targetType: 'inline'
+              script: |
+                dir -Path env: | Out-String | Write-Host
+
+          - task: PowerShell@2
+            displayName: Register PowerShell Gallery
+            inputs:
+              targetType: inline
+              script: |
+                #always make sure the local PowerShell Gallery is registered correctly
+                [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
+                $uri = '$(RepositoryUri)'
+                $name = 'PowerShell'
+                $r = Get-PSRepository -Name $name -ErrorAction SilentlyContinue
+                if (-not $r -or $r.SourceLocation -ne $uri -or $r.PublishLocation -ne $uri) {
+                    Write-Host "The Source or PublishLocation of the repository '$name' is not correct or the repository is not registered"
+                    Unregister-PSRepository -Name $name -ErrorAction SilentlyContinue
+                    Register-PSRepository -Name $name -SourceLocation $uri -PublishLocation $uri -InstallationPolicy Trusted
+                    Get-PSRepository
+                }
+
+          - task: PowerShell@2
+            name: build
+            displayName: 'Build DSC Artifacts'
+            inputs:
+              filePath: './build.ps1'
+              arguments: '-ResolveDependency -tasks build'
+            env:
+              ModuleVersion: $(gitVersion.NuGetVersionV2)
+
+          - task: PublishBuildArtifacts@1
+            displayName: 'Publish Build Artifact'
+            inputs:
+              PathtoPublish: '$(buildFolderName)/'
+              ArtifactName: $(buildArtifactName)
