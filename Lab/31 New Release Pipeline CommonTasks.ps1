@@ -1,9 +1,13 @@
-﻿$projectName = 'CommonTasks'
-$projectGitUrl = 'https://github.com/DscCommunity/CommonTasks'
+﻿if (-not (Get-Lab -ErrorAction SilentlyContinue).Name -eq 'DscWorkshop') {
+    Import-Lab -Name DscWorkshop -NoValidation -ErrorAction Stop
+}
+
+$projectGitUrl = 'https://github.com/raandree/CommonTasks2'
+$projectName = $projectGitUrl.Substring($projectGitUrl.LastIndexOf('/') + 1)
 $collectionName = 'AutomatedLab'
 $lab = Get-Lab
-$domain = $lab.Domains[0]
 $devOpsServer = Get-LabVM -Role AzDevOps
+$devOpsWorker = Get-LabVM -Role HyperV
 $devOpsHostName = if ($lab.DefaultVirtualizationEngine -eq 'Azure') { $devOpsServer.AzureConnectionInfo.DnsName } else { $devOpsServer.FQDN }
 $nugetServer = Get-LabVM -Role AzDevOps
 $nugetFeed = Get-LabTfsFeed -ComputerName $nugetServer -FeedName PowerShell
@@ -25,206 +29,124 @@ if ($lab.DefaultVirtualizationEngine -eq 'Azure')
 Write-ScreenInfo 'Creating Azure DevOps project and cloning from GitHub...' -NoNewLine
 
 New-LabReleasePipeline -ProjectName $projectName -SourceRepository $projectGitUrl -CodeUploadMethod FileCopy
-$tfsAgentQueue = Get-TfsAgentQueue -InstanceName $devOpsHostName -Port $devOpsPort -Credential $devOpsCred -ProjectName $projectName -CollectionName $collectionName -QueueName Default -UseSsl -SkipCertificateCheck
 
-#region Release Definitions
-$releaseSteps = @(
-    @{
-        taskId    = '5bfb729a-a7c8-4a78-a7c3-8d717bb7c13c'
-        version   = '2.*'
-        name      = 'Copy Files to: Artifacte Share'
-        enabled   = $true
-        condition = 'succeeded()'
-        inputs    = @{
-            SourceFolder = '$(System.DefaultWorkingDirectory)/$(Build.DefinitionName)/$(Build.Repository.Name)'
-            Contents     = '**'
-            TargetFolder = '\\{0}\Artifacts\$(Build.DefinitionName)\$(Build.BuildNumber)\$(Build.Repository.Name)' -f $devOpsServer.FQDN
-        }
-    }
-    @{
-        enabled = $true
-        name    = 'Register PowerShell Gallery'        
-        taskId  = 'e213ff0f-5d5c-4791-802d-52ea3e7be1f1'
-        version = '2.*'
-        inputs  = @{
-            targetType = 'inline'
-            script     = @'
-#always make sure the local PowerShell Gallery is registered correctly
-$uri = '$(RepositoryUri)'
-$name = 'PowerShell'
-$r = Get-PSRepository -Name $name -ErrorAction SilentlyContinue
-if (-not $r -or $r.SourceLocation -ne $uri -or $r.PublishLocation -ne $uri) {
-    Write-Host "The Source or PublishLocation of the repository '$name' is not correct or the repository is not registered"
-    Unregister-PSRepository -Name $name -ErrorAction SilentlyContinue
-    Register-PSRepository -Name $name -SourceLocation $uri -PublishLocation $uri -InstallationPolicy Trusted
-    Get-PSRepository
-}
-'@
-        }
-    }
-    @{
-        enabled = $true
-        name    = "Print Environment Variables"
-        taskid  = 'e213ff0f-5d5c-4791-802d-52ea3e7be1f1'
-        version = '2.*'
-        inputs  = @{
-            targetType = "inline"
-            script     = 'dir -Path env:'
-        }
-    }
-    @{
-        enabled = $true
-        name    = "Execute Build.ps1 for Deployment"
-        taskId  = 'e213ff0f-5d5c-4791-802d-52ea3e7be1f1'
-        version = '2.*'
-        inputs  = @{
-            targetType = 'inline'
-            script     = @'
-Write-Host "$(System.DefaultWorkingDirectory)"
-Set-Location -Path "$(System.DefaultWorkingDirectory)\$(Build.DefinitionName)\SourcesDirectory"
-.\Build.ps1 -Tasks Init, SetPsModulePath, Deploy, TestReleaseAcceptance -Repository PowerShell
-'@
-        }
-    }
-    @{
-        enabled   = $true
-        name      = 'Publish Build Acceptance Test Results'
-        condition = 'always()'
-        taskid    = '0b0f01ed-7dde-43ff-9cbb-e48954daf9b1'
-        version   = '*'
-        inputs    = @{
-            testRunner       = 'NUnit'
-            testResultsFiles = '**/AcceptanceTestResults.xml'
-            searchFolder     = '$(System.DefaultWorkingDirectory)'
-        }
-    }
-)
+Invoke-LabCommand -ActivityName 'Bootstrap NuGet.exe' -ComputerName $devOpsServer, $devOpsWorker -ScriptBlock {
+    $nugetPath = 'C:\NuGet'
+    $nugetPathAllUsers = "$([System.Environment]::GetFolderPath('CommonApplicationData'))\Microsoft\Windows\PowerShell\PowerShellGet\NuGet.exe"
+    $nugetPathCurrentUser = "$([System.Environment]::GetFolderPath('LocalApplicationData'))\Microsoft\Windows\PowerShell\PowerShellGet\NuGet.exe"
 
-$releaseEnvironments = @(
-    @{
-        id                  = 3
-        name                = "PowerShell Repository"
-        rank                = 1
-        owner               = @{
-            displayName = 'Install'
-            id          = '196672db-49dd-4968-8c52-a94e43186ffd'
-            uniqueName  = 'Install'
+    if (-not (Test-Path -Path $nugetPath)) {
+        mkdir -Path $nugetPath
+    }
+
+    $hasNuget = if (Test-Path -Path $nugetPathAllUsers) {
+
+        $nugetExe = Get-Item -Path $nugetPathAllUsers
+        Write-Host "'nuget.exe' exist in '$nugetPathAllUsers' with version '$($nugetExe.VersionInfo.FileVersionRaw)'"
+
+        if ($nugetExe.VersionInfo.FileVersionRaw -gt '5.11') {
+            $true
         }
-        variables           = @{
-            RepositoryUri = @{ value = $nugetFeed.NugetV2Url }
-            NugetApiKey = @{ value = $nugetFeed.NugetApiKey }            
-        }
-        preDeployApprovals  = @{
-            approvals = @(
-                @{
-                    rank             = 1
-                    isAutomated      = $true
-                    isNotificationOn = $false
-                    id               = 7
-                }
-            )
-        }
-        deployStep          = @{ id = 10 }
-        postDeployApprovals = @{
-            approvals = @(
-                @{
-                    rank             = 1
-                    isAutomated      = $true
-                    isNotificationOn = $false
-                    id               = 11
-                }
-            )
-        }
-        deployPhases        = @(
-            @{
-                deploymentInput = @{
-                    parallelExecution         = @{ parallelExecutionType = 'none' }
-                    skipArtifactsDownload     = $false
-                    artifactsDownloadInput    = @{ downloadInputs = $() }
-                    queueId                   = $tfsAgentQueue.id
-                    demands                   = @()
-                    enableAccessToken         = $false
-                    timeoutInMinutes          = 0
-                    jobCancelTimeoutInMinutes = 1
-                    condition                 = 'succeeded()'
-                    overrideInputs            = @{}
-                }
-                rank            = 1
-                phaseType       = 1
-                name            = 'Run on agent'
-                workflowTasks   = $releaseSteps
+    }
+
+    if (-not $hasNuget) {
+        if (Test-Path -Path $nugetPathCurrentUser) {
+
+            $nugetExe = Get-Item -Path $nugetPathCurrentUser
+            Write-Host "'nuget.exe' exist in '$nugetPathCurrentUser' with version '$($nugetExe.VersionInfo.FileVersionRaw)'"
+
+            if ($nugetExe.VersionInfo.FileVersionRaw -gt '5.11') {
+                $hasNuget = $true
             }
-        )
-        environmentOptions  = @{
-            emailNotificationType   = 'OnlyOnFailure'
-            emailRecipients         = 'release.environment.owner;release.creator'
-            skipArtifactsDownload   = $false
-            timeoutInMinutes        = 0
-            enableAccessToken       = $false
-            publishDeploymentStatus = $false
-            badgeEnabled            = $false
-            autoLinkWorkItems       = $false
-        }
-        demands             = @()
-        conditions          = @(
-            @{
-                name          = 'ReleaseStarted'
-                conditionType = 1
-                value         = ''
-            }
-        )
-        executionPolicy     = @{
-            concurrencyCount = 0
-            queueDepthCount  = 0
-        }
-        schedules           = @()
-        retentionPolicy     = @{
-            daysToKeep     = 30
-            releasesToKeep = 3
-            retainBuild    = $true
-        }
-        processParameters   = @{}
-        properties          = @{}
-        preDeploymentGates  = @{
-            id           = 0
-            gatesOptions = $null
-            gates        = @()
-        }
-        postDeploymentGates = @{
-            id           = 0
-            gatesOptions = $null
-            gates        = @()
         }
     }
-)
-#endregion
 
-$repo = Get-TfsGitRepository -InstanceName $devOpsHostName -Port $devOpsPort -CollectionName $collectionName -ProjectName $projectName -Credential $devOpsCred -UseSsl -SkipCertificateCheck
+    if (-not $hasNuget)
+    {
+        Write-Host "'Nuget.exe' does not exist in ProgramData nor the local users profile, downloading into the users profile..."
 
-$param =  @{
-    Uri = "https://$($devOpsHostName):$devOpsPort/$collectionName/_apis/git/repositories/{$($repo.id)}/refs?api-version=4.1"
-    Credential = $devOpsCred    
+        Invoke-WebRequest -Uri 'https://aka.ms/psget-nugetexe' -OutFile $nugetPathCurrentUser -ErrorAction Stop
+
+        if (Test-Path -Path $nugetPathCurrentUser) {
+            $nugetExe = Get-Item -Path $nugetPathCurrentUser -ErrorAction SilentlyContinue
+            Write-Host "'nuget.exe' exist in '$nugetPathCurrentUser' with version '$($nugetExe.VersionInfo.FileVersionRaw)'"
+
+            if ($nugetExe.VersionInfo.FileVersionRaw -lt '5.11') {
+                Write-Host "'nuget.exe' has the version '$($nugetExe.VersionInfo.FileVersionRaw)' and needs to be updated."
+                Invoke-WebRequest -Uri 'https://aka.ms/psget-nugetexe' -OutFile $nugetPathCurrentUser -ErrorAction Stop
+            }
+        }
+        else
+        {
+            Write-Host "'nuget.exe' does not exist in the local profile and will be downloaded."
+            Invoke-WebRequest -Uri 'https://aka.ms/psget-nugetexe' -OutFile $nugetPathCurrentUser -ErrorAction Stop
+        }
+    }
+    else
+    {
+        Write-Host "OK: NuGet version $($nugetExe.VersionInfo.FileVersionRaw) in directory '$($nugetExe.Directory)' works"
+    }
+
+    Copy-Item -Path $nugetExe -Destination $nugetPath
+    
+    [System.Environment]::SetEnvironmentVariable('Path', $env:Path + ';C:\NuGet', 'Machine')
 }
-if ($PSVersionTable.PSEdition -eq 'Core')
-{
-    $param.Add('SkipCertificateCheck', $true)
-}
-$refs = (Invoke-RestMethod @param).value.name
 
-Invoke-LabCommand -ActivityName 'Set RepositoryUri and create Build Pipeline' -ScriptBlock {
+Copy-LabFileItem -Path $PSScriptRoot\LabData\gittools.gitversion-5.0.1.3.vsix -ComputerName $devOpsServer
 
-    Set-Location -Path C:\Git\CommonTasks
+Invoke-LabCommand -ActivityName "Upload and install 'GitVersion' extension" -ComputerName $devOpsServer -ScriptBlock {
+    $publisher = "GitTools"
+    $extension = "GitVersion"
+    $version = '5.0.1.3'
+    $vsix = 'C:\gittools.gitversion-5.0.1.3.vsix'
+
+    $param =  @{
+        Uri = "https://$($devOpsHostName):$devOpsPort/_apis/gallery/extensions?api-version=3.0-preview.1"
+        Credential = $devOpsCred    
+        Body = '{{"extensionManifest": "{0}"}}' -f ([Convert]::ToBase64String([IO.File]::ReadAllBytes($vsix)))
+        Method  = 'POST'
+        ContentType = 'application/json'
+    }
+    if ($PSVersionTable.PSEdition -eq 'Core')
+    {
+        $param.Add('SkipCertificateCheck', $true)
+    }
+
+    $result = (Invoke-RestMethod @param)
+    
+    Start-Sleep -Seconds 10
+
+    $param =  @{
+        Uri = "https://$($devOpsHostName):$devOpsPort/$collectionName/_apis/extensionmanagement/installedextensionsbyname/$publisher/$extension/$($version)?api-version=5.0-preview.1"
+        Credential = $devOpsCred        
+        Method  = 'POST'
+        ContentType = 'application/json'
+    }
+    if ($PSVersionTable.PSEdition -eq 'Core')
+    {
+        $param.Add('SkipCertificateCheck', $true)
+    }
+
+    $result = (Invoke-RestMethod @param)
+
+} -Variable (Get-Variable -Name devOpsCred, devOpsHostName, devOpsPort, collectionName)
+
+Invoke-LabCommand -ActivityName 'Set Repository and create Build Pipeline' -ScriptBlock {
+
+    Set-Location -Path C:\Git\CommonTasks2
     git checkout dev *>$null
-    $c = Get-Content '.\azure-pipelines On-Prem.yml' -Raw
-    $c = $c -replace '  RepositoryUri: ggggg', "  RepositoryUri: $($nugetFeed.NugetV2Url)"
-    $c | Set-Content '.\azure-pipelines.yml'
+    Remove-Item -Path '.\azure-pipelines.yml'
+    (Get-Content -Path '.\azure-pipelines On-Prem.yml' -Raw) -replace 'RepositoryUri_WillBeChanged', $nugetFeed.NugetV2Url | Set-Content -Path .\azure-pipelines.yml
+    (Get-Content -Path .\Resolve-Dependency.psd1 -Raw) -replace 'PSGallery', 'PowerShell' | Set-Content -Path .\Resolve-Dependency.psd1
+    (Get-Content -Path .\RequiredModules.psd1 -Raw) -replace 'PSGallery', 'PowerShell' | Set-Content -Path .\RequiredModules.psd1
     git add .
     git commit -m 'Set RepositoryUri and create Build Pipeline'
     git push 2>$null
 
 } -ComputerName $devOpsServer -Variable (Get-Variable -Name nugetFeed)
 
-Start-Sleep -Seconds 10
-New-TfsReleaseDefinition -ProjectName $projectName -InstanceName $devOpsHostName -Port $devOpsPort -ReleaseName "$($projectName) CD" -Environments $releaseEnvironments -Credential $devOpsCred -CollectionName $collectionName -UseSsl -SkipCertificateCheck
+Write-Host 'Restarting Azure DevOps Server and worker machine...' -NoNewLine
+Restart-LabVM -ComputerName (Get-LabVM -Role AzDevOps, HyperV) -Wait -NoDisplay
+Write-Host 'done'
 
 Write-ScreenInfo done
