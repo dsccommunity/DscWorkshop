@@ -21,6 +21,8 @@
     xDscResourceDesigner  = 'latest'
     ReverseDSC            = 'latest'
     Plaster               = 'latest'
+    PowerShellForGitHub   = 'latest'
+    'Sampler.GitHubTasks' = 'latest'
     Sampler               = 'latest'
     ChangelogManagement   = 'latest'
     ModuleBuilder         = 'latest'
