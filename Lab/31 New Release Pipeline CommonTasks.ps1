@@ -2,7 +2,7 @@
     Import-Lab -Name DscWorkshop -NoValidation -ErrorAction Stop
 }
 
-$projectGitUrl = 'https://github.com/raandree/CommonTasks2'
+$projectGitUrl = 'https://github.com/raandree/CommonTasks'
 $projectName = $projectGitUrl.Substring($projectGitUrl.LastIndexOf('/') + 1)
 $collectionName = 'AutomatedLab'
 $lab = Get-Lab
@@ -133,7 +133,7 @@ Invoke-LabCommand -ActivityName "Upload and install 'GitVersion' extension" -Com
 
 Invoke-LabCommand -ActivityName 'Set Repository and create Build Pipeline' -ScriptBlock {
 
-    Set-Location -Path C:\Git\CommonTasks2
+    Set-Location -Path C:\Git\CommonTasks
     git checkout dev *>$null
     Remove-Item -Path '.\azure-pipelines.yml'
     (Get-Content -Path '.\azure-pipelines On-Prem.yml' -Raw) -replace 'RepositoryUri_WillBeChanged', $nugetFeed.NugetV2Url | Set-Content -Path .\azure-pipelines.yml
