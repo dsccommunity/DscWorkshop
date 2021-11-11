@@ -86,7 +86,7 @@ stages:
           - task: PublishBuildArtifacts@1
             displayName: 'Publish Meta MOF Files'
             inputs:
-              PathtoPublish: '$(buildFolderName)/MEtaMOF'
+              PathtoPublish: '$(buildFolderName)/MetaMOF'
               ArtifactName: MetaMOF
 
           - task: PublishBuildArtifacts@1
