@@ -6,6 +6,12 @@
 $projectGitUrl = 'https://github.com/raandree/CommonTasks'
 $projectName = $projectGitUrl.Substring($projectGitUrl.LastIndexOf('/') + 1)
 $collectionName = 'AutomatedLab'
+$gitVersion = @{
+    Publisher = 'GitTools'
+    Extension = 'GitVersion'
+    Version = '5.0.1.3'
+    VsixPath = 'C:\gittools.gitversion-5.0.1.3.vsix'
+}
 $lab = Get-Lab
 $devOpsServer = Get-LabVM -Role AzDevOps
 $devOpsWorker = Get-LabVM -Role HyperV
@@ -35,6 +41,25 @@ if ($lab.DefaultVirtualizationEngine -eq 'Azure')
 # Which will make use of Azure DevOps, clone the stuff, add the necessary build step, publish the test results and so on
 # You will see two remotes, Origin (Our code on GitHub) and Azure DevOps (Our code pushed to your lab)
 Write-ScreenInfo 'Creating Azure DevOps project and cloning from GitHub...' -NoNewLine
+
+Copy-LabFileItem -Path $PSScriptRoot\LabData\gittools.gitversion-5.0.1.3.vsix -ComputerName $devOpsServer
+Invoke-LabCommand -ActivityName "Uploading 'GitVersion' extension" -ComputerName $devOpsServer -ScriptBlock {
+
+    $param = @{
+        Uri         = "https://$($devOpsHostName):$devOpsPort/_apis/gallery/extensions?api-version=3.0-preview.1"
+        Credential  = $devOpsCred
+        Body        = '{{"extensionManifest": "{0}"}}' -f ([Convert]::ToBase64String([IO.File]::ReadAllBytes($gitVersion.VsixPath)))
+        Method      = 'POST'
+        ContentType = 'application/json'
+    }
+    if ($PSVersionTable.PSEdition -eq 'Core')
+    {
+        $param.Add('SkipCertificateCheck', $true)
+    }
+
+    $null = (Invoke-RestMethod @param)
+
+} -Variable (Get-Variable -Name devOpsCred, devOpsHostName, devOpsPort, collectionName, gitVersion)
 
 New-LabReleasePipeline -ProjectName $projectName -SourceRepository $projectGitUrl -CodeUploadMethod FileCopy
 
@@ -106,32 +131,12 @@ Invoke-LabCommand -ActivityName 'Bootstrap NuGet.exe' -ComputerName $devOpsServe
     [System.Environment]::SetEnvironmentVariable('Path', $env:Path + ';C:\NuGet', 'Machine')
 }
 
-Copy-LabFileItem -Path $PSScriptRoot\LabData\gittools.gitversion-5.0.1.3.vsix -ComputerName $devOpsServer
-
-Invoke-LabCommand -ActivityName "Upload and install 'GitVersion' extension" -ComputerName $devOpsServer -ScriptBlock {
-    $publisher = 'GitTools'
-    $extension = 'GitVersion'
-    $version = '5.0.1.3'
-    $vsix = 'C:\gittools.gitversion-5.0.1.3.vsix'
-
-    $param = @{
-        Uri         = "https://$($devOpsHostName):$devOpsPort/_apis/gallery/extensions?api-version=3.0-preview.1"
-        Credential  = $devOpsCred
-        Body        = '{{"extensionManifest": "{0}"}}' -f ([Convert]::ToBase64String([IO.File]::ReadAllBytes($vsix)))
-        Method      = 'POST'
-        ContentType = 'application/json'
-    }
-    if ($PSVersionTable.PSEdition -eq 'Core')
-    {
-        $param.Add('SkipCertificateCheck', $true)
-    }
-
-    $null = (Invoke-RestMethod @param)
+Invoke-LabCommand -ActivityName "Installing 'GitVersion' extension" -ComputerName $devOpsServer -ScriptBlock {
 
     Start-Sleep -Seconds 10
 
     $param = @{
-        Uri         = "https://$($devOpsHostName):$devOpsPort/$collectionName/_apis/extensionmanagement/installedextensionsbyname/$publisher/$extension/$($version)?api-version=5.0-preview.1"
+        Uri         = "https://$($devOpsHostName):$devOpsPort/$collectionName/_apis/extensionmanagement/installedextensionsbyname/$($gitVersion.Publisher)/$($gitVersion.Extension)/$($gitVersion.Version)?api-version=5.0-preview.1"
         Credential  = $devOpsCred
         Method      = 'POST'
         ContentType = 'application/json'
@@ -143,7 +148,7 @@ Invoke-LabCommand -ActivityName "Upload and install 'GitVersion' extension" -Com
 
     $null = (Invoke-RestMethod @param)
 
-} -Variable (Get-Variable -Name devOpsCred, devOpsHostName, devOpsPort, collectionName)
+} -Variable (Get-Variable -Name devOpsCred, devOpsHostName, devOpsPort, collectionName, gitVersion)
 
 Invoke-LabCommand -ActivityName 'Set Repository and create Build Pipeline' -ScriptBlock {
 
