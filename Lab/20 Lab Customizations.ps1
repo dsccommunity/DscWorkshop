@@ -16,14 +16,8 @@ Write-Host 'Starting remaining VMs...'
 Start-LabVM -RoleName FileServer, WebServer, HyperV -Wait
 Write-Host 'Restarted all machines'
 
-$psdependFiles = 'PSDepend.Build.psd1', 'PSDepend.DscResources.psd1'
-$requiredModules = @{}
-
-foreach ($psdependFile in $psdependFiles) {
-    $psdependFileData = Import-PowerShellDataFile -Path "$here\..\DSC\$psdependFile"
-    $psdependFileData.Remove('PSDependOptions')
-    $requiredModules = $requiredModules + $psdependFileData
-}
+$requiredModules = Import-PowerShellDataFile -Path "$here\..\RequiredModules.psd1"
+$requiredModules.Remove('PSDependOptions')
 
 #Adding modules that are not defined in the PSDepend files but required in the lab
 $requiredModules.NTFSSecurity = 'latest'
