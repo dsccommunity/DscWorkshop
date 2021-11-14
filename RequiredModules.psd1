@@ -58,5 +58,10 @@
     OfficeOnlineServerDsc        = '1.5.0'
     xBitlocker                   = '1.4.0.0'
     ActiveDirectoryCSDsc         = '5.0.0'
+    'xHyper-V'                   = '3.17.0.0'
+    DSCR_PowerPlan               = '1.3.0'
     FileSystemDsc                = '1.1.1'
+    PackageManagement            = '1.4.7'
+    PowerShellGet                = '2.2.5'
+    ConfigMgrCBDsc               = '2.1.0-preview0006' # Gallery version has extremely old SQL dependencies
 }
