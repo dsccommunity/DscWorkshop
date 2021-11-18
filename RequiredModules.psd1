@@ -27,6 +27,9 @@
     'Datum.ProtectedData'        = 'latest'
     'Datum.InvokeCommand'        = 'latest'
     ReverseDSC                   = 'latest'
+    Configuration                = 'latest'
+    Metadata                     = 'latest'
+    xDscResourceDesigner         = 'latest'
 
     # Composites
     CommonTasks                  = '0.3.259'
