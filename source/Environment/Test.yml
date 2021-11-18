@@ -1,5 +1,7 @@
 DscTagging:
   Environment: Test
+  Layers:
+    - Environment\Test
 
 FilesAndFolders:
   Items:

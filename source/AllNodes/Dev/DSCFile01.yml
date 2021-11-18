@@ -1,10 +1,13 @@
 NodeName: DSCFile01
 Environment: Dev
 Role: FileServer
-Description: '[Command=(Import-Csv -Path $env:BHProjectPath\DscConfigData\ExternalData.csv -Delimiter ";" | Where-Object ComputerName -eq DSCFile01).Description]'
-
+Description: File Server in Dev
 Location: Frankfurt
-SomeData: '[Command=Get-Random]'
+Baseline: Server
+
+ComputerSettings:
+  Name: DSCFile01
+  Description: File Server in Dev
 
 NetworkIpConfiguration:
   Interfaces:
@@ -23,3 +26,12 @@ LcmConfig:
   ConfigurationRepositoryWeb:
     Server:
       ConfigurationNames: DSCFile01
+
+DscTagging:
+  Layers:
+    - AllNodes\Dev\DscFile01
+
+FilesAndFolders:
+  Items:
+    - DestinationPath: Z:\DoesNotWork
+      Type: Directory

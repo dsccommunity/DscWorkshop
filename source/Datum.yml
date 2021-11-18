@@ -3,14 +3,14 @@ ResolutionPrecedence:
   - Environment\$($Node.Environment)
   - Locations\$($Node.Location)
   - Roles\$($Node.Role)
-  - Roles\ServerBaseline
-  - Roles\DscBaseline
+  - Baselines\Security
+  - Baselines\$($Node.Baseline)
+  - Baselines\DscLcm
 
 DatumHandlers:
   Datum.ProtectedData::ProtectedDatum:
     CommandOptions:
       PlainTextPassword: SomeSecret
-  Datum.InvokeCommand::InvokeCommand:
 
 default_lookup_options: MostSpecific
 
@@ -23,6 +23,8 @@ lookup_options:
 
   DscTagging:
     merge_hash: deep
+  DscTagging\Layers:
+    merge_basetype_array: Unique
 
   WindowsFeatures:
     merge_hash: deep
@@ -37,8 +39,19 @@ lookup_options:
     merge_options:
       tuple_keys:
         - DestinationPath
+  
+  RegistryValues:
+    merge_hash: deep
+  RegistryValues\Values:
+    merge_hash_array: UniqueKeyValTuples
+    merge_options:
+      tuple_keys:
+        - Key
 
   NetworkIpConfiguration:
+    merge_hash: deep
+
+  ComputerSettings:
     merge_hash: deep
 
   LcmConfig:
