@@ -310,8 +310,24 @@ Invoke-LabCommand -ActivityName 'Publishing required modules to internal reposit
                 $version = "$version-$($module.PrivateData.PSData.Prerelease)"
             }
             Write-Host "`t'$($module.Name) - $version'"
-            if (-not (Find-Module -Name $module.Name -Repository PowerShell -ErrorAction SilentlyContinue)) {
-                Publish-Module -Name $module.Name -RequiredVersion $version -Repository PowerShell -NuGetApiKey $nuGetApiKey -AllowPrerelease -Force -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
+            if (-not (Find-Module -Name $module.Name -Repository PowerShell -AllowPrerelease -ErrorAction SilentlyContinue)) {
+                $param = @{
+                    Name = $module.Name
+                    RequiredVersion = $version
+                    Repository = 'PowerShell'
+                    NuGetApiKey = $nuGetApiKey
+                    AllowPrerelease = $true
+                    Force = $true
+                    ErrorAction = 'SilentlyContinue'
+                    WarningAction = 'SilentlyContinue'
+                }
+                #Removing ErrorAction and WarningAction to see errors in the last publish loop.
+                if ($loop -eq $loopCount) {
+                    $param.Remove('ErrorAction')
+                    $param.Remove('WarningAction')
+                }
+
+                Publish-Module @param
             }
         }
     }
