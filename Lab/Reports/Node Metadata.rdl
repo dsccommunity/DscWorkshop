@@ -4,7 +4,7 @@
   <AutoRefresh>0</AutoRefresh>
   <DataSources>
     <DataSource Name="DataSource1">
-      <DataSourceReference>/DSCDS</DataSourceReference>
+      <DataSourceReference>/DSC/DSCDS</DataSourceReference>
       <rd:SecurityType>None</rd:SecurityType>
       <rd:DataSourceID>8d6afc86-5847-46a7-91e4-637b788e169f</rd:DataSourceID>
     </DataSource>
@@ -686,7 +686,7 @@ FROM
             <Top>17.16617mm</Top>
             <Left>3.67242mm</Left>
             <Height>12mm</Height>
-            <Width>470.40417mm</Width>
+            <Width>470.40416mm</Width>
             <ZIndex>1</ZIndex>
             <Style>
               <Border>
@@ -765,6 +765,6 @@ FROM
     </GridLayoutDefinition>
   </ReportParametersLayout>
   <rd:ReportUnitType>Mm</rd:ReportUnitType>
-  <rd:ReportServerUrl>http://dsccasql01/ReportServer</rd:ReportServerUrl>
+  <rd:ReportServerUrl>http://localhost/ReportServer</rd:ReportServerUrl>
   <rd:ReportID>fce6bc29-180f-4200-85ec-2ef4fe285e38</rd:ReportID>
 </Report>

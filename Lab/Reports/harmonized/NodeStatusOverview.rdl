@@ -2,39 +2,40 @@
 <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition" xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner">
   <AutoRefresh>0</AutoRefresh>
   <DataSources>
-    <DataSource Name="DataSource1">
+    <DataSource Name="DSC">
       <DataSourceReference>/DSC/DSCDS</DataSourceReference>
-      <rd:SecurityType>Integrated</rd:SecurityType>
-      <rd:DataSourceID>9b626d6d-5aef-4785-b998-91b577e54081</rd:DataSourceID>
+      <rd:SecurityType>None</rd:SecurityType>
+      <rd:DataSourceID>bd5ffd86-857d-4f92-8600-9d19e883bdb2</rd:DataSourceID>
     </DataSource>
   </DataSources>
   <DataSets>
-    <DataSet Name="DataSet1">
+    <DataSet Name="StatusData">
       <Query>
-        <DataSourceName>DataSource1</DataSourceName>
+        <DataSourceName>DSC</DataSourceName>
         <QueryParameters>
-          <QueryParameter Name="@Servertype">
-            <Value>=Parameters!Servertype.Value</Value>
-            <rd:UserDefined>true</rd:UserDefined>
-          </QueryParameter>
-          <QueryParameter Name="@Serverstatus">
-            <Value>=Parameters!Serverstatus.Value</Value>
-            <rd:UserDefined>true</rd:UserDefined>
-          </QueryParameter>
           <QueryParameter Name="@Search">
             <Value>=Parameters!Search.Value</Value>
+          </QueryParameter>
+          <QueryParameter Name="@NodeStatus">
+            <Value>=Parameters!NodeStatus.Value</Value>
+            <rd:UserDefined>true</rd:UserDefined>
           </QueryParameter>
         </QueryParameters>
         <CommandText>SELECT
   vNodeStatusSimple.NodeName
   ,vNodeStatusSimple.Status
+  ,vNodeStatusSimple.ResourceCountInDesiredState
   ,vNodeStatusSimple.ResourceCountNotInDesiredState
   ,vNodeStatusSimple.ResourcesNotInDesiredState
   ,vNodeStatusSimple.StartTime
+  ,vNodeStatusSimple.EndTime
+  ,vNodeStatusSimple.Duration
+  ,vNodeStatusSimple.DurationWithOverhead
+  ,vNodeStatusSimple.ErrorMessage
+  ,vNodeStatusSimple.RebootRequested
 FROM
   vNodeStatusSimple
-WHERE vNodeStatusSimple.NodeName like '%'+@Servertype+'%' 
-AND ((vNodeStatusSimple.NodeName like '%' +@Search + '%' )
+WHERE ((vNodeStatusSimple.NodeName like '%' +@Search + '%' )
 OR (vNodeStatusSimple.Status like '%' +@Search + '%')
 OR (vNodeStatusSimple.ResourcesNotInDesiredState like '%' +@Search + '%'))
 ORDER BY vNodeStatusSimple.NodeName</CommandText>
@@ -45,7 +46,9 @@ ORDER BY vNodeStatusSimple.NodeName</CommandText>
               <ColumnExpression ColumnOwner="vNodeStatusSimple" ColumnName="Status" />
               <ColumnExpression ColumnOwner="vNodeStatusSimple" ColumnName="ResourceCountNotInDesiredState" />
               <ColumnExpression ColumnOwner="vNodeStatusSimple" ColumnName="ResourcesNotInDesiredState" />
-              <ColumnExpression ColumnOwner="vNodeStatusSimple" ColumnName="Time" />
+              <ColumnExpression ColumnOwner="vNodeStatusSimple" ColumnName="StartTime" />
+              <ColumnExpression ColumnOwner="vNodeStatusSimple" ColumnName="EndTime" />
+              <ColumnExpression ColumnOwner="vNodeStatusSimple" ColumnName="RebootRequested" />
             </SelectedColumns>
           </QueryDefinition>
         </rd:DesignerState>
@@ -59,6 +62,10 @@ ORDER BY vNodeStatusSimple.NodeName</CommandText>
           <DataField>Status</DataField>
           <rd:TypeName>System.String</rd:TypeName>
         </Field>
+        <Field Name="ResourceCountInDesiredState">
+          <DataField>ResourceCountInDesiredState</DataField>
+          <rd:TypeName>System.Int32</rd:TypeName>
+        </Field>
         <Field Name="ResourceCountNotInDesiredState">
           <DataField>ResourceCountNotInDesiredState</DataField>
           <rd:TypeName>System.Int32</rd:TypeName>
@@ -71,25 +78,44 @@ ORDER BY vNodeStatusSimple.NodeName</CommandText>
           <DataField>StartTime</DataField>
           <rd:TypeName>System.DateTime</rd:TypeName>
         </Field>
+        <Field Name="EndTime">
+          <DataField>EndTime</DataField>
+          <rd:TypeName>System.DateTime</rd:TypeName>
+        </Field>
+        <Field Name="Duration">
+          <DataField>Duration</DataField>
+          <rd:TypeName>System.Double</rd:TypeName>
+        </Field>
+        <Field Name="RebootRequested">
+          <DataField>RebootRequested</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="DurationWithOverhead">
+          <DataField>DurationWithOverhead</DataField>
+          <rd:TypeName>System.Double</rd:TypeName>
+        </Field>
+        <Field Name="ErrorMessage">
+          <DataField>ErrorMessage</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
       </Fields>
       <Filters>
         <Filter>
           <FilterExpression>=Fields!Status.Value</FilterExpression>
           <Operator>In</Operator>
           <FilterValues>
-            <FilterValue>=Parameters!Serverstatus.Value</FilterValue>
+            <FilterValue>=Parameters!NodeStatus.Value</FilterValue>
           </FilterValues>
         </Filter>
       </Filters>
     </DataSet>
     <DataSet Name="StatusSelection">
       <Query>
-        <DataSourceName>DataSource1</DataSourceName>
+        <DataSourceName>DSC</DataSourceName>
         <CommandText>SELECT Distinct
   vNodeStatusSimple.Status
 FROM
-  vNodeStatusSimple
-Where vNodeStatusSimple.Status != 'In Desired state'</CommandText>
+  vNodeStatusSimple</CommandText>
         <rd:UseGenericDesigner>true</rd:UseGenericDesigner>
       </Query>
       <Fields>
@@ -144,7 +170,7 @@ Where vNodeStatusSimple.Status != 'In Desired state'</CommandText>
                       </ChartDataLabel>
                       <ToolTip>#PERCENT</ToolTip>
                       <Style>
-                        <Color>=IIF(Fields!Status.Value Like "LCM Error","#d70000", (IIF(Fields!Status.Value Like "Not in Desired state","#ffc800", (IIF(Fields!Status.Value Like "Failure","#ff7800","#439539")))))</Color>
+                        <Color>=IIF(Fields!Status.Value Like "In Desired State","LimeGreen", (IIF(Fields!Status.Value Like "Not in Desired State","Yellow", (IIF(Fields!Status.Value Like "Failure","Orange", (IIF(Fields!Status.Value Like "Unknown", "LightGrey", (IIF(Fields!Status.Value Like "Aborted", "Tomato", (IIF(Fields!Status.Value Like "LCM is running", "Blue", "Red")))))))))))</Color>
                       </Style>
                       <ChartMarker>
                         <Style />
@@ -416,6 +442,8 @@ Where vNodeStatusSimple.Status != 'In Desired state'</CommandText>
                   <FontFamily>Tahoma</FontFamily>
                   <FontSize>8pt</FontSize>
                 </Style>
+                <Position>BottomCenter</Position>
+                <DockOutsideChartArea>true</DockOutsideChartArea>
                 <ChartLegendTitle>
                   <Caption>Status</Caption>
                   <Style>
@@ -431,7 +459,7 @@ Where vNodeStatusSimple.Status != 'In Desired state'</CommandText>
             </ChartLegends>
             <ChartTitles>
               <ChartTitle Name="Default">
-                <Caption>Status overview</Caption>
+                <Caption>Status Overview</Caption>
                 <Style>
                   <BackgroundGradientType>None</BackgroundGradientType>
                   <FontFamily>Tahoma</FontFamily>
@@ -468,11 +496,11 @@ Where vNodeStatusSimple.Status != 'In Desired state'</CommandText>
                 <VerticalAlign>Top</VerticalAlign>
               </Style>
             </ChartNoDataMessage>
-            <DataSetName>DataSet1</DataSetName>
-            <Top>33.77848mm</Top>
-            <Left>370.12032mm</Left>
-            <Height>132.83846mm</Height>
-            <Width>127.52917mm</Width>
+            <DataSetName>StatusData</DataSetName>
+            <Top>29.28753mm</Top>
+            <Left>409.73264mm</Left>
+            <Height>125.43012mm</Height>
+            <Width>108.07991mm</Width>
             <Style>
               <Border>
                 <Color>#00005f</Color>
@@ -483,7 +511,7 @@ Where vNodeStatusSimple.Status != 'In Desired state'</CommandText>
               <BackgroundGradientType>LeftRight</BackgroundGradientType>
             </Style>
           </Chart>
-          <Tablix Name="Tablix1">
+          <Tablix Name="Table1">
             <TablixBody>
               <TablixColumns>
                 <TablixColumn>
@@ -493,13 +521,25 @@ Where vNodeStatusSimple.Status != 'In Desired state'</CommandText>
                   <Width>35.20208mm</Width>
                 </TablixColumn>
                 <TablixColumn>
-                  <Width>75mm</Width>
+                  <Width>20.2375mm</Width>
                 </TablixColumn>
                 <TablixColumn>
-                  <Width>167.87499mm</Width>
+                  <Width>19.70209mm</Width>
                 </TablixColumn>
                 <TablixColumn>
-                  <Width>44.57917mm</Width>
+                  <Width>168.66875mm</Width>
+                </TablixColumn>
+                <TablixColumn>
+                  <Width>29.23333mm</Width>
+                </TablixColumn>
+                <TablixColumn>
+                  <Width>32.14375mm</Width>
+                </TablixColumn>
+                <TablixColumn>
+                  <Width>37.17083mm</Width>
+                </TablixColumn>
+                <TablixColumn>
+                  <Width>25mm</Width>
                 </TablixColumn>
               </TablixColumns>
               <TablixRows>
@@ -535,10 +575,9 @@ Where vNodeStatusSimple.Status != 'In Desired state'</CommandText>
                           <rd:DefaultName>Textbox2</rd:DefaultName>
                           <Style>
                             <Border>
-                              <Color>#4e648a</Color>
                               <Style>Solid</Style>
                             </Border>
-                            <BackgroundColor>#00005f</BackgroundColor>
+                            <BackgroundColor>MidnightBlue</BackgroundColor>
                             <VerticalAlign>Middle</VerticalAlign>
                             <PaddingLeft>2pt</PaddingLeft>
                             <PaddingRight>2pt</PaddingRight>
@@ -577,10 +616,29 @@ Where vNodeStatusSimple.Status != 'In Desired state'</CommandText>
                           <rd:DefaultName>Textbox3</rd:DefaultName>
                           <Style>
                             <Border>
-                              <Color>#4e648a</Color>
                               <Style>Solid</Style>
                             </Border>
-                            <BackgroundColor>#00005f</BackgroundColor>
+                            <TopBorder>
+                              <Color>Black</Color>
+                              <Style>Solid</Style>
+                              <Width>1pt</Width>
+                            </TopBorder>
+                            <BottomBorder>
+                              <Color>Black</Color>
+                              <Style>Solid</Style>
+                              <Width>1pt</Width>
+                            </BottomBorder>
+                            <LeftBorder>
+                              <Color>Black</Color>
+                              <Style>Solid</Style>
+                              <Width>1pt</Width>
+                            </LeftBorder>
+                            <RightBorder>
+                              <Color>Black</Color>
+                              <Style>Solid</Style>
+                              <Width>1pt</Width>
+                            </RightBorder>
+                            <BackgroundColor>MidnightBlue</BackgroundColor>
                             <VerticalAlign>Middle</VerticalAlign>
                             <PaddingLeft>2pt</PaddingLeft>
                             <PaddingRight>2pt</PaddingRight>
@@ -592,14 +650,15 @@ Where vNodeStatusSimple.Status != 'In Desired state'</CommandText>
                     </TablixCell>
                     <TablixCell>
                       <CellContents>
-                        <Textbox Name="Textbox5">
+                        <Textbox Name="Textbox4">
                           <CanGrow>true</CanGrow>
                           <KeepTogether>true</KeepTogether>
                           <Paragraphs>
                             <Paragraph>
                               <TextRuns>
                                 <TextRun>
-                                  <Value>Resource Count Not In Desired State</Value>
+                                  <Value>Resource Status
+Success /  Failure</Value>
                                   <Style>
                                     <FontFamily>Tahoma</FontFamily>
                                     <FontSize>11pt</FontSize>
@@ -613,13 +672,32 @@ Where vNodeStatusSimple.Status != 'In Desired state'</CommandText>
                               </Style>
                             </Paragraph>
                           </Paragraphs>
-                          <rd:DefaultName>Textbox5</rd:DefaultName>
+                          <rd:DefaultName>Textbox4</rd:DefaultName>
                           <Style>
                             <Border>
-                              <Color>#4e648a</Color>
                               <Style>Solid</Style>
                             </Border>
-                            <BackgroundColor>#00005f</BackgroundColor>
+                            <TopBorder>
+                              <Color>Black</Color>
+                              <Style>Solid</Style>
+                              <Width>1pt</Width>
+                            </TopBorder>
+                            <BottomBorder>
+                              <Color>Black</Color>
+                              <Style>Solid</Style>
+                              <Width>1pt</Width>
+                            </BottomBorder>
+                            <LeftBorder>
+                              <Color>Black</Color>
+                              <Style>Solid</Style>
+                              <Width>1pt</Width>
+                            </LeftBorder>
+                            <RightBorder>
+                              <Color>Black</Color>
+                              <Style>Solid</Style>
+                              <Width>1pt</Width>
+                            </RightBorder>
+                            <BackgroundColor>MidnightBlue</BackgroundColor>
                             <VerticalAlign>Middle</VerticalAlign>
                             <PaddingLeft>2pt</PaddingLeft>
                             <PaddingRight>2pt</PaddingRight>
@@ -627,8 +705,10 @@ Where vNodeStatusSimple.Status != 'In Desired state'</CommandText>
                             <PaddingBottom>2pt</PaddingBottom>
                           </Style>
                         </Textbox>
+                        <ColSpan>2</ColSpan>
                       </CellContents>
                     </TablixCell>
+                    <TablixCell />
                     <TablixCell>
                       <CellContents>
                         <Textbox Name="Textbox7">
@@ -655,10 +735,29 @@ Where vNodeStatusSimple.Status != 'In Desired state'</CommandText>
                           <rd:DefaultName>Textbox7</rd:DefaultName>
                           <Style>
                             <Border>
-                              <Color>#4e648a</Color>
                               <Style>Solid</Style>
                             </Border>
-                            <BackgroundColor>#00005f</BackgroundColor>
+                            <TopBorder>
+                              <Color>Black</Color>
+                              <Style>Solid</Style>
+                              <Width>1pt</Width>
+                            </TopBorder>
+                            <BottomBorder>
+                              <Color>Black</Color>
+                              <Style>Solid</Style>
+                              <Width>1pt</Width>
+                            </BottomBorder>
+                            <LeftBorder>
+                              <Color>Black</Color>
+                              <Style>Solid</Style>
+                              <Width>1pt</Width>
+                            </LeftBorder>
+                            <RightBorder>
+                              <Color>Black</Color>
+                              <Style>Solid</Style>
+                              <Width>1pt</Width>
+                            </RightBorder>
+                            <BackgroundColor>MidnightBlue</BackgroundColor>
                             <VerticalAlign>Middle</VerticalAlign>
                             <PaddingLeft>2pt</PaddingLeft>
                             <PaddingRight>2pt</PaddingRight>
@@ -680,7 +779,7 @@ Where vNodeStatusSimple.Status != 'In Desired state'</CommandText>
                             <Paragraph>
                               <TextRuns>
                                 <TextRun>
-                                  <Value>=Fields!StartTime.Value</Value>
+                                  <Value>Reboot Requested</Value>
                                   <Style>
                                     <FontFamily>Tahoma</FontFamily>
                                     <FontSize>11pt</FontSize>
@@ -697,10 +796,152 @@ Where vNodeStatusSimple.Status != 'In Desired state'</CommandText>
                           <rd:DefaultName>Textbox9</rd:DefaultName>
                           <Style>
                             <Border>
-                              <Color>#4e648a</Color>
                               <Style>Solid</Style>
                             </Border>
-                            <BackgroundColor>#00005f</BackgroundColor>
+                            <TopBorder>
+                              <Color>Black</Color>
+                              <Style>Solid</Style>
+                              <Width>1pt</Width>
+                            </TopBorder>
+                            <BottomBorder>
+                              <Color>Black</Color>
+                              <Style>Solid</Style>
+                              <Width>1pt</Width>
+                            </BottomBorder>
+                            <LeftBorder>
+                              <Color>Black</Color>
+                              <Style>Solid</Style>
+                              <Width>1pt</Width>
+                            </LeftBorder>
+                            <RightBorder>
+                              <Color>Black</Color>
+                              <Style>Solid</Style>
+                              <Width>1pt</Width>
+                            </RightBorder>
+                            <BackgroundColor>MidnightBlue</BackgroundColor>
+                            <VerticalAlign>Middle</VerticalAlign>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
+                        </Textbox>
+                      </CellContents>
+                    </TablixCell>
+                    <TablixCell>
+                      <CellContents>
+                        <Textbox Name="Textbox8">
+                          <CanGrow>true</CanGrow>
+                          <UserSort>
+                            <SortExpression>=Fields!StartTime.Value</SortExpression>
+                          </UserSort>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>Start Time</Value>
+                                  <Style>
+                                    <FontFamily>Tahoma</FontFamily>
+                                    <FontSize>11pt</FontSize>
+                                    <FontWeight>Bold</FontWeight>
+                                    <Color>White</Color>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style>
+                                <TextAlign>Center</TextAlign>
+                              </Style>
+                            </Paragraph>
+                          </Paragraphs>
+                          <rd:DefaultName>Textbox8</rd:DefaultName>
+                          <Style>
+                            <Border>
+                              <Style>Solid</Style>
+                            </Border>
+                            <BackgroundColor>MidnightBlue</BackgroundColor>
+                            <VerticalAlign>Middle</VerticalAlign>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
+                        </Textbox>
+                      </CellContents>
+                    </TablixCell>
+                    <TablixCell>
+                      <CellContents>
+                        <Textbox Name="Textbox5">
+                          <CanGrow>true</CanGrow>
+                          <UserSort>
+                            <SortExpression>=Fields!EndTime.Value</SortExpression>
+                          </UserSort>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>End Time</Value>
+                                  <Style>
+                                    <FontFamily>Tahoma</FontFamily>
+                                    <FontSize>11pt</FontSize>
+                                    <FontWeight>Bold</FontWeight>
+                                    <Color>White</Color>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style>
+                                <TextAlign>Center</TextAlign>
+                              </Style>
+                            </Paragraph>
+                          </Paragraphs>
+                          <rd:DefaultName>Textbox5</rd:DefaultName>
+                          <Style>
+                            <Border>
+                              <Style>Solid</Style>
+                            </Border>
+                            <BackgroundColor>MidnightBlue</BackgroundColor>
+                            <VerticalAlign>Middle</VerticalAlign>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
+                        </Textbox>
+                      </CellContents>
+                    </TablixCell>
+                    <TablixCell>
+                      <CellContents>
+                        <Textbox Name="Textbox11">
+                          <CanGrow>true</CanGrow>
+                          <UserSort>
+                            <SortExpression>=Fields!Duration.Value</SortExpression>
+                          </UserSort>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>Duration</Value>
+                                  <Style>
+                                    <FontFamily>Tahoma</FontFamily>
+                                    <FontSize>11pt</FontSize>
+                                    <FontWeight>Bold</FontWeight>
+                                    <Color>White</Color>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style>
+                                <TextAlign>Center</TextAlign>
+                              </Style>
+                            </Paragraph>
+                          </Paragraphs>
+                          <rd:DefaultName>Textbox11</rd:DefaultName>
+                          <Style>
+                            <Border>
+                              <Style>Solid</Style>
+                            </Border>
+                            <BackgroundColor>MidnightBlue</BackgroundColor>
                             <VerticalAlign>Middle</VerticalAlign>
                             <PaddingLeft>2pt</PaddingLeft>
                             <PaddingRight>2pt</PaddingRight>
@@ -739,9 +980,28 @@ Where vNodeStatusSimple.Status != 'In Desired state'</CommandText>
                           <rd:DefaultName>NodeName</rd:DefaultName>
                           <Style>
                             <Border>
-                              <Color>#e5e5e5</Color>
                               <Style>Solid</Style>
                             </Border>
+                            <TopBorder>
+                              <Color>Black</Color>
+                              <Style>Solid</Style>
+                              <Width>1pt</Width>
+                            </TopBorder>
+                            <BottomBorder>
+                              <Color>Black</Color>
+                              <Style>Solid</Style>
+                              <Width>1pt</Width>
+                            </BottomBorder>
+                            <LeftBorder>
+                              <Color>Black</Color>
+                              <Style>Solid</Style>
+                              <Width>1pt</Width>
+                            </LeftBorder>
+                            <RightBorder>
+                              <Color>Black</Color>
+                              <Style>Solid</Style>
+                              <Width>1pt</Width>
+                            </RightBorder>
                             <VerticalAlign>Middle</VerticalAlign>
                             <PaddingLeft>2pt</PaddingLeft>
                             <PaddingRight>2pt</PaddingRight>
@@ -775,9 +1035,84 @@ Where vNodeStatusSimple.Status != 'In Desired state'</CommandText>
                           <rd:DefaultName>Status</rd:DefaultName>
                           <Style>
                             <Border>
-                              <Color>#e5e5e5</Color>
                               <Style>Solid</Style>
                             </Border>
+                            <TopBorder>
+                              <Color>Black</Color>
+                              <Style>Solid</Style>
+                              <Width>1pt</Width>
+                            </TopBorder>
+                            <BottomBorder>
+                              <Color>Black</Color>
+                              <Style>Solid</Style>
+                              <Width>1pt</Width>
+                            </BottomBorder>
+                            <LeftBorder>
+                              <Color>Black</Color>
+                              <Style>Solid</Style>
+                              <Width>1pt</Width>
+                            </LeftBorder>
+                            <RightBorder>
+                              <Color>Black</Color>
+                              <Style>Solid</Style>
+                              <Width>1pt</Width>
+                            </RightBorder>
+                            <VerticalAlign>Middle</VerticalAlign>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
+                        </Textbox>
+                      </CellContents>
+                    </TablixCell>
+                    <TablixCell>
+                      <CellContents>
+                        <Textbox Name="ResourceCountInDesiredState">
+                          <CanGrow>true</CanGrow>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>=Fields!ResourceCountInDesiredState.Value</Value>
+                                  <Style>
+                                    <FontFamily>Tahoma</FontFamily>
+                                    <Format>#,0;(#,0);'-'</Format>
+                                    <Color>#4d4d4d</Color>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style>
+                                <TextAlign>Center</TextAlign>
+                              </Style>
+                            </Paragraph>
+                          </Paragraphs>
+                          <rd:DefaultName>ResourceCountInDesiredState</rd:DefaultName>
+                          <Style>
+                            <Border>
+                              <Style>Solid</Style>
+                            </Border>
+                            <TopBorder>
+                              <Color>Black</Color>
+                              <Style>Solid</Style>
+                              <Width>1pt</Width>
+                            </TopBorder>
+                            <BottomBorder>
+                              <Color>Black</Color>
+                              <Style>Solid</Style>
+                              <Width>1pt</Width>
+                            </BottomBorder>
+                            <LeftBorder>
+                              <Color>Black</Color>
+                              <Style>Solid</Style>
+                              <Width>1pt</Width>
+                            </LeftBorder>
+                            <RightBorder>
+                              <Color>Black</Color>
+                              <Style>Solid</Style>
+                              <Width>1pt</Width>
+                            </RightBorder>
                             <VerticalAlign>Middle</VerticalAlign>
                             <PaddingLeft>2pt</PaddingLeft>
                             <PaddingRight>2pt</PaddingRight>
@@ -796,9 +1131,10 @@ Where vNodeStatusSimple.Status != 'In Desired state'</CommandText>
                             <Paragraph>
                               <TextRuns>
                                 <TextRun>
-                                  <Value>=Sum(Fields!ResourceCountNotInDesiredState.Value)</Value>
+                                  <Value>=Fields!ResourceCountNotInDesiredState.Value</Value>
                                   <Style>
                                     <FontFamily>Tahoma</FontFamily>
+                                    <Format>#,0;(#,0);'-'</Format>
                                     <Color>#4d4d4d</Color>
                                   </Style>
                                 </TextRun>
@@ -811,9 +1147,28 @@ Where vNodeStatusSimple.Status != 'In Desired state'</CommandText>
                           <rd:DefaultName>ResourceCountNotInDesiredState</rd:DefaultName>
                           <Style>
                             <Border>
-                              <Color>#e5e5e5</Color>
                               <Style>Solid</Style>
                             </Border>
+                            <TopBorder>
+                              <Color>Black</Color>
+                              <Style>Solid</Style>
+                              <Width>1pt</Width>
+                            </TopBorder>
+                            <BottomBorder>
+                              <Color>Black</Color>
+                              <Style>Solid</Style>
+                              <Width>1pt</Width>
+                            </BottomBorder>
+                            <LeftBorder>
+                              <Color>Black</Color>
+                              <Style>Solid</Style>
+                              <Width>1pt</Width>
+                            </LeftBorder>
+                            <RightBorder>
+                              <Color>Black</Color>
+                              <Style>Solid</Style>
+                              <Width>1pt</Width>
+                            </RightBorder>
                             <VerticalAlign>Middle</VerticalAlign>
                             <PaddingLeft>2pt</PaddingLeft>
                             <PaddingRight>2pt</PaddingRight>
@@ -847,9 +1202,83 @@ Where vNodeStatusSimple.Status != 'In Desired state'</CommandText>
                           <rd:DefaultName>ResourcesNotInDesiredState</rd:DefaultName>
                           <Style>
                             <Border>
-                              <Color>#e5e5e5</Color>
                               <Style>Solid</Style>
                             </Border>
+                            <TopBorder>
+                              <Color>Black</Color>
+                              <Style>Solid</Style>
+                              <Width>1pt</Width>
+                            </TopBorder>
+                            <BottomBorder>
+                              <Color>Black</Color>
+                              <Style>Solid</Style>
+                              <Width>1pt</Width>
+                            </BottomBorder>
+                            <LeftBorder>
+                              <Color>Black</Color>
+                              <Style>Solid</Style>
+                              <Width>1pt</Width>
+                            </LeftBorder>
+                            <RightBorder>
+                              <Color>Black</Color>
+                              <Style>Solid</Style>
+                              <Width>1pt</Width>
+                            </RightBorder>
+                            <VerticalAlign>Middle</VerticalAlign>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
+                        </Textbox>
+                      </CellContents>
+                    </TablixCell>
+                    <TablixCell>
+                      <CellContents>
+                        <Textbox Name="RebootRequested">
+                          <CanGrow>true</CanGrow>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>=Fields!RebootRequested.Value</Value>
+                                  <Style>
+                                    <FontFamily>Tahoma</FontFamily>
+                                    <Color>#4d4d4d</Color>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style>
+                                <TextAlign>Center</TextAlign>
+                              </Style>
+                            </Paragraph>
+                          </Paragraphs>
+                          <rd:DefaultName>StartTime</rd:DefaultName>
+                          <Style>
+                            <Border>
+                              <Style>Solid</Style>
+                            </Border>
+                            <TopBorder>
+                              <Color>Black</Color>
+                              <Style>Solid</Style>
+                              <Width>1pt</Width>
+                            </TopBorder>
+                            <BottomBorder>
+                              <Color>Black</Color>
+                              <Style>Solid</Style>
+                              <Width>1pt</Width>
+                            </BottomBorder>
+                            <LeftBorder>
+                              <Color>Black</Color>
+                              <Style>Solid</Style>
+                              <Width>1pt</Width>
+                            </LeftBorder>
+                            <RightBorder>
+                              <Color>Black</Color>
+                              <Style>Solid</Style>
+                              <Width>1pt</Width>
+                            </RightBorder>
                             <VerticalAlign>Middle</VerticalAlign>
                             <PaddingLeft>2pt</PaddingLeft>
                             <PaddingRight>2pt</PaddingRight>
@@ -871,6 +1300,7 @@ Where vNodeStatusSimple.Status != 'In Desired state'</CommandText>
                                   <Value>=Fields!StartTime.Value</Value>
                                   <Style>
                                     <FontFamily>Tahoma</FontFamily>
+                                    <Format>yyyy/MM/dd HH:mm</Format>
                                     <Color>#4d4d4d</Color>
                                   </Style>
                                 </TextRun>
@@ -880,10 +1310,81 @@ Where vNodeStatusSimple.Status != 'In Desired state'</CommandText>
                               </Style>
                             </Paragraph>
                           </Paragraphs>
-                          <rd:DefaultName>StartTime</rd:DefaultName>
+                          <rd:DefaultName>Textbox10</rd:DefaultName>
                           <Style>
                             <Border>
-                              <Color>#e5e5e5</Color>
+                              <Style>Solid</Style>
+                            </Border>
+                            <VerticalAlign>Middle</VerticalAlign>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
+                        </Textbox>
+                      </CellContents>
+                    </TablixCell>
+                    <TablixCell>
+                      <CellContents>
+                        <Textbox Name="EndTime">
+                          <CanGrow>true</CanGrow>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>=Fields!EndTime.Value</Value>
+                                  <Style>
+                                    <FontFamily>Tahoma</FontFamily>
+                                    <Format>yyyy/MM/dd HH:mm</Format>
+                                    <Color>#4d4d4d</Color>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style>
+                                <TextAlign>Center</TextAlign>
+                              </Style>
+                            </Paragraph>
+                          </Paragraphs>
+                          <rd:DefaultName>EndTime</rd:DefaultName>
+                          <Style>
+                            <Border>
+                              <Style>Solid</Style>
+                            </Border>
+                            <VerticalAlign>Middle</VerticalAlign>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
+                        </Textbox>
+                      </CellContents>
+                    </TablixCell>
+                    <TablixCell>
+                      <CellContents>
+                        <Textbox Name="DurationWithOverhead">
+                          <CanGrow>true</CanGrow>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>=Fields!DurationWithOverhead.Value</Value>
+                                  <Style>
+                                    <FontFamily>Tahoma</FontFamily>
+                                    <Format>n0</Format>
+                                    <Color>#4d4d4d</Color>
+                                  </Style>
+                                </TextRun>
+                              </TextRuns>
+                              <Style>
+                                <TextAlign>Center</TextAlign>
+                              </Style>
+                            </Paragraph>
+                          </Paragraphs>
+                          <rd:DefaultName>DurationWithOverhead</rd:DefaultName>
+                          <Style>
+                            <Border>
                               <Style>Solid</Style>
                             </Border>
                             <VerticalAlign>Middle</VerticalAlign>
@@ -906,6 +1407,10 @@ Where vNodeStatusSimple.Status != 'In Desired state'</CommandText>
                 <TablixMember />
                 <TablixMember />
                 <TablixMember />
+                <TablixMember />
+                <TablixMember />
+                <TablixMember />
+                <TablixMember />
               </TablixMembers>
             </TablixColumnHierarchy>
             <TablixRowHierarchy>
@@ -923,11 +1428,14 @@ Where vNodeStatusSimple.Status != 'In Desired state'</CommandText>
                 </TablixMember>
               </TablixMembers>
             </TablixRowHierarchy>
-            <DataSetName>DataSet1</DataSetName>
-            <Top>33.77848mm</Top>
+            <RepeatRowHeaders>true</RepeatRowHeaders>
+            <FixedRowHeaders>true</FixedRowHeaders>
+            <KeepTogether>true</KeepTogether>
+            <DataSetName>StatusData</DataSetName>
+            <Top>29.28753mm</Top>
             <Left>3.43958mm</Left>
             <Height>25.06486mm</Height>
-            <Width>356.91666mm</Width>
+            <Width>401.61875mm</Width>
             <ZIndex>1</ZIndex>
             <Style>
               <Border>
@@ -942,10 +1450,11 @@ Where vNodeStatusSimple.Status != 'In Desired state'</CommandText>
               <Paragraph>
                 <TextRuns>
                   <TextRun>
-                    <Value>Node status overview</Value>
+                    <Value>Node Status Overview</Value>
                     <Style>
-                      <FontFamily>Verdana</FontFamily>
-                      <FontSize>22pt</FontSize>
+                      <FontFamily>Tahoma</FontFamily>
+                      <FontSize>36pt</FontSize>
+                      <FontWeight>Bold</FontWeight>
                     </Style>
                   </TextRun>
                 </TextRuns>
@@ -954,10 +1463,10 @@ Where vNodeStatusSimple.Status != 'In Desired state'</CommandText>
             </Paragraphs>
             <rd:WatermarkTextbox>Title</rd:WatermarkTextbox>
             <rd:DefaultName>ReportTitle</rd:DefaultName>
-            <Top>13.15505mm</Top>
-            <Left>3.77cm</Left>
-            <Height>10.16mm</Height>
-            <Width>87.3125mm</Width>
+            <Top>9.33795mm</Top>
+            <Left>2.81409cm</Left>
+            <Height>15.71625mm</Height>
+            <Width>180.31039mm</Width>
             <ZIndex>2</ZIndex>
             <Style>
               <Border>
@@ -969,175 +1478,66 @@ Where vNodeStatusSimple.Status != 'In Desired state'</CommandText>
               <PaddingBottom>2pt</PaddingBottom>
             </Style>
           </Textbox>
-          <Image Name="Image1">
-            <Source>Embedded</Source>
-            <Value>AutomatedLab_icon256</Value>
-            <Sizing>FitProportional</Sizing>
-            <Top>0.43463cm</Top>
-            <Left>0.97896cm</Left>
-            <Height>2.50542cm</Height>
-            <Width>2.39958cm</Width>
-            <ZIndex>3</ZIndex>
-            <Style>
-              <Border>
-                <Style>None</Style>
-              </Border>
-            </Style>
-          </Image>
-          <Textbox Name="Textbox1">
+          <Textbox Name="ExecutionTime">
             <CanGrow>true</CanGrow>
             <KeepTogether>true</KeepTogether>
             <Paragraphs>
               <Paragraph>
                 <TextRuns>
                   <TextRun>
-                    <Value>Further information</Value>
+                    <Value>=Globals!ExecutionTime</Value>
                     <Style>
-                      <FontWeight>Bold</FontWeight>
-                      <TextDecoration>Underline</TextDecoration>
+                      <FontFamily>Tahoma</FontFamily>
+                      <Format>yyyy/MM/dd HH:mm:ss</Format>
                     </Style>
                   </TextRun>
                 </TextRuns>
-                <Style />
-              </Paragraph>
-              <Paragraph>
-                <TextRuns>
-                  <TextRun>
-                    <Value>Status</Value>
-                    <Style>
-                      <FontWeight>Normal</FontWeight>
-                      <TextDecoration>Underline</TextDecoration>
-                    </Style>
-                  </TextRun>
-                </TextRuns>
-                <Style />
-              </Paragraph>
-              <Paragraph>
-                <TextRuns>
-                  <TextRun>
-                    <Value>Failure:                    The applied configuration has an error</Value>
-                    <Style>
-                      <FontWeight>Normal</FontWeight>
-                      <TextDecoration>None</TextDecoration>
-                    </Style>
-                  </TextRun>
-                </TextRuns>
-                <ListStyle>Bulleted</ListStyle>
-                <ListLevel>1</ListLevel>
-                <Style />
-              </Paragraph>
-              <Paragraph>
-                <TextRuns>
-                  <TextRun>
-                    <Value>In Desired state:       All settings set as configured</Value>
-                    <Style>
-                      <FontWeight>Normal</FontWeight>
-                      <TextDecoration>None</TextDecoration>
-                    </Style>
-                  </TextRun>
-                </TextRuns>
-                <ListStyle>Bulleted</ListStyle>
-                <ListLevel>1</ListLevel>
-                <Style />
-              </Paragraph>
-              <Paragraph>
-                <TextRuns>
-                  <TextRun>
-                    <Value>LCM Error:               The node DSC component has an error</Value>
-                    <Style>
-                      <FontWeight>Normal</FontWeight>
-                      <TextDecoration>None</TextDecoration>
-                    </Style>
-                  </TextRun>
-                </TextRuns>
-                <ListStyle>Bulleted</ListStyle>
-                <ListLevel>1</ListLevel>
-                <Style />
-              </Paragraph>
-              <Paragraph>
-                <TextRuns>
-                  <TextRun>
-                    <Value>Not in Desired state: Some settings differ from configuration</Value>
-                    <Style>
-                      <FontWeight>Normal</FontWeight>
-                      <TextDecoration>None</TextDecoration>
-                    </Style>
-                  </TextRun>
-                </TextRuns>
-                <ListStyle>Bulleted</ListStyle>
-                <ListLevel>1</ListLevel>
-                <Style />
+                <Style>
+                  <TextAlign>Right</TextAlign>
+                </Style>
               </Paragraph>
             </Paragraphs>
-            <rd:DefaultName>Textbox1</rd:DefaultName>
-            <Top>4.3463mm</Top>
-            <Left>374.35365mm</Left>
-            <Height>28.72662mm</Height>
-            <Width>116.68126mm</Width>
-            <ZIndex>4</ZIndex>
+            <rd:DefaultName>ExecutionTime</rd:DefaultName>
+            <Top>18.7042mm</Top>
+            <Left>342.8875mm</Left>
+            <Height>6.35mm</Height>
+            <Width>61.37708mm</Width>
+            <ZIndex>3</ZIndex>
             <Style>
               <Border>
                 <Style>None</Style>
               </Border>
+              <VerticalAlign>Middle</VerticalAlign>
               <PaddingLeft>2pt</PaddingLeft>
               <PaddingRight>2pt</PaddingRight>
               <PaddingTop>2pt</PaddingTop>
               <PaddingBottom>2pt</PaddingBottom>
             </Style>
           </Textbox>
+          <Image Name="Image1">
+            <Source>Embedded</Source>
+            <Value>AutomatedLab_icon256</Value>
+            <Sizing>FitProportional</Sizing>
+            <Left>0.34396cm</Left>
+            <Height>2.50542cm</Height>
+            <Width>2.39958cm</Width>
+            <ZIndex>4</ZIndex>
+            <Style>
+              <Border>
+                <Style>None</Style>
+              </Border>
+            </Style>
+          </Image>
         </ReportItems>
-        <Height>343.57381mm</Height>
+        <Height>204.14537mm</Height>
         <Style>
           <Border>
             <Style>None</Style>
           </Border>
         </Style>
       </Body>
-      <Width>497.64949mm</Width>
+      <Width>540.64668mm</Width>
       <Page>
-        <PageFooter>
-          <Height>20.42584mm</Height>
-          <PrintOnFirstPage>true</PrintOnFirstPage>
-          <PrintOnLastPage>true</PrintOnLastPage>
-          <ReportItems>
-            <Textbox Name="ExecutionTime">
-              <CanGrow>true</CanGrow>
-              <KeepTogether>true</KeepTogether>
-              <Paragraphs>
-                <Paragraph>
-                  <TextRuns>
-                    <TextRun>
-                      <Value>=Globals!ExecutionTime</Value>
-                      <Style />
-                    </TextRun>
-                  </TextRuns>
-                  <Style>
-                    <TextAlign>Right</TextAlign>
-                  </Style>
-                </Paragraph>
-              </Paragraphs>
-              <rd:DefaultName>ExecutionTime</rd:DefaultName>
-              <Top>5.08mm</Top>
-              <Left>101.6mm</Left>
-              <Height>6.35mm</Height>
-              <Width>50.8mm</Width>
-              <Style>
-                <Border>
-                  <Style>None</Style>
-                </Border>
-                <PaddingLeft>2pt</PaddingLeft>
-                <PaddingRight>2pt</PaddingRight>
-                <PaddingTop>2pt</PaddingTop>
-                <PaddingBottom>2pt</PaddingBottom>
-              </Style>
-            </Textbox>
-          </ReportItems>
-          <Style>
-            <Border>
-              <Style>None</Style>
-            </Border>
-          </Style>
-        </PageFooter>
         <PageHeight>29.7cm</PageHeight>
         <PageWidth>21cm</PageWidth>
         <LeftMargin>2cm</LeftMargin>
@@ -1150,31 +1550,54 @@ Where vNodeStatusSimple.Status != 'In Desired state'</CommandText>
     </ReportSection>
   </ReportSections>
   <ReportParameters>
-    <ReportParameter Name="Servertype">
+    <ReportParameter Name="NodeStatus">
       <DataType>String</DataType>
       <DefaultValue>
         <Values>
-          <Value>%</Value>
+          <Value>Aborted</Value>
+          <Value>Failure</Value>
+          <Value>In Desired State</Value>
+          <Value>LCM Error</Value>
+          <Value>LCM is running</Value>
+          <Value>Not in Desired State</Value>
+          <Value>Unknown</Value>
         </Values>
       </DefaultValue>
       <AllowBlank>true</AllowBlank>
-      <Prompt>Servertype</Prompt>
+      <Prompt>Status</Prompt>
       <ValidValues>
         <ParameterValues>
           <ParameterValue>
-            <Value>%</Value>
-            <Label>All</Label>
+            <Value>Aborted</Value>
+            <Label>Aborted</Label>
           </ParameterValue>
           <ParameterValue>
-            <Value>DSCFile%</Value>
-            <Label>File Server</Label>
+            <Value>Failure</Value>
+            <Label>Failure</Label>
           </ParameterValue>
           <ParameterValue>
-            <Value>DSCWeb%</Value>
-            <Label>Web Server</Label>
+            <Value>In Desired State</Value>
+            <Label>In Desired State</Label>
+          </ParameterValue>
+          <ParameterValue>
+            <Value>LCM Error</Value>
+            <Label>LCM Error</Label>
+          </ParameterValue>
+          <ParameterValue>
+            <Value>LCM is running</Value>
+            <Label>LCM is running</Label>
+          </ParameterValue>
+          <ParameterValue>
+            <Value>Not in Desired State</Value>
+            <Label>Not in Desired State</Label>
+          </ParameterValue>
+          <ParameterValue>
+            <Value>Unknown</Value>
+            <Label>Unknown</Label>
           </ParameterValue>
         </ParameterValues>
       </ValidValues>
+      <MultiValue>true</MultiValue>
       <UsedInQuery>True</UsedInQuery>
     </ReportParameter>
     <ReportParameter Name="Search">
@@ -1185,61 +1608,24 @@ Where vNodeStatusSimple.Status != 'In Desired state'</CommandText>
         </Values>
       </DefaultValue>
       <AllowBlank>true</AllowBlank>
-      <Prompt>Search (e.g.: file)</Prompt>
-      <UsedInQuery>True</UsedInQuery>
-    </ReportParameter>
-    <ReportParameter Name="Serverstatus">
-      <DataType>String</DataType>
-      <DefaultValue>
-        <DataSetReference>
-          <DataSetName>StatusSelection</DataSetName>
-          <ValueField>Status</ValueField>
-        </DataSetReference>
-      </DefaultValue>
-      <Prompt>Serverstatus</Prompt>
-      <ValidValues>
-        <ParameterValues>
-          <ParameterValue>
-            <Value>Not in Desired state</Value>
-            <Label>Not in Desired state</Label>
-          </ParameterValue>
-          <ParameterValue>
-            <Value>Failure</Value>
-            <Label>Failure</Label>
-          </ParameterValue>
-          <ParameterValue>
-            <Value>LCM Error</Value>
-            <Label>LCM Error</Label>
-          </ParameterValue>
-          <ParameterValue>
-            <Value>In Desired state</Value>
-            <Label>In Desired state</Label>
-          </ParameterValue>
-        </ParameterValues>
-      </ValidValues>
-      <MultiValue>true</MultiValue>
+      <Prompt>Search</Prompt>
       <UsedInQuery>True</UsedInQuery>
     </ReportParameter>
   </ReportParameters>
   <ReportParametersLayout>
     <GridLayoutDefinition>
-      <NumberOfColumns>2</NumberOfColumns>
-      <NumberOfRows>2</NumberOfRows>
+      <NumberOfColumns>3</NumberOfColumns>
+      <NumberOfRows>1</NumberOfRows>
       <CellDefinitions>
         <CellDefinition>
           <ColumnIndex>0</ColumnIndex>
           <RowIndex>0</RowIndex>
-          <ParameterName>Servertype</ParameterName>
+          <ParameterName>NodeStatus</ParameterName>
         </CellDefinition>
         <CellDefinition>
-          <ColumnIndex>1</ColumnIndex>
+          <ColumnIndex>2</ColumnIndex>
           <RowIndex>0</RowIndex>
           <ParameterName>Search</ParameterName>
-        </CellDefinition>
-        <CellDefinition>
-          <ColumnIndex>0</ColumnIndex>
-          <RowIndex>1</RowIndex>
-          <ParameterName>Serverstatus</ParameterName>
         </CellDefinition>
       </CellDefinitions>
     </GridLayoutDefinition>
@@ -1262,6 +1648,6 @@ RJ0SVSnLZewz2xt8DgNMpJD86AE0lR/o8lkYIB6Uhg5QEpYUGF+oIicOHkCJkmqp7HdFvYE0e1fwNeER
     </EmbeddedImage>
   </EmbeddedImages>
   <rd:ReportUnitType>Cm</rd:ReportUnitType>
-  <rd:ReportServerUrl>http://localhost/ReportServer</rd:ReportServerUrl>
+  <rd:ReportServerUrl>http://localhost/reportserver</rd:ReportServerUrl>
   <rd:ReportID>c37c8ff3-fb8f-4cd1-a986-88ed413dd174</rd:ReportID>
 </Report>
