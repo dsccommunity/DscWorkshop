@@ -42,6 +42,13 @@ stages:
             env:
               ModuleVersion: $(gitVersion.NuGetVersionV2)
 
+          - task: PowerShell@2
+            name: pack
+            displayName: 'Pack DSC Artifacts'
+            inputs:
+              filePath: './build.ps1'
+              arguments: '-ResolveDependency -tasks pack'
+
           - task: PublishPipelineArtifact@1
             displayName: 'Publish Output Folder'
             inputs:
