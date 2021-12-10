@@ -15,7 +15,7 @@ $nodeNames = [System.Collections.ArrayList]::new()
 
 Describe 'MOF Files' -Tag BuildAcceptance {
     BeforeAll {
-        $mofFiles = Get-ChildItem -Path "$OutputDirectory\MOF" -Filter *.mof -ErrorAction SilentlyContinue
+        $mofFiles = Get-ChildItem -Path "$OutputDirectory\MOF" -Filter *.mof -Recurse -ErrorAction SilentlyContinue
         $metaMofFiles = Get-ChildItem -Path "$OutputDirectory\MetaMOF" -Filter *.mof -ErrorAction SilentlyContinue
         $nodes = $configurationData.AllNodes
     }
@@ -30,7 +30,7 @@ Describe 'MOF Files' -Tag BuildAcceptance {
     foreach ($node in $nodes)
     {
         It "Node '$($node.NodeName)' should have a MOF file" {
-            $mofFiles | Where-Object BaseName -eq $node.NodeName | Should -BeOfType System.IO.FileSystemInfo 
+            $mofFiles | Where-Object BaseName -eq $node.NodeName | Should -BeOfType System.IO.FileSystemInfo
         }
     }
 
@@ -39,14 +39,14 @@ Describe 'MOF Files' -Tag BuildAcceptance {
         It 'All nodes have a Meta MOF file' {
             Write-Verbose "Meta MOF File Count $($metaMofFiles.Count)"
             Write-Verbose "Node Count $($nodes.Count)"
-    
+
             $metaMofFiles.Count | Should -BeIn $nodes.Count
         }
 
         foreach ($node in $nodes)
         {
-            It "Node '$($node.NodeName)' should have a Meta MOF file" {       
-                $metaMofFiles | Where-Object BaseName -eq "$($node.NodeName).meta" | Should -BeOfType System.IO.FileSystemInfo 
+            It "Node '$($node.NodeName)' should have a Meta MOF file" {
+                $metaMofFiles | Where-Object BaseName -eq "$($node.NodeName).meta" | Should -BeOfType System.IO.FileSystemInfo
             }
         }
     }
