@@ -6,7 +6,8 @@ $environments = (Get-ChildItem $ProjectPath\source\AllNodes -Directory).BaseName
 $roleDefinitions = Get-ChildItem $ProjectPath\source\Roles -Recurse -Include *.yml
 $datum = New-DatumStructure -DefinitionFile $datumDefinitionFile
 $allDefinitions = Get-ChildItem $ProjectPath\source -Recurse -Include *.yml
-$configurationData = try {
+$configurationData = try
+{
     if ($filter)
     {
         Get-FilteredConfigurationData -Filter $filter
@@ -16,7 +17,8 @@ $configurationData = try {
         Get-FilteredConfigurationData
     }
 }
-catch { 
+catch
+{
     Write-Error "'Get-FilteredConfigurationData' did not return any data. Please check if all YAML files are valid and don't have syntax errors. $($_.Exception.Message)"
 }
 
@@ -54,13 +56,24 @@ Describe 'Node Definition Files' -Tag Integration {
     $environments = Get-ChildItem .\source\Environment\ | Select-Object -ExpandProperty BaseName
     $locations = Get-ChildItem .\source\Locations\ | Select-Object -ExpandProperty BaseName
 
+    Context 'Testing for conflicts / duplicate data' {
+        It 'Should not have duplicate node names' {
+            $nodes = Get-DatumNodesRecursive -AllDatumNodes $datum.AllNodes
+            $nodeNames = $nodes.NodeName
+            $uniqueNodeNames = $nodes.NodeName | Sort-Object -Unique
+
+            (Compare-Object -ReferenceObject $nodeNames -DifferenceObject $uniqueNodeNames).InputObject | Should -BeNullOrEmpty
+        }
+    }
+
     $nodeDefinitions.ForEach{
         # A Node cannot be empty
         $content = Get-Content -Path $_ -Raw
         $node = $content | ConvertFrom-Yaml
         $nodeName = $node.NodeName
-        
-        if ($_.BaseName -ne 'AllNodes') {
+
+        if ($_.BaseName -ne 'AllNodes')
+        {
             It "'$($_.FullName)' should not be duplicated" {
                 $nodeNames -contains $_.BaseName | Should -Be $false
             }
@@ -90,25 +103,29 @@ Describe 'Node Definition Files' -Tag Integration {
 }
 
 Describe 'Roles Definition Files' -Tag Integration {
-    $nodes = if ($Environment) {
+    $nodes = if ($Environment)
+    {
         $configurationData.AllNodes | Where-Object { $_.NodeName -ne '*' -and $_.Environment -eq $Environment }
     }
-    else {
+    else
+    {
         $configurationData.AllNodes | Where-Object { $_.NodeName -ne '*' }
     }
 
     $nodeRoles = $nodes | ForEach-Object -MemberName Role
-    $usedRolesDefinitions = foreach ($nodeRole in $nodeRoles) {
+    $usedRolesDefinitions = foreach ($nodeRole in $nodeRoles)
+    {
         $roleDefinitions.Where( { $_.FullName -like "*$($nodeRole)*" })
     }
 
     $usedRolesDefinitions = $usedRolesDefinitions | Group-Object -Property FullName | ForEach-Object { $_.Group[0] }
-    
+
     $usedRolesDefinitions.Foreach{
         # A role can be Empty
 
         $content = Get-Content -Path $_ -Raw
-        if ($content) {
+        if ($content)
+        {
             It "$($_.FullName) has valid yaml" {
                 { $null = $content | ConvertFrom-Yaml } | Should -Not -Throw
             }
@@ -117,17 +134,21 @@ Describe 'Roles Definition Files' -Tag Integration {
 }
 
 Describe 'Role Composition' -Tag Integration {
-    foreach ($environment in $environments) {
+    foreach ($environment in $environments)
+    {
         Context "Nodes for environment $environment" {
-            
-            $nodes = if ($Environment) {
+
+            $nodes = if ($Environment)
+            {
                 $configurationData.AllNodes | Where-Object { $_.NodeName -ne '*' -and $_.Environment -eq $Environment }
             }
-            else {
+            else
+            {
                 $configurationData.AllNodes | Where-Object { $_.NodeName -ne '*' }
             }
 
-            foreach ($node in $nodes) {
+            foreach ($node in $nodes)
+            {
                 It "$($node.Name) has a valid Configurations Setting (!`$null)" {
                     { Lookup Configurations -Node $node -DatumTree $datum } | Should -Not -Throw
                 }
