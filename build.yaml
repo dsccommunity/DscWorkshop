@@ -27,6 +27,8 @@ BuildWorkflow:
     - CompileRootMetaMof
 
   pack:
+    - Init
+    - LoadDatumConfigData
     - NewMofChecksums
     - CompressModulesWithChecksum
     - Compress_Artifact_Collections
