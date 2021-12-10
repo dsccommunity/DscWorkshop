@@ -1,51 +1,57 @@
-﻿function Update-LabDscNodes {
+﻿function Update-LabDscNodes
+{
     $path = Join-Path (Get-LabLatestArtifactsPath) -ChildPath MOF
     $computerNames = dir -Path $path -Filter *.mof | Select-Object -ExpandProperty BaseName
 
     Update-DscConfiguration -ComputerName $computerNames -Wait -Verbose
 }
 
-function Set-LabDscLatestMetaMofs {
+function Set-LabDscLatestMetaMofs
+{
     $latestBuild = Get-LabLatestArtifactsPath
-    $path = Join-Path -Path $latestBuild -ChildPath 'Meta MOF'
+    $path = Join-Path -Path $latestBuild -ChildPath MetaMOF
 
     Set-DscLocalConfigurationManager -Path $path -Verbose -Force
 }
 
-function Update-LabDscNodes {
+function Update-LabDscNodes
+{
     $computers = Get-ADComputer -Filter { Name -like 'DSCWeb*' -or Name -like 'DSCFile*' } | Select-Object -ExpandProperty DNSHostName
 
     Update-DscConfiguration -ComputerName $computers -Verbose -Wait
-    
+
     Start-DscConfiguration -UseExisting -Wait -Verbose -Force -ComputerName $computers
 }
 
-function Show-LabLatestArtifacts {
+function Show-LabLatestArtifacts
+{
     $latestBuild = Get-LabLatestArtifactsPath
     start $latestBuild
 }
 
-function Get-LabLatestArtifactsPath {
+function Get-LabLatestArtifactsPath
+{
     $latestBuild = dir -Path 'C:\Artifacts\DscWorkshop CI' | Sort-Object -Property { [int]$_.Name } -Descending | Select-Object -First 1
-    $latestBuild = Join-Path $latestBuild.FullName -ChildPath DscWorkshop
-    $latestBuild
+    $latestBuild.FullName
 }
 
-function Initialize-DscLocalConfigurationManager {
+function Initialize-DscLocalConfigurationManager
+{
 
     $lcmConfigPath = Join-Path -Path $env:temp -ChildPath 'LCMConfiguration'
-    if (-not (Test-Path -Path $lcmConfigPath)) {
+    if (-not (Test-Path -Path $lcmConfigPath))
+    {
         New-Item -Path $lcmConfigPath -ItemType Directory -Force | Out-Null
     }
-    
+
     $lcmConfig = @'
 Configuration LocalConfigurationManagerConfiguration
 {
     LocalConfigurationManager
     {
-    
+
     ConfigurationMode = 'ApplyOnly'
-        
+
     }
 }
 '@
@@ -53,13 +59,14 @@ Configuration LocalConfigurationManagerConfiguration
     Invoke-Command -ScriptBlock ([scriptblock]::Create($lcmConfig)) -NoNewScope
 
     LocalConfigurationManagerConfiguration -OutputPath $lcmConfigPath | Out-Null
-    
+
     Set-DscLocalConfigurationManager -Path $lcmConfigPath -Force
     Remove-Item -LiteralPath $lcmConfigPath -Recurse -Force -Confirm:$false
 }
 
 
-function Reset-DscLocalConfigurationManager {
+function Reset-DscLocalConfigurationManager
+{
 
     Write-Verbose -Message 'Resetting the DSC LCM'
 
@@ -69,33 +76,37 @@ function Reset-DscLocalConfigurationManager {
     Remove-DscConfigurationDocument -Stage Previous -Force
 }
 
-function Get-LabDscBuildWorkers {
+function Get-LabDscBuildWorkers
+{
     $computers = Get-ADComputer -Filter * | Select-Object -ExpandProperty DnsHostName
 
     Invoke-Command -ScriptBlock {
-        if (Get-Service -Name vstsagent*) {
+        if (Get-Service -Name vstsagent*)
+        {
             $env:COMPUTERNAME
         }
     } -ComputerName $computers
 }
 
-function Clear-LabDscNodes {
+function Clear-LabDscNodes
+{
     $path = Join-Path (Get-LabLatestArtifactsPath) -ChildPath MOF
     $computerNames = dir -Path $path -Filter *.mof | Select-Object -ExpandProperty BaseName
 
-    Invoke-Command -ScriptBlock { 
+    Invoke-Command -ScriptBlock {
         Remove-Item HKLM:\SOFTWARE\DscLcmController -Recurse -Force
         Remove-DscConfigurationDocument -Stage Current, Pending, Previous
         Remove-Item -Path C:\ProgramData\Dsc -Force -Recurse
         Remove-Item C:\Windows\System32\Configuration\MetaConfig.mof -Force
-        Get-ScheduledTask -TaskPath \DscController\ | Where-Object TaskName -like *dsc* | Unregister-ScheduledTask -Confirm:$false
+        Get-ScheduledTask -TaskPath \DscController\ | Where-Object TaskName -Like *dsc* | Unregister-ScheduledTask -Confirm:$false
     } -ComputerName $computerNames
 
     Clear-LabBuildWorkers
 
 }
 
-function Clear-LabBuildWorkers {
+function Clear-LabBuildWorkers
+{
     $buildWorkers = Get-LabDscBuildWorkers
 
     Invoke-Command -ScriptBlock {
@@ -103,15 +114,17 @@ function Clear-LabBuildWorkers {
     } -ComputerName $buildWorkers
 }
 
-function Test-LabDscConfiguration {
+function Test-LabDscConfiguration
+{
     $computers = Get-ADComputer -Filter { Name -like 'DSCWeb*' -or Name -like 'DSCFile*' } | Select-Object -ExpandProperty DNSHostName
-    
+
     Test-DscConfiguration -ComputerName $computers -Detailed -Verbose
 }
 
-function Start-LabDscConfiguration {
+function Start-LabDscConfiguration
+{
     $computers = Get-ADComputer -Filter { Name -like 'DSCWeb*' -or Name -like 'DSCFile*' } | Select-Object -ExpandProperty DNSHostName
-    
+
     Start-DscConfiguration -ComputerName $computers -UseExisting -Wait -Verbose -Force
 
 }
