@@ -20,13 +20,13 @@ configuration "RootConfiguration"
         param(
             [string]$ModuleVersion,
             [string]$Environment
-        ) 
+        )
         $Script:PSTopConfigurationName = "MOF_$($Environment)_$($ModuleVersion)"
     } $ModuleVersion, $environment
 
     node $ConfigurationData.AllNodes.NodeName {
         Write-Host "`r`n$('-'*75)`r`n$($Node.Name) : $($Node.NodeName) : $(&$module { $Script:PSTopConfigurationName })" -ForegroundColor Yellow
-        
+
         $configurationNames = Resolve-NodeProperty -PropertyPath 'Configurations' -Node $Node
         $global:node = $node #this makes the node variable being propagated into the configurations
 
@@ -35,9 +35,9 @@ configuration "RootConfiguration"
             $properties = Resolve-NodeProperty -PropertyPath $configurationName -DefaultValue @{}
 
             $dscError = [System.Collections.ArrayList]::new()
-            
+
             (Get-DscSplattedResource -ResourceName $configurationName -ExecutionName $configurationName -Properties $properties -NoInvoke).Invoke($properties)
-            
+
             if($Error[0] -and $lastError -ne $Error[0]) {
                 $lastIndex = [Math]::Max(($Error.LastIndexOf($lastError) -1), -1)
                 if($lastIndex -gt 0) {
@@ -81,7 +81,8 @@ foreach ($node in $configurationData.AllNodes)
     $cd.AllNodes = @($ConfigurationData.AllNodes | Where-Object NodeName -eq $node.NodeName)
     try
     {
-        RootConfiguration -ConfigurationData $cd -OutputPath (Join-Path -Path $BuildOutput -ChildPath MOF)
+        $path = Join-Path -Path MOF -ChildPath $node.Environment
+        RootConfiguration -ConfigurationData $cd -OutputPath (Join-Path -Path $BuildOutput -ChildPath $path)
     }
     catch
     {
