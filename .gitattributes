@@ -13,3 +13,4 @@
 *.png binary
 *.dll binary
 *.so  binary
+*.zip binary
