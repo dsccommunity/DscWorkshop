@@ -25,21 +25,21 @@ $requiredModules.PSDepend     = 'latest'
 $requiredModules.PSDeploy     = 'latest'
 
 $requiredChocolateyPackages = @{
-    putty                 = '0.76'
-    winrar                = '6.0.2'
-    notepadplusplus       = '8.1.9'
-    vscode                = '1.62.1'
-    wireshark             = '3.4.9'
-    winpcap               = '4.1.3.20161116'
+    putty            = '0.76'
+    winrar           = '6.0.2'
+    notepadplusplus  = '8.1.9'
+    vscode           = '1.61.2'
+    wireshark        = '3.4.9'
+    winpcap          = '4.1.3.20161116'
     'gitversion.portable' = '5.7.0'
     firefox               = '94.0.1'
 }
 
 $vsCodeDownloadUrl = 'https://go.microsoft.com/fwlink/?Linkid=852157'
-$gitDownloadUrl = 'https://github.com/git-for-windows/git/releases/download/v2.33.1.windows.1/Git-2.33.1-64-bit.exe'
-$vscodePowerShellExtensionDownloadUrl = 'https://marketplace.visualstudio.com/_apis/public/gallery/publishers/ms-vscode/vsextensions/PowerShell-Preview/2021.2.1/vspackage'
+$gitDownloadUrl = 'https://github.com/git-for-windows/git/releases/download/v2.34.1.windows.1/Git-2.34.1-64-bit.exe'
+$vscodePowerShellExtensionDownloadUrl = 'https://marketplace.visualstudio.com/_apis/public/gallery/publishers/ms-vscode/vsextensions/PowerShell/2021.10.2/vspackage'
 $chromeDownloadUrl = 'https://dl.google.com/tag/s/appguid%3D%7B8A69D345-D564-463C-AFF1-A69D9E530F96%7D%26iid%3D%7BC9D94BD4-6037-E88E-2D5A-F6B7D7F8F4CF%7D%26lang%3Den%26browser%3D5%26usagestats%3D0%26appname%3DGoogle%2520Chrome%26needsadmin%3Dprefers%26ap%3Dx64-stable-statsdef_1%26installdataindex%3Dempty/chrome/install/ChromeStandaloneSetup64.exe'
-$notepadPlusPlusDownloadUrl = 'https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v8.1.9/npp.8.1.9.Installer.x64.exe'
+$notepadPlusPlusDownloadUrl = 'https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v8.1.9.3/npp.8.1.9.3.Installer.exe'
 
 #-------------------------------------------------------------------------------------------------------------------------------------
 
