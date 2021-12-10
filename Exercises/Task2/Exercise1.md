@@ -125,7 +125,7 @@ After completing this task, you have a gone through the build process for all ar
 
     NetworkIpConfiguration:
     Interfaces:
-        - InterfaceAlias: Ethernet
+        - InterfaceAlias: DscWorkshop 0
         IpAddress: 192.168.111.100
         Prefix: 24
         Gateway: 192.168.111.50

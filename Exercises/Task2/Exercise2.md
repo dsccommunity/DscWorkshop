@@ -33,7 +33,7 @@ You are tasked with on-boarding a new node (DSCFile04) to your environment. The 
     .
     NetworkIpConfiguration:
     Interfaces:
-      - InterfaceAlias: Ethernet
+      - InterfaceAlias: DscWorkshop 0
         IpAddress: 192.168.111.112
     .
     LcmConfig:
