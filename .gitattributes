@@ -6,11 +6,12 @@
 *.svg   eol=lf
 
 # Ensure any exe files are treated as binary
-*.exe binary
-*.jpg binary
-*.xl* binary
-*.pfx binary
-*.png binary
-*.dll binary
-*.so  binary
-*.zip binary
+*.exe  binary
+*.jpg  binary
+*.xl*  binary
+*.pfx  binary
+*.png  binary
+*.dll  binary
+*.so   binary
+*.zip  binary
+*.vsix binary
