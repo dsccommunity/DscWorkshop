@@ -21,7 +21,7 @@ variables:
   RepositoryUri: RepositoryUri_WillBeChanged #will be replaced during DscWorkshop lab deployment
 
 stages:
-  - stage: Build
+  - stage: build
     jobs:
       - job: Dsc_Build
         displayName: 'Build DSC Artifacts'
@@ -71,11 +71,14 @@ stages:
             env:
               ModuleVersion: $(gitVersion.NuGetVersionV2)
 
-          - task: PublishBuildArtifacts@1
-            displayName: 'Publish Output Folder'
+          - task: PowerShell@2
+            name: pack
+            displayName: 'Pack DSC Artifacts'
             inputs:
-              PathtoPublish: '$(buildFolderName)/'
-              ArtifactName: '$(buildFolderName)'
+              filePath: './build.ps1'
+              arguments: '-ResolveDependency -tasks pack'
+            env:
+              ModuleVersion: $(gitVersion.NuGetVersionV2)
 
           - task: PublishBuildArtifacts@1
             displayName: 'Publish MOF Files'
@@ -93,10 +96,201 @@ stages:
             displayName: 'Publish Compressed Modules'
             inputs:
               PathtoPublish: '$(buildFolderName)/CompressedModules'
-              ArtifactName: 'Compressed Modules'
+              ArtifactName: CompressedModules
 
           - task: PublishBuildArtifacts@1
             displayName: 'Publish RSOP Files'
             inputs:
               PathtoPublish: '$(buildFolderName)/RSOP'
               ArtifactName: RSOP
+
+  - stage: deployArtifactsShare
+    jobs:
+      - job: dscDeployArtifactsShare
+        displayName: 'Deploy to Artifacts Share'
+        pool:
+          name: Default
+        workspace:
+          clean: all
+        steps:
+
+          - task: PowerShell@2
+            name: DisplayEnvironmentVariables
+            displayName: 'Display Environment Variables'
+            inputs:
+              targetType: 'inline'
+              script: |
+                dir -Path env: | Out-String | Write-Host
+
+          - task: DownloadBuildArtifacts@0
+            displayName: 'Download Build Artifact: MOF'
+            inputs:
+              buildType: 'current'
+              artifactName: MOF
+              downloadPath: $(Build.SourcesDirectory)
+
+          - task: DownloadBuildArtifacts@0
+            displayName: 'Download Build Artifact: MetaMof'
+            inputs:
+              buildType: 'current'
+              artifactName: MetaMof
+              downloadPath: $(Build.SourcesDirectory)
+
+          - task: DownloadBuildArtifacts@0
+            displayName: 'Download Build Artifact: RSOP'
+            inputs:
+              buildType: 'current'
+              artifactName: RSOP
+              downloadPath: $(Build.SourcesDirectory)
+
+          #Copy jobs to artifacts share
+          - task: CopyFiles@2
+            name: DeployMofToArtifactsShare
+            displayName: 'Deploy MOF Files to Artifacts Share'
+            inputs:
+              SourceFolder: '$(Build.SourcesDirectory)/MOF'
+              Contents: '**'
+              TargetFolder: '\\dscdo01\Artifacts\$(Build.DefinitionName)\$(Build.BuildId)\MOF'
+              OverWrite: true
+
+          - task: CopyFiles@2
+            name: DeployMetaMofToArtifactsShare
+            displayName: 'Deploy Meta MOF Files to Artifacts Share'
+            inputs:
+              SourceFolder: '$(Build.SourcesDirectory)/MetaMOF'
+              Contents: '**'
+              TargetFolder: '\\dscdo01\Artifacts\$(Build.DefinitionName)\$(Build.BuildId)\MetaMOF'
+              OverWrite: true
+
+          - task: CopyFiles@2
+            name: DeployRsopToArtifactsShare
+            displayName: 'Deploy RSOP Files to Artifacts Share'
+            inputs:
+              SourceFolder: '$(Build.SourcesDirectory)/RSOP'
+              Contents: '**'
+              TargetFolder: '\\dscdo01\Artifacts\$(Build.DefinitionName)\$(Build.BuildId)\RSOP'
+              OverWrite: true
+
+  - stage: DscDeploymentDev
+    dependsOn: build
+    jobs:
+      - deployment: Dev
+        displayName: Dev Deployment
+        environment: Dev
+        pool:
+          name: Default
+        workspace:
+          clean: all
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+              - download: None
+
+              - task: DownloadBuildArtifacts@0
+                displayName: 'Download Build Artifact: MOF'
+                inputs:
+                  buildType: 'current'
+                  artifactName: MOF
+                  downloadPath: $(Build.SourcesDirectory)
+
+              - task: DownloadBuildArtifacts@0
+                displayName: 'Download Build Artifact: CompressedModules'
+                inputs:
+                  buildType: 'current'
+                  artifactName: CompressedModules
+                  downloadPath: $(Build.SourcesDirectory)
+
+              - task: PowerShell@2
+                name: displayEnvironmentVariables
+                displayName: 'Display Environment Variables'
+                inputs:
+                  targetType: 'inline'
+                  script: |
+                    dir -Path env: | Out-String | Write-Host
+
+              - task: CopyFiles@2
+                name: DeployMofsToPullServer
+                displayName: 'Deploy MOF Files to Pull Server'
+                inputs:
+                  SourceFolder: '$(Build.SourcesDirectory)/MOF/$(Environment.Name)'
+                  Contents: '**'
+                  TargetFolder: '\\dscpull01\DscConfiguration'
+                  OverWrite: true
+
+              - task: CopyFiles@2
+                name: DeployCompressedModules
+                displayName: 'Deploy Compressed Modules to Pull Server'
+                inputs:
+                  SourceFolder: '$(Build.SourcesDirectory)/CompressedModules'
+                  Contents: '**'
+                  TargetFolder: '\\dscpull01\DscModules'
+                  OverWrite: true
+
+  - stage: DscDeploymentTest
+    dependsOn:
+      - build
+      - DscDeploymentDev
+    jobs:
+      - deployment: Test
+        displayName: Test Deployment
+        environment: Test
+        pool:
+          name: Default
+        workspace:
+          clean: all
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+              - download: None
+
+              - task: DownloadBuildArtifacts@0
+                displayName: 'Download Build Artifact: MOF'
+                inputs:
+                  buildType: 'current'
+                  artifactName: MOF
+                  downloadPath: $(Build.SourcesDirectory)
+
+              - task: CopyFiles@2
+                name: DeployMofsToPullServer
+                displayName: 'Deploy MOF Files to Pull Server'
+                inputs:
+                  SourceFolder: '$(Build.SourcesDirectory)/MOF/$(Environment.Name)'
+                  Contents: '**'
+                  TargetFolder: '\\dscpull01\DscConfiguration'
+                  OverWrite: true
+
+  - stage: DscDeploymentProd
+    dependsOn:
+      - build
+      - DscDeploymentTest
+    jobs:
+      - deployment: Prod
+        displayName: Prodt Deployment
+        environment: Prod
+        pool:
+          name: Default
+        workspace:
+          clean: all
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+              - download: None
+
+              - task: DownloadBuildArtifacts@0
+                displayName: 'Download Build Artifact: MOF'
+                inputs:
+                  buildType: 'current'
+                  artifactName: MOF
+                  downloadPath: $(Build.SourcesDirectory)
+
+              - task: CopyFiles@2
+                name: DeployMofsToPullServer
+                displayName: 'Deploy MOF Files to Pull Server'
+                inputs:
+                  SourceFolder: '$(Build.SourcesDirectory)/MOF/$(Environment.Name)'
+                  Contents: '**'
+                  TargetFolder: '\\dscpull01\DscConfiguration'
+                  OverWrite: true
