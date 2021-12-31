@@ -1,0 +1,9 @@
+DscTagging:
+  Environment: Test
+  Layers:
+    - Environment\Test
+
+FilesAndFolders:
+  Items:
+    - DestinationPath: C:\Test\Test-Environment
+      Type: Directory

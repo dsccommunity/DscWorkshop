@@ -1,9 +1,0 @@
-DscTagging:
-  Environment: Prod
-  Layers:
-    - Environment\Prod
-
-FilesAndFolders:
-  Items:
-    - DestinationPath: C:\Test\Prod-Environment
-      Type: Directory

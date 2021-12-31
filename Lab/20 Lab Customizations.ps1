@@ -16,14 +16,8 @@ Write-Host 'Starting remaining VMs...'
 Start-LabVM -RoleName FileServer, WebServer, HyperV -Wait
 Write-Host 'Restarted all machines'
 
-$psdependFiles = 'PSDepend.Build.psd1', 'PSDepend.DscResources.psd1'
-$requiredModules = @{}
-
-foreach ($psdependFile in $psdependFiles) {
-    $psdependFileData = Import-PowerShellDataFile -Path "$here\..\DSC\$psdependFile"
-    $psdependFileData.Remove('PSDependOptions')
-    $requiredModules = $requiredModules + $psdependFileData
-}
+$requiredModules = Import-PowerShellDataFile -Path "$here\..\RequiredModules.psd1"
+$requiredModules.Remove('PSDependOptions')
 
 #Adding modules that are not defined in the PSDepend files but required in the lab
 $requiredModules.NTFSSecurity = 'latest'
@@ -37,13 +31,15 @@ $requiredChocolateyPackages = @{
     vscode           = '1.61.2'
     wireshark        = '3.4.9'
     winpcap          = '4.1.3.20161116'
+    'gitversion.portable' = '5.7.0'
+    firefox               = '94.0.1'
 }
 
 $vsCodeDownloadUrl = 'https://go.microsoft.com/fwlink/?Linkid=852157'
-$gitDownloadUrl = 'https://github.com/git-for-windows/git/releases/download/v2.30.2.windows.1/Git-2.30.2-64-bit.exe'
-$vscodePowerShellExtensionDownloadUrl = 'https://marketplace.visualstudio.com/_apis/public/gallery/publishers/ms-vscode/vsextensions/PowerShell-Preview/2021.2.1/vspackage'
+$gitDownloadUrl = 'https://github.com/git-for-windows/git/releases/download/v2.34.1.windows.1/Git-2.34.1-64-bit.exe'
+$vscodePowerShellExtensionDownloadUrl = 'https://marketplace.visualstudio.com/_apis/public/gallery/publishers/ms-vscode/vsextensions/PowerShell/2021.10.2/vspackage'
 $chromeDownloadUrl = 'https://dl.google.com/tag/s/appguid%3D%7B8A69D345-D564-463C-AFF1-A69D9E530F96%7D%26iid%3D%7BC9D94BD4-6037-E88E-2D5A-F6B7D7F8F4CF%7D%26lang%3Den%26browser%3D5%26usagestats%3D0%26appname%3DGoogle%2520Chrome%26needsadmin%3Dprefers%26ap%3Dx64-stable-statsdef_1%26installdataindex%3Dempty/chrome/install/ChromeStandaloneSetup64.exe'
-$notepadPlusPlusDownloadUrl = 'https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v7.9.3/npp.7.9.3.Installer.exe'
+$notepadPlusPlusDownloadUrl = 'https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v8.1.9.3/npp.8.1.9.3.Installer.exe'
 
 #-------------------------------------------------------------------------------------------------------------------------------------
 
@@ -123,14 +119,14 @@ Invoke-LabCommand -Activity 'Setup Web Site' -ComputerName (Get-LabVM -Role WebS
 
     New-Item -ItemType Directory -Path C:\PSConfSite
     Expand-Archive -Path C:\LabSite.zip -DestinationPath C:\PSConfSite -Force
-    
+
     $pool = New-WebAppPool -Name PSConfSite
-    $pool.processModel.identityType = 3 
-    $pool.processModel.userName = $deployUserName 
-    $pool.processModel.password = $deployUserPassword 
+    $pool.processModel.identityType = 3
+    $pool.processModel.userName = $deployUserName
+    $pool.processModel.password = $deployUserPassword
     $pool | Set-Item
 
-    New-Website -name "PSConfSite" -PhysicalPath C:\PsConfSite -ApplicationPool "PSConfSite"  
+    New-Website -name "PSConfSite" -PhysicalPath C:\PsConfSite -ApplicationPool "PSConfSite"
 } -Variable (Get-Variable deployUserName, deployUserPassword)
 
 # File server
@@ -180,15 +176,15 @@ Invoke-LabCommand -ActivityName 'Create link on AzureDevOps desktop' -ComputerNa
     $shortcut = $shell.CreateShortcut("$desktopPath\CommonTasks Project.url")
     $shortcut.TargetPath = "https://$($devOpsServer):$($originalPort)/AutomatedLab/CommonTasks"
     $shortcut.Save()
-    
+
     $shortcut = $shell.CreateShortcut("$desktopPath\PowerShell Feed.url")
     $shortcut.TargetPath = "https://$($devOpsServer):$($originalPort)/AutomatedLab/_packaging?_a=feed&feed=$($powerShellFeed.name)"
     $shortcut.Save()
-    
+
     $shortcut = $shell.CreateShortcut("$desktopPath\Chocolatey Feed.url")
     $shortcut.TargetPath = "https://$($devOpsServer):$($originalPort)/AutomatedLab/_packaging?_a=feed&feed=$($chocolateyFeed.name)"
     $shortcut.Save()
-    
+
     $shortcut = $shell.CreateShortcut("$desktopPath\SQL RS.url")
     $shortcut.TargetPath = "http://$sqlServer/Reports/browse/"
     $shortcut.Save()
@@ -200,21 +196,21 @@ Invoke-LabCommand -ActivityName 'Create link on AzureDevOps desktop' -ComputerNa
 
 #in server 2019 there seems to be an issue with dynamic DNS registration, doing this manually
 foreach ($domain in (Get-Lab).Domains) {
-    $vms = Get-LabVM -All -IncludeLinux | Where-Object { 
+    $vms = Get-LabVM -All -IncludeLinux | Where-Object {
         $_.DomainName -eq $domain.Name -and
         $_.OperatingSystem -like '*2019*' -or
         $_.OperatingSystem -like '*CentOS*'
     }
-    
+
     $dc = Get-LabVM -Role ADDS | Where-Object DomainName -eq $domain.Name | Select-Object -First 1
-    
+
     Invoke-LabCommand -ActivityName 'Registering DNS records' -ScriptBlock {
         foreach ($vm in $vms) {
             if (-not (Get-DnsServerResourceRecord -Name $vm.Name -ZoneName $vm.DomainName -ErrorAction SilentlyContinue)) {
                 "Running 'Add-DnsServerResourceRecord -ZoneName $($vm.DomainName) -IPv4Address $($vm.IpV4Address) -Name $($vm.Name) -A'"
                 Add-DnsServerResourceRecord -ZoneName $vm.DomainName -IPv4Address $vm.IpV4Address -Name $vm.Name -A
             }
-        }    
+        }
     } -ComputerName $dc -Variable (Get-Variable -Name vms) -PassThru
 }
 
@@ -235,13 +231,13 @@ Invoke-LabCommand -ActivityName 'Get tested nuget.exe and register Azure DevOps 
 } -Variable (Get-Variable -Name powerShellFeed)
 
 Invoke-LabCommand -ActivityName 'Install Chocolatey to all lab VMs' -ScriptBlock {
-    
+
     if (([Net.ServicePointManager]::SecurityProtocol -band 'Tls12') -ne 'Tls12') {
         [Net.ServicePointManager]::SecurityProtocol += [Net.SecurityProtocolType]::Tls12
     }
-    
+
     Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
-    
+
     if (-not (Find-PackageProvider NuGet -ErrorAction SilentlyContinue)) {
         Install-PackageProvider -Name NuGet
     }
@@ -250,7 +246,7 @@ Invoke-LabCommand -ActivityName 'Install Chocolatey to all lab VMs' -ScriptBlock
     if (-not (Get-PackageSource -Name $chocolateyFeed.name -ErrorAction SilentlyContinue)) {
         Register-PackageSource -Name $chocolateyFeed.name -ProviderName NuGet -Location $chocolateyFeed.NugetV2Url -Trusted
     }
-    
+
     choco source add -n=Software -s $chocolateyFeed.NugetV2Url
 
 } -ComputerName (Get-LabVM) -Variable (Get-Variable -Name chocolateyFeed)
@@ -266,11 +262,11 @@ Write-Host 'Restarting all other machines'
 Restart-LabVM -ComputerName (Get-LabVM -Role WebServer, FileServer, DSCPullServer, AzDevOps, SQLServer, HyperV) -Wait
 
 Invoke-LabCommand -ActivityName 'Add Chocolatey internal source' -ScriptBlock {
-    
+
     if (([Net.ServicePointManager]::SecurityProtocol -band 'Tls12') -ne 'Tls12') {
         [Net.ServicePointManager]::SecurityProtocol += [Net.SecurityProtocolType]::Tls12
     }
-   
+
     choco source add -n=Software -s $chocolateyFeed.NugetV2Url
 
 } -ComputerName (Get-LabVM) -Variable (Get-Variable -Name chocolateyFeed)
@@ -278,7 +274,7 @@ Invoke-LabCommand -ActivityName 'Add Chocolatey internal source' -ScriptBlock {
 Invoke-LabCommand -ActivityName 'Downloading required modules from PSGallery' -ComputerName $devOpsServer -ScriptBlock {
 
     Write-Host "Installing $($requiredModules.Count) modules on $(hostname.exe) for pushing them to the lab"
-    
+
     foreach ($requiredModule in $requiredModules.GetEnumerator()) {
         $installModuleParams = @{
             Name               = $requiredModule.Key
@@ -314,12 +310,28 @@ Invoke-LabCommand -ActivityName 'Publishing required modules to internal reposit
                 $version = "$version-$($module.PrivateData.PSData.Prerelease)"
             }
             Write-Host "`t'$($module.Name) - $version'"
-            if (-not (Find-Module -Name $module.Name -Repository PowerShell -ErrorAction SilentlyContinue)) {
-                Publish-Module -Name $module.Name -RequiredVersion $version -Repository PowerShell -NuGetApiKey $nuGetApiKey -AllowPrerelease -Force -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
+            if (-not (Find-Module -Name $module.Name -Repository PowerShell -AllowPrerelease -ErrorAction SilentlyContinue)) {
+                $param = @{
+                    Name = $module.Name
+                    RequiredVersion = $version
+                    Repository = 'PowerShell'
+                    NuGetApiKey = $nuGetApiKey
+                    AllowPrerelease = $true
+                    Force = $true
+                    ErrorAction = 'SilentlyContinue'
+                    WarningAction = 'SilentlyContinue'
+                }
+                #Removing ErrorAction and WarningAction to see errors in the last publish loop.
+                if ($loop -eq $loopCount) {
+                    $param.Remove('ErrorAction')
+                    $param.Remove('WarningAction')
+                }
+
+                Publish-Module @param
             }
         }
     }
-    
+
     $modulesToUninstall = $requiredModules.GetEnumerator() | Where-Object Key -NotIn PowerShellGet, PackageManagement
     Write-Host "Uninstalling $($requiredModules.Count) modules"
     foreach ($module in $modulesToUninstall) {
@@ -333,11 +345,11 @@ Invoke-LabCommand -ActivityName 'Publishing required modules to internal reposit
 } -Variable (Get-Variable -Name requiredModules, nuGetApiKey)
 
 Invoke-LabCommand -ActivityName 'Publishing required Chocolatey packages to internal repository' -ScriptBlock {
-    
+
     if (([Net.ServicePointManager]::SecurityProtocol -band 'Tls12') -ne 'Tls12') {
         [Net.ServicePointManager]::SecurityProtocol += [Net.SecurityProtocolType]::Tls12
     }
-        
+
     Import-PackageProvider -Name NuGet
     $publicFeedUri = 'https://chocolatey.org/api/v2/'
 
@@ -360,7 +372,7 @@ Invoke-LabCommand -ActivityName 'Publishing required Chocolatey packages to inte
     }
 
     dir -Path $tempFolder | ForEach-Object {
-        
+
         Write-Host "Publishing package '$($_.FullName)'"
         choco push $_.FullName -s $chocolateyFeed.NugetV2Url --api-key $chocolateyFeed.NugetApiKey
 
@@ -380,27 +392,27 @@ Invoke-LabCommand -ActivityName 'Create Artifacts Share' -ComputerName $devOpsSe
 
     Install-Module -Name NTFSSecurity -Repository PowerShell
     mkdir -Path $artifactsSharePath
-    
+
     New-SmbShare -Name $artifactsShareName -Path $artifactsSharePath -FullAccess Everyone
     Add-NTFSAccess -Path $artifactsSharePath -Account Everyone -AccessRights FullControl
 }
 
 Invoke-LabCommand -ActivityName 'Create Share on Pull Server' -ComputerName $pullServer -ScriptBlock {
     Install-Module -Name NTFSSecurity -Repository PowerShell
-    
+
     $dscModulesPath = 'C:\Program Files\WindowsPowerShell\DscService\Modules'
     $dscConfigurationPath = 'C:\Program Files\WindowsPowerShell\DscService\Configuration'
 
     New-SmbShare -Name DscModules -Path $dscModulesPath -FullAccess Everyone
     Add-NTFSAccess -Path $dscModulesPath -Account Everyone -AccessRights FullControl
-    
+
     New-SmbShare -Name DscConfiguration -Path $dscConfigurationPath -FullAccess Everyone
     Add-NTFSAccess -Path $dscConfigurationPath -Account Everyone -AccessRights FullControl
 }
 
 Invoke-LabCommand -ActivityName 'Setting the worker service account to local system to be able to write to deployment path' -ComputerName $buildWorkers -ScriptBlock {
     $services = Get-CimInstance -ClassName Win32_Service -Filter 'Name like "vsts%"'
-    foreach ($service in $services) {    
+    foreach ($service in $services) {
         $service | Invoke-CimMethod -MethodName Change -Arguments @{ StartName = 'LocalSystem' } | Out-Null
     }
 }

@@ -1,0 +1,90 @@
+trigger:
+  branches:
+    include:
+    - '*'
+  paths:
+    exclude:
+    - CHANGELOG.md
+  tags:
+    include:
+    - "v*"
+    exclude:
+    - "*-*"
+
+variables:
+  buildFolderName: output
+  testResultFolderName: testResults
+  defaultBranch: main
+
+stages:
+  - stage: Build
+    jobs:
+      - job: Compile_Dsc
+        displayName: 'Compile DSC Configuration'
+        pool:
+          vmImage: 'windows-2019'
+        steps:
+
+          - task: GitVersion@5
+            name: gitVersion
+            displayName: 'Evaluate Next Version'
+            inputs:
+              runtime: 'core'
+              configFilePath: 'GitVersion.yml'
+
+          - task: PowerShell@2
+            name: build
+            displayName: 'Build DSC Artifacts'
+            inputs:
+              filePath: './build.ps1'
+              arguments: '-ResolveDependency -tasks build'
+              pwsh: false
+            env:
+              ModuleVersion: $(gitVersion.NuGetVersionV2)
+
+          - task: PowerShell@2
+            name: pack
+            displayName: 'Pack DSC Artifacts'
+            inputs:
+              filePath: './build.ps1'
+              arguments: '-ResolveDependency -tasks pack'
+
+          - task: PublishPipelineArtifact@1
+            displayName: 'Publish Output Folder'
+            inputs:
+              targetPath: '$(buildFolderName)/'
+              artifact: 'output'
+              publishLocation: 'pipeline'
+              parallel: true
+
+          - task: PublishPipelineArtifact@1
+            displayName: 'Publish MOF Files'
+            inputs:
+              targetPath: '$(buildFolderName)/MOF'
+              artifact: 'MOF'
+              publishLocation: 'pipeline'
+              parallel: true
+
+          - task: PublishPipelineArtifact@1
+            displayName: 'Publish Meta MOF Files'
+            inputs:
+              targetPath: '$(buildFolderName)/MetaMOF'
+              artifact: 'MetaMOF'
+              publishLocation: 'pipeline'
+              parallel: true
+
+          - task: PublishPipelineArtifact@1
+            displayName: 'Publish Compressed Modules'
+            inputs:
+              targetPath: '$(buildFolderName)/CompressedModules'
+              artifact: 'CompressedModules'
+              publishLocation: 'pipeline'
+              parallel: true
+
+          - task: PublishPipelineArtifact@1
+            displayName: 'Publish RSOP Files'
+            inputs:
+              targetPath: '$(buildFolderName)/RSOP'
+              artifact: 'RSOP'
+              publishLocation: 'pipeline'
+              parallel: true

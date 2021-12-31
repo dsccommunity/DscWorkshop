@@ -1,0 +1,7 @@
+ComputerName;Role;Description
+DSCFile01;FileServer;FileServer in Dev
+DSCFile02;FileServer;FileServer in Test
+DSCFile03;FileServer;FileServer in Prod
+DSCWeb01;WebServer;WebServer in Dev
+DSCWeb02;WebServer;WebServer in Test
+DSCWeb03;WebServer;WebServer in Prod

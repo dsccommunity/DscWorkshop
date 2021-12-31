@@ -1,0 +1,11 @@
+Configurations:
+  - FilesAndFolders
+
+FilesAndFolders:
+  Items:
+    - DestinationPath: C:\Test\London
+      Type: Directory
+
+DscTagging:
+  Layers:
+    - Locations\London

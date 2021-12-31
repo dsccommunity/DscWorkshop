@@ -1,0 +1,11 @@
+Configurations:
+  - FilesAndFolders
+
+FilesAndFolders:
+  Items:
+    - DestinationPath: C:\Test\Tokio
+      Type: Directory
+
+DscTagging:
+  Layers:
+    - Locations\Tokio

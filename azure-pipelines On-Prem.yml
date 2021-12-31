@@ -1,91 +1,296 @@
-name: $(BuildID)
-
 trigger:
-- '*'
+  branches:
+    include:
+    - main
+  paths:
+    exclude:
+    - CHANGELOG.md
+  tags:
+    include:
+    - "v*"
+    exclude:
+    - "*-*"
 
 variables:
-  RepositoryUri: ggggg #will be replaced during lab deployment
-  
-jobs:
-- job: DscBuild
-  strategy:
-    parallel: 1
-  pool:
-    name: Default
-  workspace:
-    clean: all
-  steps:
-    - task: PowerShell@2
-      displayName: Register PowerShell Gallery
-      inputs:
-        targetType: inline
-        script: |
-          #always make sure the local PowerShell Gallery is registered correctly
-          [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
-          $uri = '$(RepositoryUri)'
-          $name = 'PowerShell'
-          $r = Get-PSRepository -Name $name -ErrorAction SilentlyContinue
-          if (-not $r -or $r.SourceLocation -ne $uri -or $r.PublishLocation -ne $uri) {
-              Write-Host "The Source or PublishLocation of the repository '$name' is not correct or the repository is not registered"
-              Unregister-PSRepository -Name $name -ErrorAction SilentlyContinue
-              Register-PSRepository -Name $name -SourceLocation $uri -PublishLocation $uri -InstallationPolicy Trusted
-              Get-PSRepository
-          }
-        errorActionPreference: stop
+  buildFolderName: output
+  buildArtifactName: output
+  testResultFolderName: testResults
+  defaultBranch: main
+  PSModuleFeed: PowerShell
+  GalleryApiToken: NA
+  RepositoryUri: RepositoryUri_WillBeChanged #will be replaced during DscWorkshop lab deployment
 
-    - task: PowerShell@2
-      displayName: 'Execute build.ps1'
-      inputs:
-        targetType: inline
-        script: |
-          Set-Location -Path .\DSC
+stages:
+  - stage: build
+    jobs:
+      - job: Dsc_Build
+        displayName: 'Build DSC Artifacts'
+        pool:
+          name: Default
+        workspace:
+          clean: all
+        steps:
+          - task: GitVersion@5
+            name: gitVersion
+            displayName: 'Evaluate Next Version'
+            inputs:
+              runtime: 'full'
+              configFilePath: 'GitVersion.yml'
 
-          [int]$currentJobNumber = $env:SYSTEM_JOBPOSITIONINPHASE
-          [int]$totalJobCount = $env:SYSTEM_TOTALJOBSINPHASE
-          Write-Host "Calling 'Build.ps1' with parameter 'CurrentJobNumber' =  $currentJobNumber and 'TotalJobCount' = $totalJobCount"
-          .\Build.ps1 -ResolveDependency -Repository PowerShell -CurrentJobNumber $currentJobNumber -TotalJobCount $totalJobCount
+          - task: PowerShell@2
+            name: displayEnvironmentVariables
+            displayName: 'Display Environment Variables'
+            inputs:
+              targetType: 'inline'
+              script: |
+                dir -Path env: | Out-String | Write-Host
 
-    - task: PublishTestResults@2
-      displayName: 'Publish Integration Test Results'
-      inputs:
-        testResultsFormat: NUnit
-        testResultsFiles: '**/IntegrationTestResults.xml'
-        failTaskOnFailedTests: true
+          - task: PowerShell@2
+            displayName: Register PowerShell Gallery
+            inputs:
+              targetType: inline
+              script: |
+                #always make sure the local PowerShell Gallery is registered correctly
+                [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
+                $uri = '$(RepositoryUri)'
+                $name = 'PowerShell'
+                $r = Get-PSRepository -Name $name -ErrorAction SilentlyContinue
+                if (-not $r -or $r.SourceLocation -ne $uri -or $r.PublishLocation -ne $uri) {
+                    Write-Host "The Source or PublishLocation of the repository '$name' is not correct or the repository is not registered"
+                    Unregister-PSRepository -Name $name -ErrorAction SilentlyContinue
+                    Register-PSRepository -Name $name -SourceLocation $uri -PublishLocation $uri -InstallationPolicy Trusted
+                    Get-PSRepository
+                }
 
-    - task: PublishBuildArtifacts@1
-      displayName: MOF
-      inputs:
-        PathtoPublish: '$(Build.SourcesDirectory)\DSC\BuildOutput\MOF'
-        ArtifactName: MOF
+          - task: PowerShell@2
+            name: build
+            displayName: 'Build DSC Artifacts'
+            inputs:
+              filePath: './build.ps1'
+              arguments: '-ResolveDependency -tasks build'
+            env:
+              ModuleVersion: $(gitVersion.NuGetVersionV2)
 
-    - task: PublishBuildArtifacts@1
-      displayName: 'Meta MOF'
-      inputs:
-        PathtoPublish: '$(Build.SourcesDirectory)\DSC\BuildOutput\MetaMOF'
-        ArtifactName: 'Meta MOF'
+          - task: PowerShell@2
+            name: pack
+            displayName: 'Pack DSC Artifacts'
+            inputs:
+              filePath: './build.ps1'
+              arguments: '-ResolveDependency -tasks pack'
+            env:
+              ModuleVersion: $(gitVersion.NuGetVersionV2)
 
-    - task: PublishBuildArtifacts@1
-      displayName: RSOP
-      inputs:
-        PathtoPublish: '$(Build.SourcesDirectory)\DSC\BuildOutput\RSOP'
-        ArtifactName: RSOP
+          - task: PublishBuildArtifacts@1
+            displayName: 'Publish MOF Files'
+            inputs:
+              PathtoPublish: '$(buildFolderName)/MOF'
+              ArtifactName: MOF
 
-    - task: PublishBuildArtifacts@1
-      condition: and(succeeded(), not(startsWith(variables['BHCommitMessage'], '--Added new node')))
-      displayName: 'Compressed Modules'
-      inputs:
-        PathtoPublish: '$(Build.SourcesDirectory)\DSC\BuildOutput\CompressedModules'
-        ArtifactName: 'Compressed Modules'
+          - task: PublishBuildArtifacts@1
+            displayName: 'Publish Meta MOF Files'
+            inputs:
+              PathtoPublish: '$(buildFolderName)/MetaMOF'
+              ArtifactName: MetaMOF
 
-    - task: PublishBuildArtifacts@1
-      displayName: 'Build Folder'
-      inputs:
-        PathtoPublish: '$(Build.SourcesDirectory)'
-        ArtifactName: 'SourcesDirectory'
+          - task: PublishBuildArtifacts@1
+            displayName: 'Publish Compressed Modules'
+            inputs:
+              PathtoPublish: '$(buildFolderName)/CompressedModules'
+              ArtifactName: CompressedModules
 
-    - task: PublishTestResults@2
-      displayName: 'Publish Build Acceptance Test Results'
-      inputs:
-        testResultsFormat: NUnit
-        testResultsFiles: '**/BuildAcceptanceTestResults.xml'
-        failTaskOnFailedTests: true
+          - task: PublishBuildArtifacts@1
+            displayName: 'Publish RSOP Files'
+            inputs:
+              PathtoPublish: '$(buildFolderName)/RSOP'
+              ArtifactName: RSOP
+
+  - stage: deployArtifactsShare
+    jobs:
+      - job: dscDeployArtifactsShare
+        displayName: 'Deploy to Artifacts Share'
+        pool:
+          name: Default
+        workspace:
+          clean: all
+        steps:
+
+          - task: PowerShell@2
+            name: DisplayEnvironmentVariables
+            displayName: 'Display Environment Variables'
+            inputs:
+              targetType: 'inline'
+              script: |
+                dir -Path env: | Out-String | Write-Host
+
+          - task: DownloadBuildArtifacts@0
+            displayName: 'Download Build Artifact: MOF'
+            inputs:
+              buildType: 'current'
+              artifactName: MOF
+              downloadPath: $(Build.SourcesDirectory)
+
+          - task: DownloadBuildArtifacts@0
+            displayName: 'Download Build Artifact: MetaMof'
+            inputs:
+              buildType: 'current'
+              artifactName: MetaMof
+              downloadPath: $(Build.SourcesDirectory)
+
+          - task: DownloadBuildArtifacts@0
+            displayName: 'Download Build Artifact: RSOP'
+            inputs:
+              buildType: 'current'
+              artifactName: RSOP
+              downloadPath: $(Build.SourcesDirectory)
+
+          #Copy jobs to artifacts share
+          - task: CopyFiles@2
+            name: DeployMofToArtifactsShare
+            displayName: 'Deploy MOF Files to Artifacts Share'
+            inputs:
+              SourceFolder: '$(Build.SourcesDirectory)/MOF'
+              Contents: '**'
+              TargetFolder: '\\dscdo01\Artifacts\$(Build.DefinitionName)\$(Build.BuildId)\MOF'
+              OverWrite: true
+
+          - task: CopyFiles@2
+            name: DeployMetaMofToArtifactsShare
+            displayName: 'Deploy Meta MOF Files to Artifacts Share'
+            inputs:
+              SourceFolder: '$(Build.SourcesDirectory)/MetaMOF'
+              Contents: '**'
+              TargetFolder: '\\dscdo01\Artifacts\$(Build.DefinitionName)\$(Build.BuildId)\MetaMOF'
+              OverWrite: true
+
+          - task: CopyFiles@2
+            name: DeployRsopToArtifactsShare
+            displayName: 'Deploy RSOP Files to Artifacts Share'
+            inputs:
+              SourceFolder: '$(Build.SourcesDirectory)/RSOP'
+              Contents: '**'
+              TargetFolder: '\\dscdo01\Artifacts\$(Build.DefinitionName)\$(Build.BuildId)\RSOP'
+              OverWrite: true
+
+  - stage: DscDeploymentDev
+    dependsOn: build
+    jobs:
+      - deployment: Dev
+        displayName: Dev Deployment
+        environment: Dev
+        pool:
+          name: Default
+        workspace:
+          clean: all
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+              - download: None
+
+              - task: DownloadBuildArtifacts@0
+                displayName: 'Download Build Artifact: MOF'
+                inputs:
+                  buildType: 'current'
+                  artifactName: MOF
+                  downloadPath: $(Build.SourcesDirectory)
+
+              - task: DownloadBuildArtifacts@0
+                displayName: 'Download Build Artifact: CompressedModules'
+                inputs:
+                  buildType: 'current'
+                  artifactName: CompressedModules
+                  downloadPath: $(Build.SourcesDirectory)
+
+              - task: PowerShell@2
+                name: displayEnvironmentVariables
+                displayName: 'Display Environment Variables'
+                inputs:
+                  targetType: 'inline'
+                  script: |
+                    dir -Path env: | Out-String | Write-Host
+
+              - task: CopyFiles@2
+                name: DeployMofsToPullServer
+                displayName: 'Deploy MOF Files to Pull Server'
+                inputs:
+                  SourceFolder: '$(Build.SourcesDirectory)/MOF/$(Environment.Name)'
+                  Contents: '**'
+                  TargetFolder: '\\dscpull01\DscConfiguration'
+                  OverWrite: true
+
+              - task: CopyFiles@2
+                name: DeployCompressedModules
+                displayName: 'Deploy Compressed Modules to Pull Server'
+                inputs:
+                  SourceFolder: '$(Build.SourcesDirectory)/CompressedModules'
+                  Contents: '**'
+                  TargetFolder: '\\dscpull01\DscModules'
+                  OverWrite: true
+
+  - stage: DscDeploymentTest
+    dependsOn:
+      - build
+      - DscDeploymentDev
+    jobs:
+      - deployment: Test
+        displayName: Test Deployment
+        environment: Test
+        pool:
+          name: Default
+        workspace:
+          clean: all
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+              - download: None
+
+              - task: DownloadBuildArtifacts@0
+                displayName: 'Download Build Artifact: MOF'
+                inputs:
+                  buildType: 'current'
+                  artifactName: MOF
+                  downloadPath: $(Build.SourcesDirectory)
+
+              - task: CopyFiles@2
+                name: DeployMofsToPullServer
+                displayName: 'Deploy MOF Files to Pull Server'
+                inputs:
+                  SourceFolder: '$(Build.SourcesDirectory)/MOF/$(Environment.Name)'
+                  Contents: '**'
+                  TargetFolder: '\\dscpull01\DscConfiguration'
+                  OverWrite: true
+
+  - stage: DscDeploymentProd
+    dependsOn:
+      - build
+      - DscDeploymentTest
+    jobs:
+      - deployment: Prod
+        displayName: Prodt Deployment
+        environment: Prod
+        pool:
+          name: Default
+        workspace:
+          clean: all
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+              - download: None
+
+              - task: DownloadBuildArtifacts@0
+                displayName: 'Download Build Artifact: MOF'
+                inputs:
+                  buildType: 'current'
+                  artifactName: MOF
+                  downloadPath: $(Build.SourcesDirectory)
+
+              - task: CopyFiles@2
+                name: DeployMofsToPullServer
+                displayName: 'Deploy MOF Files to Pull Server'
+                inputs:
+                  SourceFolder: '$(Build.SourcesDirectory)/MOF/$(Environment.Name)'
+                  Contents: '**'
+                  TargetFolder: '\\dscpull01\DscConfiguration'
+                  OverWrite: true

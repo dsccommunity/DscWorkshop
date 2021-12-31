@@ -1,0 +1,18 @@
+DscTagging:
+  Environment: Dev
+  Layers:
+    - Environment\Dev
+
+FilesAndFolders:
+  Items:
+    - DestinationPath: C:\Test\Dev-Environment
+      Type: Directory
+
+RegistryValues:
+  Values:
+    - Key: HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Netlogon\Parameters        
+      ValueName: DBFlag
+      ValueData: 545325055
+      ValueType: DWORD
+      Ensure: Present
+      Force: true

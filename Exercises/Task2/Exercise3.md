@@ -43,7 +43,7 @@ Create a new file in 'DSC\DscConfigData\Roles' named 'WsusServer.yml'. Paste the
 
   NetworkIpConfiguration:
     Interfaces:
-      - InterfaceAlias: Ethernet
+      - InterfaceAlias: DscWorkshop 0
         IpAddress: 192.168.111.113
         Prefix: 24
         Gateway: 192.168.111.50
