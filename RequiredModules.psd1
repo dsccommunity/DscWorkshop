@@ -30,6 +30,7 @@
     Configuration                = 'latest'
     Metadata                     = 'latest'
     xDscResourceDesigner         = 'latest'
+    'DscResource.Test'           = 'latest'
 
     # Composites
     CommonTasks                  = '0.3.259'
