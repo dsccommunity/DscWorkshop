@@ -18,7 +18,7 @@
     Sampler                      = 'latest'
     'Sampler.GitHubTasks'        = 'latest'
     PowerShellForGitHub          = 'latest'
-    'Sampler.DscPipeline'        = '0.1.1-preview0001'
+    'Sampler.DscPipeline'        = '0.1.1-preview0002'
     MarkdownLinkCheck            = 'latest'
     'DscResource.AnalyzerRules'  = 'latest'
     DscBuildHelpers              = 'latest'
@@ -30,6 +30,7 @@
     Configuration                = 'latest'
     Metadata                     = 'latest'
     xDscResourceDesigner         = 'latest'
+    'DscResource.Test'           = 'latest'
 
     # Composites
     CommonTasks                  = '0.3.259'
