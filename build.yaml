@@ -94,3 +94,10 @@ TaskHeader: |
   Write-Build DarkGray "  $Path"
   Write-Build DarkGray "  $($Task.InvocationInfo.ScriptName):$($Task.InvocationInfo.ScriptLineNumber)"
   ""
+
+Sampler.DscPipeline:
+  DscCompositeResourceModules:
+  - PSDesiredStateConfiguration
+  - CommonTasks
+  #- Name: CommonTasks
+  #  Version: 0.3.259
