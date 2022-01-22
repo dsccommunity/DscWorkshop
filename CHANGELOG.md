@@ -10,4 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Migration to 'Sampler' and 'Sampler.DscPipeline'
+<<<<<<< HEAD
 - Migration to Pester 5+
+=======
+>>>>>>> 1e94b352b537ce48641d7577e6eb0403260709fe
