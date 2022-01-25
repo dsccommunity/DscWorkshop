@@ -23,13 +23,18 @@ BeforeDiscovery {
         configurationData   = $configurationData
     }
     $nodeDefinitions = Get-ChildItem $ProjectPath\source\AllNodes -Recurse -Include *.yml | Where-Object { $_.BaseName -in $configurationData.AllNodes.NodeName -and ($_.DirectoryName.Split('\')[-1] -in $configurationData.AllNodes.Environment) }
-    $environments = (Get-ChildItem $ProjectPath\source\AllNodes -Directory).BaseName
-    $roleDefinitions = Get-ChildItem $ProjectPath\source\Roles -Recurse -Include *.yml
-    $datum = New-DatumStructure -DefinitionFile $definitionTests.datumDefinitionFile
-    [hashtable[]] $allDefinitions = Get-ChildItem $ProjectPath\source -Recurse -Include *.yml | ForEach-Object { @{FullName = $_.FullName; Name = $_.Name } }
+    $environments = (Get-ChildItem $ProjectPath\source\AllNodes -Directory -ErrorAction SilentlyContinue).BaseName
+    $roleDefinitions = Get-ChildItem $ProjectPath\source\Roles -Recurse -Include *.yml -ErrorAction SilentlyContinue
+    $datum = New-DatumStructure -DefinitionFile $definitionTests.datumDefinitionFile -ErrorAction SilentlyContinue
+    [hashtable[]]$allDefinitions = Get-ChildItem $ProjectPath\source -Recurse -Include *.yml | ForEach-Object {
+        @{
+            FullName = $_.FullName
+            Name     = $_.Name
+        }
+    }
 
     $nodeGroups = $configurationData.AllNodes | Group-Object { $_.Environment }
-    [hashtable[]] $allNodeTestsDuplicate = $nodeGroups | ForEach-Object {
+    [hashtable[]]$allNodeTestsDuplicate = $nodeGroups | ForEach-Object {
         @{
             ReferenceNodes  = $_.Group.NodeName
             DifferenceNodes = $_.Group.NodeName | Sort-Object -Unique
@@ -38,7 +43,7 @@ BeforeDiscovery {
 
     $environments = Get-ChildItem $ProjectPath\source\Environment\ | Select-Object -ExpandProperty BaseName
     $locations = Get-ChildItem $ProjectPath\source\Locations\ | Select-Object -ExpandProperty BaseName
-    [hashtable[]] $allNodeTests = $nodeDefinitions | ForEach-Object {
+    [hashtable[]]$allNodeTests = $nodeDefinitions | ForEach-Object {
         $content = Get-Content -Path $_ -Raw
         $n = $content | ConvertFrom-Yaml
         @{
@@ -65,11 +70,22 @@ BeforeDiscovery {
     $nodeRoles = $nodes | ForEach-Object -MemberName Role
     $nodeRoleTests = foreach ($nodeRole in $nodeRoles)
     {
-        $roleDefinitions | Where-Object FullName -like "*$($nodeRole)*" | ForEach-Object { @{FullName = $_.FullName } }
+        $roleDefinitions | Where-Object FullName -Like "*$($nodeRole)*" | ForEach-Object {
+            @{
+                FullName = $_.FullName
+            }
+        }
     }
 
     $nodeTestsAllNodes = @(@{ConfigurationData = $configurationData })
-    $nodeTestsSingleNode = $nodes | ForEach-Object { @{NodeName = $_.Name; Node = $_; Datum = $datum; ConfigurationData = $configurationData } }
+    $nodeTestsSingleNode = $nodes | ForEach-Object {
+        @{
+            NodeName          = $_.Name
+            Node              = $_
+            Datum             = $datum
+            ConfigurationData = $configurationData
+        }
+    }
 }
 
 Describe 'Validate All Definition Files' -Tag Integration {
@@ -125,7 +141,7 @@ Describe 'Node Definition Files' -Tag Integration {
 
 
 Describe 'Roles Definition Files' -Tag Integration {
-    It "<FullName> has valid yaml" -TestCases $nodeRoleTests {
+    It '<FullName> has valid yaml' -TestCases $nodeRoleTests {
         { $null = Get-Content -Raw -Path $FullName | ConvertFrom-Yaml } | Should -Not -Throw
     }
 }
@@ -136,9 +152,13 @@ Describe 'Role Composition' -Tag Integration {
         { Resolve-Datum -PropertyPath Configurations -Node $node -DatumTree $datum } | Should -Not -Throw
     }
 
-    It "No duplicate IP addresses should be used" -TestCases $nodeTestsAllNodes {
+    It 'No duplicate IP addresses should be used' -TestCases $nodeTestsAllNodes {
         $allIps = $configurationData.AllNodes.NetworkIpConfiguration.Interfaces.IpAddress
         $selectedIps = $allIps | Select-Object -Unique
-        Compare-Object -ReferenceObject $allIps -DifferenceObject $selectedIps | Should -BeNull
+
+        if ($allIps -and $selectedIps)
+        {
+            Compare-Object -ReferenceObject $allIps -DifferenceObject $selectedIps | Should -BeNull
+        }
     }
 }
