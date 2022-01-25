@@ -22,7 +22,10 @@ BeforeDiscovery {
         datumYamlContent    = Get-Content -Raw -Path "$ProjectPath\source\Datum.yml" -ErrorAction SilentlyContinue
         configurationData   = $configurationData
     }
-    $nodeDefinitions = Get-ChildItem $ProjectPath\source\AllNodes -Recurse -Include *.yml | Where-Object { $_.BaseName -in $configurationData.AllNodes.NodeName -and ($_.DirectoryName.Split('\')[-1] -in $configurationData.AllNodes.Environment) }
+    $nodeDefinitions = Get-ChildItem $ProjectPath\source\AllNodes -Recurse -Include *.yml |
+        Where-Object {
+            $_.BaseName -in $configurationData.AllNodes.NodeName
+        }
     $environments = (Get-ChildItem $ProjectPath\source\AllNodes -Directory -ErrorAction SilentlyContinue).BaseName
     $roleDefinitions = Get-ChildItem $ProjectPath\source\Roles -Recurse -Include *.yml -ErrorAction SilentlyContinue
     $datum = New-DatumStructure -DefinitionFile $definitionTests.datumDefinitionFile -ErrorAction SilentlyContinue
@@ -41,8 +44,10 @@ BeforeDiscovery {
         }
     }
 
-    $environments = Get-ChildItem $ProjectPath\source\Environment\ | Select-Object -ExpandProperty BaseName
-    $locations = Get-ChildItem $ProjectPath\source\Locations\ | Select-Object -ExpandProperty BaseName
+    $environments = Get-ChildItem $ProjectPath\source\Environment -ErrorAction SilentlyContinue | Select-Object -ExpandProperty BaseName
+    $locations = Get-ChildItem $ProjectPath\source\Locations -ErrorAction SilentlyContinue | Select-Object -ExpandProperty BaseName
+    $roles = Get-ChildItem $ProjectPath\source\Roles -ErrorAction SilentlyContinue | Select-Object -ExpandProperty BaseName
+    $baselines = Get-ChildItem $ProjectPath\source\Baselines -ErrorAction SilentlyContinue | Select-Object -ExpandProperty BaseName
     [hashtable[]]$allNodeTests = $nodeDefinitions | ForEach-Object {
         $content = Get-Content -Path $_ -Raw
         $n = $content | ConvertFrom-Yaml
@@ -51,8 +56,12 @@ BeforeDiscovery {
             Node         = $n
             NodeName     = $n.NodeName
             Location     = $n.Location
+            Role         = $n.Role
             FullName     = $_.FullName
             Locations    = $locations
+            Roles        = $roles
+            Baselines    = $baselines
+            Baseline     = $n.Baseline
             Environments = $environments
             Environment  = $n.Environment
         }
@@ -123,19 +132,32 @@ Describe 'Node Definition Files' -Tag Integration {
         { $content | ConvertFrom-Yaml } | Should -Not -Throw
     }
 
-    It "'<NodeName>' is in the right environment" -TestCases $allNodeTests {
-        $pathElements = $FullName.Split('\')
-        $pathElements -contains $node.Environment | Should -BeTrue
+    if ($node.Environment)
+    {
+        It "'<NodeName>' is in the right environment" -TestCases $allNodeTests {
+            $pathElements = $FullName.Split('\')
+            $pathElements -contains $node.Environment | Should -BeTrue
+        }
     }
 
     It "Location of '<NodeName>' is '<Location>' and does exist" -TestCases $allNodeTests {
         $node = $content | ConvertFrom-Yaml
-        $node.Location -in $locations | Should -BeTrue
+        $node.Location -in $Locations | Should -BeTrue
     }
 
     It "Environment of '<NodeName>' is '<Environment>' and does exist" -TestCases $allNodeTests {
         $node = $content | ConvertFrom-Yaml
-        $node.Environment -in $environments | Should -BeTrue
+        $node.Environment -in $Environments | Should -BeTrue
+    }
+
+    It "Role of '<NodeName>' is '<Role>' and does exist" -TestCases $allNodeTests {
+        $node = $content | ConvertFrom-Yaml
+        $node.Role -in $Roles | Should -BeTrue
+    }
+
+    It "Baseline of '<NodeName>' is '<Baseline>' and does exist" -TestCases $allNodeTests {
+        $node = $content | ConvertFrom-Yaml
+        $node.Baseline -in $Baselines | Should -BeTrue
     }
 }
 
