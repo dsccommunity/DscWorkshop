@@ -140,24 +140,36 @@ Describe 'Node Definition Files' -Tag Integration {
         }
     }
 
-    It "Location of '<NodeName>' is '<Location>' and does exist" -TestCases $allNodeTests {
-        $node = $content | ConvertFrom-Yaml
-        $node.Location -in $Locations | Should -BeTrue
+    if ($node.Location)
+    {
+        It "Location of '<NodeName>' is '<Location>' and does exist" -TestCases $allNodeTests {
+            $node = $content | ConvertFrom-Yaml
+            $node.Location -in $Locations | Should -BeTrue
+        }
     }
 
-    It "Environment of '<NodeName>' is '<Environment>' and does exist" -TestCases $allNodeTests {
-        $node = $content | ConvertFrom-Yaml
-        $node.Environment -in $Environments | Should -BeTrue
+    if ($node.Endironment)
+    {
+        It "Environment of '<NodeName>' is '<Environment>' and does exist" -TestCases $allNodeTests {
+            $node = $content | ConvertFrom-Yaml
+            $node.Environment -in $Environments | Should -BeTrue
+        }
     }
 
-    It "Role of '<NodeName>' is '<Role>' and does exist" -TestCases $allNodeTests {
-        $node = $content | ConvertFrom-Yaml
-        $node.Role -in $Roles | Should -BeTrue
+    if ($node.Role)
+    {
+        It "Role of '<NodeName>' is '<Role>' and does exist" -TestCases $allNodeTests {
+            $node = $content | ConvertFrom-Yaml
+            $node.Role -in $Roles | Should -BeTrue
+        }
     }
 
-    It "Baseline of '<NodeName>' is '<Baseline>' and does exist" -TestCases $allNodeTests {
-        $node = $content | ConvertFrom-Yaml
-        $node.Baseline -in $Baselines | Should -BeTrue
+    if ($node.Baseline)
+    {
+        It "Baseline of '<NodeName>' is '<Baseline>' and does exist" -TestCases $allNodeTests {
+            $node = $content | ConvertFrom-Yaml
+            $node.Baseline -in $Baselines | Should -BeTrue
+        }
     }
 }
 
