@@ -30,7 +30,9 @@ WebApplicationPools:
       Ensure: Present
       IdentityType: ApplicationPoolIdentity
       State: Started
-  
+      DependsOn: '[xWebAppPool]TestAppPool1'
+  DependsOn: '[FilesAndFolders]FilesAndFolders'
+
 WebApplications:
   Items:
     - Name: TestApp1

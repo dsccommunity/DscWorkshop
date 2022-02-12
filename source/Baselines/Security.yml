@@ -8,6 +8,7 @@ WindowsFeatures:
 
 SecurityBase:
   Role: Baseline
+  DependsOn: '[WindowsFeatures]WindowsFeatures'
 
 DscTagging:
   Layers:
