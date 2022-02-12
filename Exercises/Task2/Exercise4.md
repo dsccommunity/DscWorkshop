@@ -93,7 +93,7 @@ DscTagging:
 
       ```yaml
         WindowsFeatures:
-          Name:
+          Names:
           - -Telnet-Client
       ```
   
@@ -101,9 +101,9 @@ DscTagging:
 
       ```yaml
         WindowsFeatures:
-        Name:
-        - +Web-Server
-        - -WoW64-Support
+          Names:
+          - +Web-Server
+          - -WoW64-Support
       ```
 
     The 'Datum.yml' defines the merge behavior for the path 'WindowsFeatures\Name':
@@ -117,10 +117,10 @@ DscTagging:
 
       ```yaml
         WindowsFeatures:
-        Name:
-        - +Web-Server
-        - -WoW64-Support
-        - -Telnet-Client
+          Names:
+          - +Web-Server
+          - -WoW64-Support
+          - -Telnet-Client
       ```
 
     More complex merging scenarios are supported that will be explained in later articles.

@@ -30,7 +30,7 @@ WebApplicationPools:
       Ensure: Present
       IdentityType: ApplicationPoolIdentity
       State: Started
-  
+
 WebApplications:
   Items:
     - Name: TestApp1
@@ -57,7 +57,7 @@ SecurityBase:
   Role: WebServer
 
 WindowsFeatures:
-  Name:
+  Names:
   - +Web-Server
   - -WoW64-Support
 

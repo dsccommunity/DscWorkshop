@@ -3,7 +3,7 @@ Configurations:
   - RegistryValues
 
 WindowsFeatures:
-  Name:
+  Names:
     - File-Services
 
 FilesAndFolders:

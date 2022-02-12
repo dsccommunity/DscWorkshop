@@ -3,7 +3,7 @@ Configurations:
   - WindowsFeatures
 
 WindowsFeatures:
-  Name:
+  Names:
     - -Telnet-Client
 
 SecurityBase:

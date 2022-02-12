@@ -132,10 +132,10 @@ stages:
                   $container = New-AzStorageContainer -Name $env:storageContainerName -Context $account.Context -ErrorAction Stop
               }
 
-              $moduleName = $module.BaseName -replace '_\d+\.\d+\.\d+(\.\d+)?'
               $modulePath = Join-Path -Path $env:BUILD_SOURCESDIRECTORY -ChildPath CompressedModules
               foreach ($module in (Get-ChildItem $modulePath -Filter *.zip))
               {
+                  $moduleName = $module.BaseName -replace '_\d+\.\d+\.\d+(\.\d+)?'
                   $content = Set-AzStorageBlobContent -File $module.FullName -CloudBlobContainer $container.CloudBlobContainer -Blob $module.Name -Context $account.Context -Force -ErrorAction Stop
                   $token = New-AzStorageBlobSASToken -CloudBlob $content.ICloudBlob -StartTime (Get-Date) -ExpiryTime (Get-Date).AddYears(5) -Protocol HttpsOnly -Context $account.Context -Permission r -ErrorAction Stop
                   $uri = 'https://{3}.blob.core.windows.net/{0}/{1}{2}' -f $env:storageContainerName, $module.Name, $token, $env:StorageAccountName

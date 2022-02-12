@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Added stages to cloud pipeline and added steps to publish modules to Azure Automation DSC.
 
 ### Changed
 
@@ -13,6 +14,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Migration to Pester 5+
 
 ### Fixed
-
 - Config data test 'No duplicate IP addresses should be used' threw when there
   is no IP address configured
+- Module versions incremented
