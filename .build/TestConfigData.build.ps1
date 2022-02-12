@@ -60,10 +60,10 @@ task TestConfigData {
     }
 
     $testResultsPath = Get-SamplerAbsolutePath -Path $testResultsPath -RelativeTo $OutputDirectory
-    
+
     Write-Build DarkGray "testResultsPath is: $testResultsPath"
     Write-Build DarkGray "OutputDirectory is: $OutputDirectory"
-    
+
     Import-Module -Name Pester
     $po = [PesterConfiguration]::new()
     $po.Run.PassThru = $true
@@ -74,5 +74,5 @@ task TestConfigData {
     $po.TestResult.OutputPath = $testResultsPath
     $testResults = Invoke-Pester -Configuration $po
 
-    assert ($testResults.FailedCount -eq 0)
+    assert ($testResults.FailedCount -eq 0 -and $testResults.FailedBlocksCount -eq 0 -and $testResults.FailedContainersCount -eq 0)
 }

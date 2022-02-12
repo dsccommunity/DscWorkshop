@@ -3,6 +3,7 @@ Environment: Dev
 Role: WebServer
 Description: Web Server in Dev
 Location: Singapore
+Baseline: Server
 
 ComputerSettings:
   Name: DSCWeb01
