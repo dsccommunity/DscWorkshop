@@ -45,6 +45,8 @@ WebApplications:
       WebAppPool: TestAppPool2
       Website: Default Web Site
       Ensure: Present
+      DependsOn: '[xWebApplication]TestApp1'
+  DependsOn: '[WebApplicationPools]WebApplicationPools'
 
 RegistryValues:
     Values:
@@ -59,7 +61,7 @@ SecurityBase:
   Role: WebServer
 
 WindowsFeatures:
-  Name:
+  Names:
   - +Web-Server
   - -WoW64-Support
 
