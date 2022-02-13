@@ -132,45 +132,42 @@ Describe 'Node Definition Files' -Tag Integration {
         { $content | ConvertFrom-Yaml } | Should -Not -Throw
     }
 
-    if ($node.Environment)
-    {
-        It "'<NodeName>' is in the right environment" -TestCases $allNodeTests {
+    It "'<NodeName>' is in the right environment" -TestCases $allNodeTests {
+        if ($node.Environment)
+        {
             $pathElements = $FullName.Split('\')
             $pathElements -contains $node.Environment | Should -BeTrue
         }
     }
 
-    if ($node.Location)
-    {
-        It "Location of '<NodeName>' is '<Location>' and does exist" -TestCases $allNodeTests {
-            $node = $content | ConvertFrom-Yaml
+    It "Location of '<NodeName>' is '<Location>' and does exist" -TestCases $allNodeTests {
+        if ($node.Location)
+        {
             $node.Location -in $Locations | Should -BeTrue
         }
     }
 
-    if ($node.Endironment)
-    {
-        It "Environment of '<NodeName>' is '<Environment>' and does exist" -TestCases $allNodeTests {
-            $node = $content | ConvertFrom-Yaml
+    It "Environment of '<NodeName>' is '<Environment>' and does exist" -TestCases $allNodeTests {
+        if ($node.Endironment)
+        {
             $node.Environment -in $Environments | Should -BeTrue
         }
     }
 
-    if ($node.Role)
-    {
-        It "Role of '<NodeName>' is '<Role>' and does exist" -TestCases $allNodeTests {
-            $node = $content | ConvertFrom-Yaml
+    It "Role of '<NodeName>' is '<Role>' and does exist" -TestCases $allNodeTests {
+        if ($node.Role)
+        {
             $node.Role -in $Roles | Should -BeTrue
         }
     }
 
-    if ($node.Baseline)
-    {
-        It "Baseline of '<NodeName>' is '<Baseline>' and does exist" -TestCases $allNodeTests {
-            $node = $content | ConvertFrom-Yaml
+    It "Baseline of '<NodeName>' is '<Baseline>' and does exist" -TestCases $allNodeTests {
+        if ($node.Baseline)
+        {
             $node.Baseline -in $Baselines | Should -BeTrue
         }
     }
+
 }
 
 
