@@ -3,7 +3,7 @@
     Import-Lab -Name DscWorkshop -NoValidation -ErrorAction Stop
 }
 
-$projectGitUrl = 'https://github.com/raandree/CommonTasks'
+$projectGitUrl = 'https://github.com/DscCommunity/CommonTasks'
 $projectName = $projectGitUrl.Substring($projectGitUrl.LastIndexOf('/') + 1)
 $collectionName = 'AutomatedLab'
 $gitVersion = @{

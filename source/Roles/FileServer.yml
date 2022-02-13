@@ -3,7 +3,7 @@ Configurations:
   - RegistryValues
 
 WindowsFeatures:
-  Name:
+  Names:
     - File-Services
 
 FilesAndFolders:
@@ -30,9 +30,11 @@ RegistryValues:
       ValueType: String
       Ensure: Present
       Force: true
+  DependsOn: '[FilesAndFolders]FilesAndFolders'
 
 SecurityBaseline:
   Role: FileServer
+  DependsOn: '[RegistryValues]RegistryValues'
 
 DscTagging:
   Layers:

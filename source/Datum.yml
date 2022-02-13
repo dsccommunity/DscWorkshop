@@ -29,7 +29,7 @@ lookup_options:
   WindowsFeatures:
     merge_hash: deep
 
-  WindowsFeatures\Name:
+  WindowsFeatures\Names:
     merge_basetype_array: Unique
 
   FilesAndFolders:
@@ -39,7 +39,7 @@ lookup_options:
     merge_options:
       tuple_keys:
         - DestinationPath
-  
+
   RegistryValues:
     merge_hash: deep
   RegistryValues\Values:

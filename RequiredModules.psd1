@@ -18,7 +18,7 @@
     Sampler                      = 'latest'
     'Sampler.GitHubTasks'        = 'latest'
     PowerShellForGitHub          = 'latest'
-    'Sampler.DscPipeline'        = '0.1.1-preview0004'
+    'Sampler.DscPipeline'        = '0.2.0-preview0001'
     MarkdownLinkCheck            = 'latest'
     'DscResource.AnalyzerRules'  = 'latest'
     DscBuildHelpers              = 'latest'
@@ -33,7 +33,7 @@
     'DscResource.Test'           = 'latest'
 
     # Composites
-    CommonTasks                  = '0.3.259'
+    CommonTasks                  = '0.6.1-preview0001'
 
     # DSC Resources
     xPSDesiredStateConfiguration = '9.1.0'
@@ -67,5 +67,7 @@
     FileSystemDsc                = '1.1.1'
     PackageManagement            = '1.4.7'
     PowerShellGet                = '2.2.5'
-    ConfigMgrCBDsc               = '2.1.0-preview0006' # Gallery version has extremely old SQL dependencies
+    ConfigMgrCBDsc               = '3.0.0'
+    MmaDsc                       = '1.3.0'
+    CertificateDsc               = '5.1.0'
 }
