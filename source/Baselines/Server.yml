@@ -17,6 +17,7 @@ WindowsEventLogs:
     LogMode: Circular
     MaximumSizeInBytes: 134217728
     IsEnabled: true
+  DependsOn: '[ComputerSettings]ComputerSettings'
 
 ComputerSettings:
   DomainName: contoso.com

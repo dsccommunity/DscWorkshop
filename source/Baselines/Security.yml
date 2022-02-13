@@ -3,11 +3,12 @@ Configurations:
   - WindowsFeatures
 
 WindowsFeatures:
-  Name:
+  Names:
     - -Telnet-Client
 
 SecurityBase:
   Role: Baseline
+  DependsOn: '[WindowsFeatures]WindowsFeatures'
 
 DscTagging:
   Layers:

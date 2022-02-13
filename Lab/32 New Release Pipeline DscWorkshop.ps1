@@ -3,7 +3,7 @@
 }
 
 $projectName = 'DscWorkshop'
-$projectGitUrl = 'https://github.com/raandree/DscWorkshop'
+$projectGitUrl = 'https://github.com/DscCommunity/DscWorkshop'
 $collectionName = 'AutomatedLab'
 
 $lab = Get-Lab
