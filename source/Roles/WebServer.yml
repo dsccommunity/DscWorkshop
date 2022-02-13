@@ -31,7 +31,9 @@ WebApplicationPools:
       IdentityType: ApplicationPoolIdentity
       State: Started
       DependsOn: '[xWebAppPool]TestAppPool1'
-  DependsOn: '[FilesAndFolders]FilesAndFolders'
+  DependsOn:
+    - '[FilesAndFolders]FilesAndFolders'
+    - '[WindowsFeatures]WindowsFeatures'
 
 WebApplications:
   Items:
@@ -49,13 +51,14 @@ WebApplications:
   DependsOn: '[WebApplicationPools]WebApplicationPools'
 
 RegistryValues:
-    Values:
+  Values:
     - Key: HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\W32Time\Parameters
       ValueName: NtpServer
       ValueData: time.windows.com,0x9;
       ValueType: String
       Ensure: Present
       Force: true
+  DependsOn: '[WebApplications]WebApplications'
 
 SecurityBase:
   Role: WebServer
@@ -71,6 +74,7 @@ WindowsServices:
       DisplayName: Dummy Service on Web Servers
       StartupType: Automatic
       Path: C:\DummyService.exe
+  DependsOn: '[RegistryValues]RegistryValues'
 
 DscTagging:
   Layers:
