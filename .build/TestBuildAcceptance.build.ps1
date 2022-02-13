@@ -29,7 +29,7 @@ param
     [Parameter()]
     [string[]]
     $excludeTag = (property excludeTag @()),
-    
+
     [Parameter()]
     [int]
     $CurrentJobNumber = (property CurrentJobNumber 1),
@@ -48,12 +48,12 @@ task TestBuildAcceptance {
     $OutputDirectory = Get-SamplerAbsolutePath -Path $OutputDirectory -RelativeTo $ProjectPath
     $DatumConfigDataDirectory = Get-SamplerAbsolutePath -Path $DatumConfigDataDirectory -RelativeTo $ProjectPath
     $PesterScript = $PesterScript.Foreach({
-        Get-SamplerAbsolutePath -Path $_ -RelativeTo $ProjectPath
-    })
+            Get-SamplerAbsolutePath -Path $_ -RelativeTo $ProjectPath
+        })
 
     $AcceptanceTestDirectory = $AcceptanceTestDirectory.Foreach({
-        Get-SamplerAbsolutePath -Path $_ -RelativeTo $PesterScript[0]
-    })
+            Get-SamplerAbsolutePath -Path $_ -RelativeTo $PesterScript[0]
+        })
 
     if (-not (Test-Path -Path $AcceptanceTestDirectory))
     {
@@ -71,9 +71,9 @@ task TestBuildAcceptance {
         #AppVoyor build are  not deploying to a pull server yet.
         $excludeTag = 'PullServer'
     }
-    
+
     $testResultsPath = Get-SamplerAbsolutePath -Path $testResultsPath -RelativeTo $OutputDirectory
-    
+
     Write-Build DarkGray "testResultsPath is: $testResultsPath"
     Write-Build DarkGray "AcceptanceTestDirectory is: $AcceptanceTestDirectory"
     Write-Build DarkGray "BuildOutput is: $BuildOutput"
@@ -91,6 +91,6 @@ task TestBuildAcceptance {
     $po.TestResult.OutputFormat = 'NUnitXml'
     $po.TestResult.OutputPath = $testResultsPath
     $testResults = Invoke-Pester -Configuration $po
-    
-    assert (-not $testResults.FailedCount)
+
+    assert ($testResults.FailedCount -eq 0 -and $testResults.FailedBlocksCount -eq 0 -and $testResults.FailedContainersCount -eq 0)
 }
