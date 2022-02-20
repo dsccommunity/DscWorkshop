@@ -148,7 +148,7 @@ Describe 'Node Definition Files' -Tag Integration {
     }
 
     It "Environment of '<NodeName>' is '<Environment>' and does exist" -TestCases $allNodeTests {
-        if ($node.Endironment)
+        if ($node.Environment)
         {
             $node.Environment -in $Environments | Should -BeTrue
         }
