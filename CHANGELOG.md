@@ -17,3 +17,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Config data test 'No duplicate IP addresses should be used' threw when there
   is no IP address configured
 - Module versions incremented
+- Fix typo in ConfigData tests
