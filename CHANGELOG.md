@@ -10,11 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Migration to 'Sampler' and 'Sampler.DscPipeline'
-- Migration to Pester 5+
+- Migration to 'Sampler' and 'Sampler.DscPipeline'.
+- Migration to Pester 5+.
+- Changed from 'CommonTasks' to 'DscConfig.Demo' for faster build time.
 
 ### Fixed
 - Config data test 'No duplicate IP addresses should be used' threw when there
-  is no IP address configured
-- Module versions incremented
-- Fix typo in ConfigData tests
+  is no IP address configured.
+- Module versions incremented.
+- Fix typo in ConfigData tests.
