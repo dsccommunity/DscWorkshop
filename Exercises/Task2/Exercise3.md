@@ -23,7 +23,7 @@ Create a new file in 'DSC\DscConfigData\Roles' named 'WsusServer.yml'. Paste the
   - WindowsFeatures
   
   WindowsFeatures:
-    Name:
+    Names:
     - +UpdateServices
   ```
 

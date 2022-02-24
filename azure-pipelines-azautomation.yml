@@ -1,0 +1,300 @@
+trigger:
+  branches:
+    include:
+    - '*'
+  paths:
+    exclude:
+    - CHANGELOG.md
+  tags:
+    include:
+    - "v*"
+    exclude:
+    - "*-*"
+
+variables:
+  buildFolderName: output
+  testResultFolderName: testResults
+  defaultBranch: main
+  azureServiceConnectionName: 'asc-dscws' # Service Connection used in AzurePowerShell tasks. Create in Project Settings.
+  automationAccountName: aa-dscws # Automation Account hosting the Pull Server
+  automationResourceGroup: dscws # Resource Group of Automation Account
+  storageAccountName: dscws # Storage Account to host zipped modules for import into Azure Automation Modules
+  storageAccountResourceGroup: dscws # Resource Group of Storage Account
+  storageContainerName: modules # Name of storage container that will store the module zips for an upload to AA
+
+stages:
+  - stage: Build
+    jobs:
+      - job: Compile_Dsc
+        displayName: 'Compile DSC Configuration'
+        pool:
+          vmImage: 'windows-2019'
+        steps:
+
+          - task: GitVersion@5
+            name: gitVersion
+            displayName: 'Evaluate Next Version'
+            inputs:
+              runtime: 'core'
+              configFilePath: 'GitVersion.yml'
+
+          - task: PowerShell@2
+            name: build
+            displayName: 'Build DSC Artifacts'
+            inputs:
+              filePath: './build.ps1'
+              arguments: '-ResolveDependency -tasks build'
+              pwsh: false
+            env:
+              ModuleVersion: $(gitVersion.NuGetVersionV2)
+
+          - task: PowerShell@2
+            name: pack
+            displayName: 'Pack DSC Artifacts'
+            inputs:
+              filePath: './build.ps1'
+              arguments: '-ResolveDependency -tasks pack'
+
+          - task: PublishPipelineArtifact@1
+            displayName: 'Publish Output Folder'
+            inputs:
+              targetPath: '$(buildFolderName)/'
+              artifact: 'output'
+              publishLocation: 'pipeline'
+              parallel: true
+
+          - task: PublishPipelineArtifact@1
+            displayName: 'Publish MOF Files'
+            inputs:
+              targetPath: '$(buildFolderName)/MOF'
+              artifact: 'MOF'
+              publishLocation: 'pipeline'
+              parallel: true
+
+          - task: PublishPipelineArtifact@1
+            displayName: 'Publish Meta MOF Files'
+            inputs:
+              targetPath: '$(buildFolderName)/MetaMOF'
+              artifact: 'MetaMOF'
+              publishLocation: 'pipeline'
+              parallel: true
+
+          - task: PublishPipelineArtifact@1
+            displayName: 'Publish Compressed Modules'
+            inputs:
+              targetPath: '$(buildFolderName)/CompressedModules'
+              artifact: 'CompressedModules'
+              publishLocation: 'pipeline'
+              parallel: true
+
+          - task: PublishPipelineArtifact@1
+            displayName: 'Publish RSOP Files'
+            inputs:
+              targetPath: '$(buildFolderName)/RSOP'
+              artifact: 'RSOP'
+              publishLocation: 'pipeline'
+              parallel: true
+  - stage: DscDeployModules
+    dependsOn: build
+    condition: succeeded()
+    jobs:
+      - job: publish_modules
+        displayName: Publish DSC resource modules
+        pool:
+          vmImage: 'windows-2019'
+        steps:
+
+        - task: DownloadPipelineArtifact@2
+          displayName: 'Download Build Artifact: CompressedModules'
+          inputs:
+            source: 'current'
+            artifact: CompressedModules
+            path: '$(Build.SourcesDirectory)/CompressedModules'
+
+        - task: AzurePowerShell@5
+          name: deployModulesToAzAutomation
+          displayName: Deploy modules to Azure Automation
+          inputs:
+            azureSubscription: $(azureServiceConnectionName)
+            scriptType: 'inlineScript' # Optional. Options: filePath, inlineScript
+            inline: |
+              $account = Get-AzStorageAccount -Name $env:storageAccountName -ResourceGroupName $env:storageAccountResourceGroup -ErrorAction SilentlyContinue
+
+              if ( -not $account)
+              {
+                  Write-Error -Message "There is no storage account called $env:storageAccountName ..."
+                  return
+              }
+
+              $container = Get-AzStorageContainer -Name $env:storageContainerName -Context $account.Context -ErrorAction SilentlyContinue
+              if (-not $container)
+              {
+                  $container = New-AzStorageContainer -Name $env:storageContainerName -Context $account.Context -ErrorAction Stop
+              }
+
+              $modulePath = Join-Path -Path $env:BUILD_SOURCESDIRECTORY -ChildPath CompressedModules
+              foreach ($module in (Get-ChildItem $modulePath -Filter *.zip))
+              {
+                  $moduleName = $module.BaseName -replace '_\d+\.\d+\.\d+(\.\d+)?'
+                  $content = Set-AzStorageBlobContent -File $module.FullName -CloudBlobContainer $container.CloudBlobContainer -Blob $module.Name -Context $account.Context -Force -ErrorAction Stop
+                  $token = New-AzStorageBlobSASToken -CloudBlob $content.ICloudBlob -StartTime (Get-Date) -ExpiryTime (Get-Date).AddYears(5) -Protocol HttpsOnly -Context $account.Context -Permission r -ErrorAction Stop
+                  $uri = 'https://{3}.blob.core.windows.net/{0}/{1}{2}' -f $env:storageContainerName, $module.Name, $token, $env:StorageAccountName
+
+                  New-AzAutomationModule -Name $moduleName -ContentLinkUri $uri -ResourceGroupName $env:automationResourceGroup -AutomationAccountName $env:automationAccountName
+              }
+            errorActionPreference: 'stop'
+            failOnStandardError: false
+            azurePowerShellVersion: 'latestVersion'
+            pwsh: false
+
+  - stage: DscDeploymentDev
+    condition: succeeded()
+    dependsOn:
+      - build
+      - DscDeployModules
+    jobs:
+      - deployment: Dev
+        displayName: Dev Deployment
+        environment: Dev
+        pool:
+          vmImage: 'windows-2019'
+        workspace:
+          clean: all
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+              - download: None
+
+              - task: DownloadPipelineArtifact@2
+                displayName: 'Download Build Artifact: MOF'
+                inputs:
+                  source: 'current'
+                  artifact: MOF
+                  path: '$(Build.SourcesDirectory)/MOF'
+
+              - task: PowerShell@2
+                name: displayEnvironmentVariables
+                displayName: 'Display Environment Variables'
+                inputs:
+                  targetType: 'inline'
+                  script: |
+                    dir -Path env: | Out-String | Write-Host
+
+              - task: AzurePowerShell@5
+                name: deployMofToAzAutomation
+                displayName: Deploy to Azure Automation Pull
+                inputs:
+                  azureSubscription: $(azureServiceConnectionName)
+                  scriptType: 'inlineScript' # Optional. Options: filePath, inlineScript
+                  inline: |
+                    $mofPath = Join-Path -Path $env:BUILD_SOURCESDIRECTORY -ChildPath "/MOF/$env:ENVIRONMENT_NAME"
+                    foreach ($mof in (Get-ChildItem -Path $mofPath -Filter *.mof))
+                    {
+                        Import-AzAutomationDscNodeConfiguration -Path $mof.FullName -ConfigurationName $env:ENVIRONMENT_NAME -AutomationAccountName $env:automationAccountName -ResourceGroupName $env:automationResourceGroup -Force -IncrementNodeConfigurationBuild
+                    }
+                  errorActionPreference: 'stop'
+                  failOnStandardError: false
+                  azurePowerShellVersion: 'latestVersion'
+                  pwsh: false
+
+  - stage: DscDeploymentTest
+    condition: succeeded()
+    dependsOn:
+      - build
+      - DscDeploymentDev
+    jobs:
+      - deployment: Test
+        displayName: Test Deployment
+        environment: Test
+        pool:
+          vmImage: 'windows-2019'
+        workspace:
+          clean: all
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+              - download: None
+
+              - task: DownloadPipelineArtifact@2
+                displayName: 'Download Build Artifact: MOF'
+                inputs:
+                  source: 'current'
+                  artifact: MOF
+                  path: '$(Build.SourcesDirectory)/MOF'
+
+              - task: PowerShell@2
+                name: displayEnvironmentVariables
+                displayName: 'Display Environment Variables'
+                inputs:
+                  targetType: 'inline'
+                  script: |
+                    dir -Path env: | Out-String | Write-Host
+
+              - task: AzurePowerShell@5
+                name: deployMofToAzAutomation
+                displayName: Deploy to Azure Automation Pull
+                inputs:
+                  azureSubscription: $(azureServiceConnectionName)
+                  scriptType: 'inlineScript' # Optional. Options: filePath, inlineScript
+                  inline: |
+                    $mofPath = Join-Path -Path $env:BUILD_SOURCESDIRECTORY -ChildPath "/MOF/$env:ENVIRONMENT_NAME"
+                    foreach ($mof in (Get-ChildItem -Path $mofPath -Filter *.mof))
+                    {
+                        Import-AzAutomationDscNodeConfiguration -Path $mof.FullName -ConfigurationName $env:ENVIRONMENT_NAME -AutomationAccountName $env:automationAccountName -ResourceGroupName $env:automationResourceGroup -Force -IncrementNodeConfigurationBuild
+                    }
+                  errorActionPreference: 'stop'
+                  failOnStandardError: false
+                  azurePowerShellVersion: 'latestVersion'
+                  pwsh: false
+  - stage: DscDeploymentProd
+    condition: succeeded()
+    dependsOn:
+      - build
+      - DscDeploymentTest
+    jobs:
+      - deployment: Prod
+        displayName: Prod Deployment
+        environment: Prod
+        pool:
+          vmImage: 'windows-2019'
+        workspace:
+          clean: all
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+              - download: None
+
+              - task: DownloadPipelineArtifact@2
+                displayName: 'Download Build Artifact: MOF'
+                inputs:
+                  source: 'current'
+                  artifact: MOF
+                  path: '$(Build.SourcesDirectory)/MOF'
+
+              - task: PowerShell@2
+                name: displayEnvironmentVariables
+                displayName: 'Display Environment Variables'
+                inputs:
+                  targetType: 'inline'
+                  script: |
+                    dir -Path env: | Out-String | Write-Host
+
+              - task: AzurePowerShell@5
+                name: deployMofToAzAutomation
+                displayName: Deploy to Azure Automation Pull
+                inputs:
+                  azureSubscription: $(azureServiceConnectionName)
+                  scriptType: 'inlineScript' # Optional. Options: filePath, inlineScript
+                  inline: |
+                    $mofPath = Join-Path -Path $env:BUILD_SOURCESDIRECTORY -ChildPath "/MOF/$env:ENVIRONMENT_NAME"
+                    foreach ($mof in (Get-ChildItem -Path $mofPath -Filter *.mof))
+                    {
+                        Import-AzAutomationDscNodeConfiguration -Path $mof.FullName -ConfigurationName $env:ENVIRONMENT_NAME -AutomationAccountName $env:automationAccountName -ResourceGroupName $env:automationResourceGroup -Force -IncrementNodeConfigurationBuild
+                    }
+                  errorActionPreference: 'stop'
+                  failOnStandardError: false
+                  azurePowerShellVersion: 'latestVersion'
+                  pwsh: false
