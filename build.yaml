@@ -98,6 +98,6 @@ TaskHeader: |
 Sampler.DscPipeline:
   DscCompositeResourceModules:
   - PSDesiredStateConfiguration
-  - CommonTasks
+  - DscConfig.Demo
   #- Name: CommonTasks
   #  Version: 0.3.259
