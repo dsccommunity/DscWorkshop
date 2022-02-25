@@ -5,10 +5,10 @@ BeforeDiscovery {
         $Filter = $global:Filter
     }
 
-    $datumDefinitionFile = Join-Path $here ..\..\source\Datum.yml
-    $nodeDefinitions = Get-ChildItem $here\..\..\source\AllNodes -Recurse -Include *.yml
-    $environments = (Get-ChildItem $here\..\..\source\AllNodes -Directory).BaseName
-    $roleDefinitions = Get-ChildItem $here\..\..\source\Roles -Recurse -Include *.yml
+    $datumDefinitionFile = Join-Path -Path $ProjectPath -ChildPath source\Datum.yml
+    $nodeDefinitions = Get-ChildItem $ProjectPath\source\AllNodes -Recurse -Include *.yml
+    $environments = (Get-ChildItem $ProjectPath\source\AllNodes -Directory -ErrorAction SilentlyContinue).BaseName
+    $roleDefinitions = Get-ChildItem $ProjectPath\source\Roles -Recurse -Include *.yml -ErrorAction SilentlyContinue
     $datum = New-DatumStructure -DefinitionFile $datumDefinitionFile
     $configurationData = Get-FilteredConfigurationData -Filter $Filter -CurrentJobNumber $currentJobNumber -TotalJobCount $totalJobCount
 

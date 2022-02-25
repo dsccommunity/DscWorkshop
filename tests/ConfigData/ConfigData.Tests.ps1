@@ -18,8 +18,8 @@ BeforeDiscovery {
     }
 
     $definitionTests = @{
-        datumDefinitionFile = "$ProjectPath\source\Datum.yml"
-        datumYamlContent    = Get-Content -Raw -Path "$ProjectPath\source\Datum.yml" -ErrorAction SilentlyContinue
+        datumDefinitionFile = Join-Path -Path $ProjectPath -ChildPath source\Datum.yml
+        datumYamlContent    = Get-Content -Raw -Path (Join-Path -Path $ProjectPath -ChildPath source\Datum.yml) -ErrorAction SilentlyContinue
         configurationData   = $configurationData
     }
     $nodeDefinitions = Get-ChildItem $ProjectPath\source\AllNodes -Recurse -Include *.yml |
@@ -124,7 +124,10 @@ Describe 'Node Definition Files' -Tag Integration {
 
     Context 'Testing for conflicts / duplicate data' {
         It 'Should not have duplicate node names' -TestCases $allNodeTestsDuplicate {
-            (Compare-Object -ReferenceObject $ReferenceNodes -DifferenceObject $DifferenceNodes).InputObject | Should -BeNullOrEmpty
+            if ($ReferenceNodes -and $DifferenceNodes)
+            {
+                (Compare-Object -ReferenceObject $ReferenceNodes -DifferenceObject $DifferenceNodes).InputObject | Should -BeNullOrEmpty
+            }
         }
     }
 
