@@ -1,16 +1,11 @@
-output/
+!output/
 
-**.bak
-*.local.*
-!**/README.md
-.kitchen/
+output/*
+!output/RequiredModules
+output/RequiredModules/*
 
-*.suo
-*.user
-*.coverage
-.vs
-.psproj
-.sln
-markdownissues.txt
-node_modules
-package-lock.json
+!output/RequiredModules/CommonTasks
+!output/RequiredModules/PSModulesDsc
+!output/RequiredModules/Sampler.DscPipeline
+!output/RequiredModules/Datum
+!output/RequiredModules/Datum.InvokeCommand
