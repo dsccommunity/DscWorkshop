@@ -25,11 +25,14 @@ stages:
           vmImage: 'windows-2019'
         steps:
 
-          - task: GitVersion@5
+          - task: gitversion/setup@0
+            displayName: 'Install GitTools'
+            inputs:
+              versionSpec: '5.3.x'
+          - task: gitversion/execute@0
             name: gitVersion
             displayName: 'Evaluate Next Version'
             inputs:
-              runtime: 'core'
               configFilePath: 'GitVersion.yml'
 
           - task: PowerShell@2
