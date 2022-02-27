@@ -116,8 +116,8 @@ try
         #>
         Get-Module -ListAvailable PackageManagement |
             Where-Object -Property 'ModuleBase' -NotMatch 'powershell.7' |
-            Select-Object -First 1 |
-            Import-Module -Force
+                Select-Object -First 1 |
+                    Import-Module -Force
     }
 
     Write-Verbose -Message 'Importing Bootstrap default parameters from ''$PSScriptRoot/Resolve-Dependency.psd1''.'
@@ -151,7 +151,7 @@ try
 
                 $PSBoundParameters.Add($parameterName, $variableValue)
 
-                Set-Variable -Name $parameterName -value $variableValue -Force -ErrorAction 'SilentlyContinue'
+                Set-Variable -Name $parameterName -Value $variableValue -Force -ErrorAction 'SilentlyContinue'
             }
             catch
             {
@@ -386,7 +386,7 @@ try
         }
         else
         {
-            Write-Verbose "PowerShell-Yaml is already available"
+            Write-Verbose 'PowerShell-Yaml is already available'
         }
 
         Write-Progress -Activity 'Bootstrap:' -PercentComplete 88 -CurrentOperation 'Importing PowerShell module PowerShell-Yaml'
@@ -396,7 +396,7 @@ try
 
     Write-Progress -Activity 'Bootstrap:' -PercentComplete 90 -CurrentOperation 'Invoke PSDepend'
 
-    Write-Progress -Activity "PSDepend:" -PercentComplete 0 -CurrentOperation "Restoring Build Dependencies"
+    Write-Progress -Activity 'PSDepend:' -PercentComplete 0 -CurrentOperation 'Restoring Build Dependencies'
 
     if (Test-Path -Path $DependencyFile)
     {
@@ -409,13 +409,13 @@ try
         Invoke-PSDepend @psDependParameters
     }
 
-    Write-Progress -Activity "PSDepend:" -PercentComplete 100 -CurrentOperation "Dependencies restored" -Completed
+    Write-Progress -Activity 'PSDepend:' -PercentComplete 100 -CurrentOperation 'Dependencies restored' -Completed
 
-    Write-Progress -Activity 'Bootstrap:' -PercentComplete 100 -CurrentOperation "Bootstrap complete" -Completed
+    Write-Progress -Activity 'Bootstrap:' -PercentComplete 100 -CurrentOperation 'Bootstrap complete' -Completed
 }
 finally
 {
     # Reverting the Installation Policy for the given gallery
     Set-PSRepository -Name $Gallery -InstallationPolicy $previousGalleryInstallationPolicy
-    Write-Verbose -Message "Project Bootstrapped, returning to Invoke-Build"
+    Write-Verbose -Message 'Project Bootstrapped, returning to Invoke-Build'
 }
