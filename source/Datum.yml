@@ -11,6 +11,8 @@ DatumHandlers:
   Datum.ProtectedData::ProtectedDatum:
     CommandOptions:
       PlainTextPassword: SomeSecret
+  Datum.InvokeCommand::InvokeCommand:
+    SkipDuringLoad: true
 
 default_lookup_options: MostSpecific
 

@@ -1,13 +1,13 @@
 NodeName: DSCWeb01
-Environment: Dev
+Environment: '[x={ $File.Directory.BaseName } =]'
 Role: WebServer
-Description: Web Server in Dev
+Description: '[x= "$($Node.Role) in Dev" =]'
 Location: Singapore
 Baseline: Server
 
 ComputerSettings:
-  Name: DSCWeb01
-  Description: Web Server in Dev
+  Name: '[x={ $Node.NodeName }=]'
+  Description: '[x= "$($Node.Role) in Dev" =]'
 
 NetworkIpConfiguration:
   Interfaces:
@@ -25,8 +25,8 @@ PSDscAllowDomainUser: True
 LcmConfig:
   ConfigurationRepositoryWeb:
     Server:
-      ConfigurationNames: DSCWeb01
+      ConfigurationNames: '[x={ $Node.NodeName }=]'
 
 DscTagging:
   Layers:
-    - AllNodes\Dev\DscWeb01
+    - '[x={ Get-RelativeFileName -Path $File } =]'
