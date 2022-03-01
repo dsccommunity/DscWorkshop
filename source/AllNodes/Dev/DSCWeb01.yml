@@ -1,13 +1,13 @@
 NodeName: DSCWeb01
 Environment: '[x={ $File.Directory.BaseName } =]'
 Role: WebServer
-Description: '[x= "$($Node.Role) in Dev" =]'
+Description: '[x= "$($Node.Role) in $($Node.Environment)" =]'
 Location: Singapore
 Baseline: Server
 
 ComputerSettings:
   Name: '[x={ $Node.NodeName }=]'
-  Description: '[x= "$($Node.Role) in Dev" =]'
+  Description: '[x= "$($Node.Role) in $($Node.Environment)" =]'
 
 NetworkIpConfiguration:
   Interfaces:

@@ -75,7 +75,6 @@ WindowsServices:
       StartupType: Automatic
       Path: C:\DummyService.exe
   DependsOn: '[RegistryValues]RegistryValues'
-
 DscTagging:
   Layers:
-    - Roles\WebServer
+    - '[x={ Get-RelativeFileName -Path $File } =]'

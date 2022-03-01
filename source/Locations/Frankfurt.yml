@@ -3,9 +3,9 @@ Configurations:
 
 FilesAndFolders:
   Items:
-    - DestinationPath: C:\Test\Frankfurt
+    - DestinationPath: '[x= "C:\Test\$($File.BaseName)" =]'
       Type: Directory
 
 DscTagging:
   Layers:
-    - Locations\Frankfurt
+    - '[x={ Get-RelativeFileName -Path $File } =]'

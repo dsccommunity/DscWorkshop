@@ -1,13 +1,13 @@
 NodeName: DSCFile01
 Environment: '[x={ $File.Directory.BaseName } =]'
 Role: FileServer
-Description: File Server in Dev
+Description: '[x= "$($Node.Role) in $($Node.Environment)" =]'
 Location: Frankfurt
 Baseline: Server
 
 ComputerSettings:
   Name: '[x={ $Node.NodeName }=]'
-  Description: '[x= "$($Node.Role) in Dev" =]'
+  Description: '[x= "$($Node.Role) in $($Node.Environment)" =]'
 
 NetworkIpConfiguration:
   Interfaces:

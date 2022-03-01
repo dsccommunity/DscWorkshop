@@ -19,7 +19,7 @@ FilesAndFolders:
       Contents: Some test data
       DependsOn: '[File]file_C__Test'
     - DestinationPath: C:\GpoBackup
-      SourcePath: \\DSCDC01\SYSVOL\contoso.com\Policies
+      SourcePath: '[x= "\\DSCDC01\SYSVOL\$($Datum.Global.Domain.DomainFqdn)\Policies" =]'
       Type: Directory
 
 RegistryValues:
@@ -38,4 +38,4 @@ SecurityBaseline:
 
 DscTagging:
   Layers:
-    - Roles\FileServer
+    - '[x={ Get-RelativeFileName -Path $File } =]'

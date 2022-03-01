@@ -1,9 +1,9 @@
 DscTagging:
-  Environment: Prod
+  Environment: '[x={ $Node.Environment } =]'
   Layers:
-    - Environment\Prod
+    - '[x={ Get-RelativeFileName -Path $File } =]'
 
 FilesAndFolders:
   Items:
-    - DestinationPath: C:\Test\Prod-Environment
+    - DestinationPath: '[x= "C:\Test\$($File.BaseName)-Environment" =]'
       Type: Directory
