@@ -18,13 +18,13 @@ BeforeDiscovery {
     }
 
     $definitionTests = @{
-        datumDefinitionFile = "$ProjectPath\source\Datum.yml"
-        datumYamlContent    = Get-Content -Raw -Path "$ProjectPath\source\Datum.yml" -ErrorAction SilentlyContinue
+        datumDefinitionFile = Join-Path -Path $ProjectPath -ChildPath source\Datum.yml
+        datumYamlContent    = Get-Content -Raw -Path (Join-Path -Path $ProjectPath -ChildPath source\Datum.yml) -ErrorAction SilentlyContinue
         configurationData   = $configurationData
     }
     $nodeDefinitions = Get-ChildItem $ProjectPath\source\AllNodes -Recurse -Include *.yml |
         Where-Object {
-            $_.BaseName -in $configurationData.AllNodes.NodeName
+            $_.BaseName -in $configurationData.AllNodes.Name
         }
     $environments = (Get-ChildItem $ProjectPath\source\AllNodes -Directory -ErrorAction SilentlyContinue).BaseName
     $roleDefinitions = Get-ChildItem $ProjectPath\source\Roles -Recurse -Include *.yml -ErrorAction SilentlyContinue
@@ -44,7 +44,7 @@ BeforeDiscovery {
         }
     }
 
-    $environments = Get-ChildItem $ProjectPath\source\Environment -ErrorAction SilentlyContinue | Select-Object -ExpandProperty BaseName
+    $environments = Get-ChildItem $ProjectPath\source\Environments -ErrorAction SilentlyContinue | Select-Object -ExpandProperty BaseName
     $locations = Get-ChildItem $ProjectPath\source\Locations -ErrorAction SilentlyContinue | Select-Object -ExpandProperty BaseName
     $roles = Get-ChildItem $ProjectPath\source\Roles -ErrorAction SilentlyContinue | Select-Object -ExpandProperty BaseName
     $baselines = Get-ChildItem $ProjectPath\source\Baselines -ErrorAction SilentlyContinue | Select-Object -ExpandProperty BaseName
@@ -55,6 +55,7 @@ BeforeDiscovery {
             Content      = $content
             Node         = $n
             NodeName     = $n.NodeName
+            Name         = $_.BaseName
             Location     = $n.Location
             Role         = $n.Role
             FullName     = $_.FullName
@@ -90,6 +91,7 @@ BeforeDiscovery {
     $nodeTestsSingleNode = $nodes | ForEach-Object {
         @{
             NodeName          = $_.Name
+            Name              = $_.Name
             Node              = $_
             Datum             = $datum
             ConfigurationData = $configurationData
@@ -110,7 +112,7 @@ Describe 'Datum Tree Definition' -Tag Integration {
         Test-Path $datumDefinitionFile | Should -Be $true
     }
 
-    It 'is Valid Yaml' -TestCases $definitionTests {
+    It 'Is Valid Yaml' -TestCases $definitionTests {
         { $datumYamlContent | ConvertFrom-Yaml } | Should -Not -Throw
     }
 
@@ -124,44 +126,47 @@ Describe 'Node Definition Files' -Tag Integration {
 
     Context 'Testing for conflicts / duplicate data' {
         It 'Should not have duplicate node names' -TestCases $allNodeTestsDuplicate {
-            (Compare-Object -ReferenceObject $ReferenceNodes -DifferenceObject $DifferenceNodes).InputObject | Should -BeNullOrEmpty
+            if ($ReferenceNodes -and $DifferenceNodes)
+            {
+                (Compare-Object -ReferenceObject $ReferenceNodes -DifferenceObject $DifferenceNodes).InputObject | Should -BeNullOrEmpty
+            }
         }
     }
 
-    It "'<NodeName>' has valid yaml" -TestCases $allNodeTests {
+    It "'<Name>' has valid yaml" -TestCases $allNodeTests {
         { $content | ConvertFrom-Yaml } | Should -Not -Throw
     }
 
-    It "'<NodeName>' is in the right environment" -TestCases $allNodeTests {
-        if ($node.Environment)
+    It "'<Name>' is in the right environment" -TestCases $allNodeTests {
+        if ($node.Environment -and $node.Environment -notlike '`[x=*')
         {
             $pathElements = $FullName.Split('\')
             $pathElements -contains $node.Environment | Should -BeTrue
         }
     }
 
-    It "Location of '<NodeName>' is '<Location>' and does exist" -TestCases $allNodeTests {
+    It "Location of '<Name>' is '<Location>' and does exist" -TestCases $allNodeTests {
         if ($node.Location)
         {
             $node.Location -in $Locations | Should -BeTrue
         }
     }
 
-    It "Environment of '<NodeName>' is '<Environment>' and does exist" -TestCases $allNodeTests {
-        if ($node.Environment)
+    It "Environment of '<Name>' is '<Environment>' and does exist" -TestCases $allNodeTests {
+        if ($node.Environment -and $node.Environment -notlike '`[x=*')
         {
             $node.Environment -in $Environments | Should -BeTrue
         }
     }
 
-    It "Role of '<NodeName>' is '<Role>' and does exist" -TestCases $allNodeTests {
+    It "Role of '<Name>' is '<Role>' and does exist" -TestCases $allNodeTests {
         if ($node.Role)
         {
             $node.Role -in $Roles | Should -BeTrue
         }
     }
 
-    It "Baseline of '<NodeName>' is '<Baseline>' and does exist" -TestCases $allNodeTests {
+    It "Baseline of '<Name>' is '<Baseline>' and does exist" -TestCases $allNodeTests {
         if ($node.Baseline)
         {
             $node.Baseline -in $Baselines | Should -BeTrue
@@ -179,7 +184,7 @@ Describe 'Roles Definition Files' -Tag Integration {
 
 Describe 'Role Composition' -Tag Integration {
 
-    It "<NodeName> has a valid Configurations Setting (!`$null)" -TestCases $nodeTestsSingleNode {
+    It "<Name> has a valid Configurations Setting (!`$null)" -TestCases $nodeTestsSingleNode {
         { Resolve-Datum -PropertyPath Configurations -Node $node -DatumTree $datum } | Should -Not -Throw
     }
 

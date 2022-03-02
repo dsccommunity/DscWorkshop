@@ -20,7 +20,7 @@ BuildWorkflow:
     - Init
     - Clean
     - LoadDatumConfigData
-    #- TestConfigData
+    - TestConfigData
     - CompileDatumRsop
     - TestDscResources
     - CompileRootConfiguration
