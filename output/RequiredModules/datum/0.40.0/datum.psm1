@@ -488,16 +488,26 @@ function Invoke-DatumHandler
             }
             catch
             {
-                Write-Warning "Error using Datum Handler $Handler, the error was: '$($_.Exception.Message)'. Returning InputObject ($InputObject)."
-                $Result = $InputObject
-                return $false
+                $throwOnError = $true
+                [void][bool]::TryParse($env:DatumHandlerThrowsOnError, [ref]$throwOnError)
+
+                if ($throwOnError)
+                {
+                    Write-Error -ErrorRecord $_ -ErrorAction Stop
+                }
+                else
+                {
+                    Write-Warning "Error using Datum Handler $Handler, the error was: '$($_.Exception.Message)'. Returning InputObject ($InputObject)."
+                    $Result = $InputObject
+                    return $false
+                }
             }
         }
     }
 
     return $return
 }
-#EndRegion '.\Private\Invoke-DatumHandler.ps1' 75
+#EndRegion '.\Private\Invoke-DatumHandler.ps1' 85
 #Region '.\Private\Merge-DatumArray.ps1' 0
 function Merge-DatumArray
 {
