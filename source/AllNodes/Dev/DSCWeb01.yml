@@ -1,4 +1,4 @@
-NodeName: DSCWeb01
+NodeName: '[x={ $Node.NodeName }=]'
 Environment: '[x={ $File.Directory.BaseName } =]'
 Role: WebServer
 Description: '[x= "$($Node.Role) in $($Node.Environment)" =]'

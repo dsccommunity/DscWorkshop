@@ -1,4 +1,4 @@
-NodeName: DSCFile03
+NodeName: '[x={ $Node.NodeName }=]'
 Environment: '[x={ $File.Directory.BaseName } =]'
 Role: FileServer
 Description: '[x= "$($Node.Role) in $($Node.Environment)" =]'
