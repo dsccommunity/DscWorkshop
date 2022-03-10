@@ -91,7 +91,7 @@
         PSData = @{
 
             # Prerelease string of this module
-            Prerelease = 'preview0002'
+            Prerelease = 'fornewdatum0001'
 
             # Tags applied to this module. These help with module discovery in online galleries.
             Tags = @('DSC', 'Sampler', 'InvokeBuild', 'Tasks')

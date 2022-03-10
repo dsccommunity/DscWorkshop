@@ -2,7 +2,7 @@
 
     RootModule        = 'Datum.InvokeCommand.psm1'
 
-    ModuleVersion     = '0.0.1'
+    ModuleVersion     = '0.3.0'
 
     GUID              = '31b6472c-069c-40c2-aaa9-ac8c2de55081'
 
@@ -30,7 +30,7 @@
 
             IconUri      = 'https://dsccommunity.org/images/DSC_Logo_300p.png'
 
-            Prerelease   = ''
+            Prerelease   = 'fix0001'
 
             ReleaseNotes = ''
 

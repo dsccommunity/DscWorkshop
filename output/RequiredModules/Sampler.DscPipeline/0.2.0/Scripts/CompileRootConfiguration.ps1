@@ -66,7 +66,7 @@ foreach ($node in $rsopCache.GetEnumerator())
     $cd.AllNodes = @([hashtable]$node.Value)
     try
     {
-        $path = Join-Path -Path MOF -ChildPath $node.Environment
+        $path = Join-Path -Path MOF -ChildPath $node.Value.Environment
         RootConfiguration -ConfigurationData $cd -OutputPath (Join-Path -Path $BuildOutput -ChildPath $path)
     }
     catch

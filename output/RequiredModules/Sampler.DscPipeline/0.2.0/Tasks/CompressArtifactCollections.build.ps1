@@ -49,11 +49,11 @@ Task Compress_Artifact_Collections {
     $CompressedArtifactsFolder = Get-SamplerAbsolutePath -Path $CompressedArtifactsFolder -RelativeTo $OutputDirectory
     $CompressedModulesFolder = Get-SamplerAbsolutePath -Path $CompressedModulesFolder -RelativeTo $OutputDirectory
 
-        "`tRsopFolder                 = $RsopFolder"
-        "`tMofOutputFolder            = $MofOutputFolder"
-        "`tMetaMofOutputFolder        = $MetaMofOutputFolder"
-        "`tCompressedArtifactsFolder  = $CompressedArtifactsFolder"
-        "`tCompressedModulesFolder    = $CompressedModulesFolder"
+    "`tRsopFolder                 = $RsopFolder"
+    "`tMofOutputFolder            = $MofOutputFolder"
+    "`tMetaMofOutputFolder        = $MetaMofOutputFolder"
+    "`tCompressedArtifactsFolder  = $CompressedArtifactsFolder"
+    "`tCompressedModulesFolder    = $CompressedModulesFolder"
 
     if (-not (Test-Path -Path $CompressedArtifactsFolder))
     {

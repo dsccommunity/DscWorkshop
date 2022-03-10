@@ -115,7 +115,6 @@ function Get-DscErrorMessage
 }
 #EndRegion '.\Public\Get-DscErrorMessage.ps1' 60
 #Region '.\Public\Get-DscMofEnvironment.ps1' 0
-
 function Get-DscMofEnvironment
 {
     param
@@ -129,7 +128,7 @@ function Get-DscMofEnvironment
     {
         if (-not (Test-Path -Path $Path))
         {
-            Write-Error "The MOF file '$Path' cannot be found."
+            Write-Error -Message "The MOF file '$Path' cannot be found."
             return
         }
 
@@ -138,21 +137,21 @@ function Get-DscMofEnvironment
         $xRegistryDscEnvironment = $content | Select-String -Pattern '\[xRegistry\]DscEnvironment' -Context 0, 10
         if (-not $xRegistryDscEnvironment)
         {
-            Write-Error "No environment information found in MOF file '$Path'. The environment information must be added using the 'xRegistryx' named 'DscEnvironment'."
+            Write-Error -Message "No environment information found in MOF file '$Path'. The environment information must be added using the 'xRegistryx' named 'DscEnvironment'."
             return
         }
 
         $valueData = $xRegistryDscEnvironment.Context.PostContext | Select-String -Pattern 'ValueData' -Context 0, 1
         if (-not $valueData)
         {
-            Write-Error "Found the resource 'xRegistry' named 'DscEnvironment' in '$Path' but no ValueData in the expected range (10 lines after defining '[xRegistry]DscEnvironment'."
+            Write-Error -Message "Found the resource 'xRegistry' named 'DscEnvironment' in '$Path' but no ValueData in the expected range (10 lines after defining '[xRegistry]DscEnvironment'."
             return
         }
 
         $valueData.Context.PostContext[0].Trim().Replace('"', '')
     }
 }
-#EndRegion '.\Public\Get-DscMofEnvironment.ps1' 38
+#EndRegion '.\Public\Get-DscMofEnvironment.ps1' 37
 #Region '.\Public\Get-DscMofVersion.ps1' 0
 function Get-DscMofVersion
 {
@@ -169,7 +168,7 @@ function Get-DscMofVersion
     {
         if (-not (Test-Path -Path $Path))
         {
-            Write-Error "The MOF file '$Path' cannot be found."
+            Write-Error -Message  "The MOF file '$Path' cannot be found."
             return
         }
 
@@ -179,14 +178,14 @@ function Get-DscMofVersion
 
         if (-not $xRegistryDscVersion)
         {
-            Write-Error "No version information found in MOF file '$Path'. The version information must be added using the 'xRegistry' named 'DscVersion'."
+            Write-Error -Message "No version information found in MOF file '$Path'. The version information must be added using the 'xRegistry' named 'DscVersion'."
             return
         }
 
         $valueData = $xRegistryDscVersion.Context.PostContext | Select-String -Pattern 'ValueData' -Context 0, 1
         if (-not $valueData)
         {
-            Write-Error "Found the resource 'xRegistry' named 'DscVersion' in '$Path' but no ValueData in the expected range (10 lines after defining '[xRegistry]DscVersion'."
+            Write-Error -Message "Found the resource 'xRegistry' named 'DscVersion' in '$Path' but no ValueData in the expected range (10 lines after defining '[xRegistry]DscVersion'."
             return
         }
 
@@ -197,7 +196,7 @@ function Get-DscMofVersion
         }
         catch
         {
-            Write-Error "ValueData could not be converted into 'System.Version'. The value taken from the MOF file was '$value'"
+            Write-Error -Message  "ValueData could not be converted into 'System.Version'. The value taken from the MOF file was '$value'"
             return
         }
     }
@@ -224,7 +223,7 @@ function Get-FilteredConfigurationData
 
         [Parameter()]
         [Object]
-        $Datum = $(Get-Variable Datum -ValueOnly -ErrorAction Stop)
+        $Datum = $(Get-Variable -Name Datum -ValueOnly -ErrorAction Stop)
     )
 
     if ($null -eq $Filter)

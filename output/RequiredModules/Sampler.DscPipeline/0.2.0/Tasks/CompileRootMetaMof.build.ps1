@@ -13,7 +13,7 @@ param
     [Parameter()]
     # Base directory of all output (default to 'output')
     [System.String]
-    $OutputDirectory = (property OutputDirectory (Join-Path $BuildRoot 'output')),
+    $OutputDirectory = (property OutputDirectory (Join-Path -Path $BuildRoot -ChildPath output)),
 
     [Parameter()]
     [string]
@@ -34,8 +34,7 @@ task CompileRootMetaMof {
 
     $MetaMofOutputFolder = Get-SamplerAbsolutePath -Path $MetaMofOutputFolder -RelativeTo $OutputDirectory
 
-    $m = Get-Module -Name Datum
-    $rsopCache = & $m { $rsopcache }
+    $rsopCache = Get-DatumRsopCache
 
     $cd = @{}
     foreach ($node in $rsopCache.GetEnumerator())
@@ -46,18 +45,18 @@ task CompileRootMetaMof {
     $originalPSModulePath = $env:PSModulePath
     try
     {
-        $env:PSModulePath = ($env:PSModulePath -split [io.path]::PathSeparator).Where({
+        $env:PSModulePath = ($env:PSModulePath -split [System.IO.Path]::PathSeparator).Where({
                 $_ -notmatch ([regex]::Escape('powershell\7\Modules')) -and
                 $_ -notmatch ([regex]::Escape('Program Files\WindowsPowerShell\Modules')) -and
                 $_ -notmatch ([regex]::Escape('Documents\PowerShell\Modules'))
-            }) -join [io.path]::PathSeparator
+            }) -join [System.IO.Path]::PathSeparator
 
         if (-not (Test-Path -Path $MetaMofOutputFolder))
         {
             $null = New-Item -ItemType Directory -Path $MetaMofOutputFolder
         }
 
-        if ($configurationData.AllNodes)
+        if ($cd.AllNodes)
         {
             Write-Build Green ''
             if (Test-Path -Path (Join-Path -Path $SourcePath -ChildPath RootMetaMof.ps1))
@@ -74,18 +73,11 @@ task CompileRootMetaMof {
             }
             . $rootMetaMofPath
 
-            if ($cd.AllNodes)
+            $metaMofs = RootMetaMOF -ConfigurationData $cd -OutputPath $MetaMofOutputFolder
+            Write-Build Green "Successfully compiled $($metaMofs.Count) Meta MOF files."
+            if ($cd.AllNodes.Count -ne $metaMofs.Count)
             {
-                $metaMofs = RootMetaMOF -ConfigurationData $cd -OutputPath $MetaMofOutputFolder
-                Write-Build Green "Successfully compiled $($metaMofs.Count) Meta MOF files."
-                if ($cd.AllNodes.Count -ne $metaMofs.Count)
-                {
-                    Write-Warning "Compiled Meta MOF file count <> node count"
-                }
-            }
-            else
-            {
-                Write-Build Green "No data to compile Meta MOF files"
+                Write-Warning -Message 'Compiled Meta MOF file count <> node count'
             }
 
             Write-Build Green "Successfully compiled $($metaMofs.Count) Meta MOF files."

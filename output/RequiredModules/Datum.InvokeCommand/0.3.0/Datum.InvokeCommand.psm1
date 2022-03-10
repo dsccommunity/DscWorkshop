@@ -319,7 +319,6 @@ function Invoke-InvokeCommandAction
                     Write-Warning "Error using Datum Handler $Handler, the error was: '$($_.Exception.Message)'. Returning InputObject ($InputObject)."
                     $returnValue += $value
                     continue
-                    #return $false
                 }
             }
         }
@@ -337,9 +336,8 @@ function Invoke-InvokeCommandAction
     {
         $returnValue
     }
-
 }
-#EndRegion '.\Public\Invoke-InvokeCommandAction.ps1' 131
+#EndRegion '.\Public\Invoke-InvokeCommandAction.ps1' 146
 #Region '.\Public\Test-InvokeCommandFilter.ps1' 0
 function Test-InvokeCommandFilter
 {
@@ -392,3 +390,4 @@ function Test-InvokeCommandFilter
     }
 }
 #EndRegion '.\Public\Test-InvokeCommandFilter.ps1' 51
+

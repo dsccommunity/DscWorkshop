@@ -33,7 +33,7 @@ param
 
     [Parameter()]
     [string]
-    $RsopWithSourceFolder = (property RsopFolderWithSource 'RsopWithSourceFolder'),
+    $RsopWithSourceFolder = (property RsopFolderWithSource 'RsopWithSource'),
 
     [Parameter()]
     [string]

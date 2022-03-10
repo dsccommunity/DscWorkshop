@@ -13,7 +13,7 @@ param
     [Parameter()]
     # Base directory of all output (default to 'output')
     [System.String]
-    $OutputDirectory = (property OutputDirectory (Join-Path $BuildRoot 'output')),
+    $OutputDirectory = (property OutputDirectory (Join-Path -Path  $BuildRoot -ChildPath output)),
 
     [Parameter()]
     [string]
@@ -52,21 +52,22 @@ task CompileRootConfiguration {
     try
     {
         $originalPSModulePath = $env:PSModulePath
-        $env:PSModulePath = ($env:PSModulePath -split [io.path]::PathSeparator).Where({
+        $env:PSModulePath = ($env:PSModulePath -split [System.IO.Path]::PathSeparator).Where({
                 $_ -notmatch ([regex]::Escape('powershell\7\Modules')) -and
                 $_ -notmatch ([regex]::Escape('Program Files\WindowsPowerShell\Modules')) -and
                 $_ -notmatch ([regex]::Escape('Documents\PowerShell\Modules'))
-            }) -join [io.path]::PathSeparator
+            }) -join [System.IO.Path]::PathSeparator
 
         Write-Build Green ''
-        if (Test-Path -Path (Join-Path -Path $SourcePath -ChildPath RootConfiguration.ps1))
+        if ((Test-Path -Path (Join-Path -Path $SourcePath -ChildPath RootConfiguration.ps1)) -and
+        (Test-Path -Path (Join-Path -Path $SourcePath -ChildPath CompileRootConfiguration.ps1)))
         {
-            Write-Build Green "Found and using 'RootConfiguration.ps1' in '$SourcePath'"
-            $rootConfigurationPath = Join-Path -Path $SourcePath -ChildPath RootConfiguration.ps1
+            Write-Build Green "Found 'RootConfiguration.ps1' and 'CompileRootConfiguration.ps1' in '$SourcePath' and using these files"
+            $rootConfigurationPath = Join-Path -Path $SourcePath -ChildPath CompileRootConfiguration.ps1
         }
         else
         {
-            Write-Build Green "Did not find 'RootConfiguration.ps1' in '$SourcePath', using 'CompileRootConfiguration.ps1' the one in 'Sampler.DscPipeline'"
+            Write-Build Green "Did not find 'RootConfiguration.ps1' and 'CompileRootConfiguration.ps1' in '$SourcePath', using the ones in 'Sampler.DscPipeline'"
             $rootConfigurationPath = Split-Path -Path $PSScriptRoot -Parent
             $rootConfigurationPath = Join-Path -Path $rootConfigurationPath -ChildPath Scripts
             $rootConfigurationPath = Join-Path -Path $rootConfigurationPath -ChildPath CompileRootConfiguration.ps1
@@ -75,7 +76,7 @@ task CompileRootConfiguration {
         $mofs = . $rootConfigurationPath
         if ($ConfigurationData.AllNodes.Count -ne $mofs.Count)
         {
-            Write-Warning "Compiled MOF file count <> node count. Node count: $($ConfigurationData.AllNodes.Count), MOF file count: $($($mofs.Count))."
+            Write-Warning -Message "Compiled MOF file count <> node count. Node count: $($ConfigurationData.AllNodes.Count), MOF file count: $($($mofs.Count))."
         }
 
         Write-Build Green "Successfully compiled $($mofs.Count) MOF files"
@@ -87,7 +88,7 @@ task CompileRootConfiguration {
             $_.Exception -isnot [System.Management.Automation.ItemNotFoundException]
         }
 
-        $relevantErrors[0..2] | Out-String | ForEach-Object { Write-Warning $_ }
+        $relevantErrors[0..2] | Out-String | ForEach-Object { Write-Warning -Message $_ }
     }
     finally
     {

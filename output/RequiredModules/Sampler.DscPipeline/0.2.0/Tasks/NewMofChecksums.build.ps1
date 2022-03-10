@@ -8,7 +8,7 @@ param
     [Parameter()]
     # Base directory of all output (default to 'output')
     [System.String]
-    $OutputDirectory = (property OutputDirectory (Join-Path $BuildRoot 'output')),
+    $OutputDirectory = (property OutputDirectory (Join-Path -Path $BuildRoot -ChildPath output)),
 
     [Parameter()]
     [string]
@@ -28,7 +28,7 @@ task NewMofChecksums {
     $mofs = Get-ChildItem -Path $MofOutputFolder -Recurse -ErrorAction SilentlyContinue
     foreach ($mof in $mofs)
     {
-        if ($mof.BaseName -in $global:configurationData.AllNodes.NodeName)
+        if ($mof.BaseName -in $global:configurationData.AllNodes.Name)
         {
             New-DscChecksum -Path $mof.FullName -Verbose:$false -Force
         }

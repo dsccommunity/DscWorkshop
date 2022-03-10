@@ -489,7 +489,11 @@ function Invoke-DatumHandler
             catch
             {
                 $throwOnError = $true
-                [void][bool]::TryParse($env:DatumHandlerThrowsOnError, [ref]$throwOnError)
+
+                if (Get-Item -Path Env:\DatumHandlerThrowsOnError -ErrorAction SilentlyContinue)
+                {
+                    [void][bool]::TryParse($env:DatumHandlerThrowsOnError, [ref]$throwOnError)
+                }
 
                 if ($throwOnError)
                 {
@@ -507,7 +511,7 @@ function Invoke-DatumHandler
 
     return $return
 }
-#EndRegion '.\Private\Invoke-DatumHandler.ps1' 85
+#EndRegion '.\Private\Invoke-DatumHandler.ps1' 89
 #Region '.\Private\Merge-DatumArray.ps1' 0
 function Merge-DatumArray
 {
