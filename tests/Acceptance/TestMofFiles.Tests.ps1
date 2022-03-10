@@ -14,26 +14,30 @@ BeforeDiscovery {
 
     $nodeNames = [System.Collections.ArrayList]::new()
     $mofFiles = Get-ChildItem -Path "$OutputDirectory\MOF" -Filter *.mof -Recurse -ErrorAction SilentlyContinue
+    $mofChecksumFiles = Get-ChildItem -Path "$OutputDirectory\MOF" -Filter *.mof.checksum -Recurse -ErrorAction SilentlyContinue
     $metaMofFiles = Get-ChildItem -Path "$OutputDirectory\MetaMOF" -Filter *.mof -Recurse -ErrorAction SilentlyContinue
     $nodes = $configurationData.AllNodes
     $allMofTests = @(
         @{
-            MofFiles     = $mofFiles
-            MetaMofFiles = $metaMofFiles
-            Nodes        = $nodes
+            MofFiles         = $mofFiles
+            MofChecksumFiles = $mofChecksumFiles
+            MetaMofFiles     = $metaMofFiles
+            Nodes            = $nodes
         }
     )
 
     $individualTests = $nodes | ForEach-Object {
         @{
-            NodeName     = $_.Name
-            MofFiles     = $mofFiles
-            MetaMofFiles = $metaMofFiles
+            NodeName         = $_.Name
+            MofChecksumFiles = $mofChecksumFiles
+            MofFiles         = $mofFiles
+            MetaMofFiles     = $metaMofFiles
         }
     }
 }
 
 Describe 'MOF Files' -Tag BuildAcceptance {
+
     It 'All nodes have a MOF file' -TestCases $allMofTests {
         Write-Verbose "MOF File Count $($mofFiles.Count)"
         Write-Verbose "Node Count $($nodes.Count)"
@@ -41,8 +45,19 @@ Describe 'MOF Files' -Tag BuildAcceptance {
         $mofFiles.Count | Should -Be $nodes.Count
     }
 
+    It 'All nodes have a MOF Checksum file' -TestCases $allMofTests {
+        Write-Verbose "MOF Checksum File Count $($mofFiles.Count)"
+        Write-Verbose "Node Count $($nodes.Count)"
+
+        $MofChecksumFiles.Count | Should -Be $nodes.Count
+    }
+
     It "Node '<NodeName>' should have a MOF file" -TestCases $individualTests {
         $MofFiles | Where-Object BaseName -EQ $NodeName | Should -BeOfType System.IO.FileSystemInfo
+    }
+
+    It "Node '<NodeName>' should have a MOF Checksum file" -TestCases $individualTests {
+        $MofChecksumFiles | Where-Object BaseName -EQ "$NodeName.mof" | Should -BeOfType System.IO.FileSystemInfo
     }
 
     It 'All nodes have a Meta MOF file' -TestCases $allMofTests {
@@ -51,7 +66,9 @@ Describe 'MOF Files' -Tag BuildAcceptance {
 
         $metaMofFiles.Count | Should -BeIn $nodes.Count
     }
+
     It "Node '<NodeName>' should have a Meta MOF file" -TestCases $individualTests {
         $metaMofFiles | Where-Object BaseName -EQ "$($NodeName).meta" | Should -BeOfType System.IO.FileSystemInfo
     }
+
 }

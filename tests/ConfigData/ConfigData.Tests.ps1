@@ -39,8 +39,8 @@ BeforeDiscovery {
     $nodeGroups = $configurationData.AllNodes | Group-Object { $_.Environment }
     [hashtable[]]$allNodeTestsDuplicate = $nodeGroups | ForEach-Object {
         @{
-            ReferenceNodes  = $_.Group.NodeName
-            DifferenceNodes = $_.Group.NodeName | Sort-Object -Unique
+            ReferenceNodes  = $_.Group.NodeName | Where-Object { $_ -notlike '`[x=*' }
+            DifferenceNodes = $_.Group.NodeName | Where-Object { $_ -notlike '`[x=*' } | Sort-Object -Unique
         }
     }
 
@@ -152,49 +152,48 @@ Describe 'Node Definition Files' -Tag Integration {
         }
     }
 
-    It "Environment of '<Name>' is '<Environment>' and does exist" -TestCases $allNodeTests {
-        if ($node.Environment -and $node.Environment -notlike '`[x=*')
-        {
+    if ($node.Environment -and $node.Environment -notlike '`[x=*')
+    {
+        It "Environment of '<Name>' is '<Environment>' and does exist" -TestCases $allNodeTests {
             $node.Environment -in $Environments | Should -BeTrue
         }
     }
 
-    It "Role of '<Name>' is '<Role>' and does exist" -TestCases $allNodeTests {
-        if ($node.Role)
-        {
+    if ($node.Role)
+    {
+        It "Role of '<Name>' is '<Role>' and does exist" -TestCases $allNodeTests {
             $node.Role -in $Roles | Should -BeTrue
         }
     }
 
-    It "Baseline of '<Name>' is '<Baseline>' and does exist" -TestCases $allNodeTests {
-        if ($node.Baseline)
-        {
+    if ($node.Baseline)
+    {
+        It "Baseline of '<Name>' is '<Baseline>' and does exist" -TestCases $allNodeTests {
             $node.Baseline -in $Baselines | Should -BeTrue
         }
     }
 
-}
 
-
-Describe 'Roles Definition Files' -Tag Integration {
-    It '<FullName> has valid yaml' -TestCases $nodeRoleTests {
-        { $null = Get-Content -Raw -Path $FullName | ConvertFrom-Yaml } | Should -Not -Throw
-    }
-}
-
-Describe 'Role Composition' -Tag Integration {
-
-    It "<Name> has a valid Configurations Setting (!`$null)" -TestCases $nodeTestsSingleNode {
-        { Resolve-Datum -PropertyPath Configurations -Node $node -DatumTree $datum } | Should -Not -Throw
+    Describe 'Roles Definition Files' -Tag Integration {
+        It '<FullName> has valid yaml' -TestCases $nodeRoleTests {
+            { $null = Get-Content -Raw -Path $FullName | ConvertFrom-Yaml } | Should -Not -Throw
+        }
     }
 
-    It 'No duplicate IP addresses should be used' -TestCases $nodeTestsAllNodes {
-        $allIps = $configurationData.AllNodes.NetworkIpConfiguration.Interfaces.IpAddress
-        $selectedIps = $allIps | Select-Object -Unique
+    Describe 'Role Composition' -Tag Integration {
 
-        if ($allIps -and $selectedIps)
-        {
-            Compare-Object -ReferenceObject $allIps -DifferenceObject $selectedIps | Should -BeNull
+        It "<Name> has a valid Configurations Setting (!`$null)" -TestCases $nodeTestsSingleNode {
+            { Resolve-Datum -PropertyPath Configurations -Node $node -DatumTree $datum } | Should -Not -Throw
+        }
+
+        It 'No duplicate IP addresses should be used' -TestCases $nodeTestsAllNodes {
+            $allIps = $configurationData.AllNodes.NetworkIpConfiguration.Interfaces.IpAddress
+            $selectedIps = $allIps | Select-Object -Unique
+
+            if ($allIps -and $selectedIps)
+            {
+                Compare-Object -ReferenceObject $allIps -DifferenceObject $selectedIps | Should -BeNull
+            }
         }
     }
 }
