@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Migration to 'Sampler' and 'Sampler.DscPipeline'.
 - Migration to Pester 5+.
 - Changed from 'CommonTasks' to 'DscConfig.Demo' for faster build time.
+- Updated all tests and added a test to check if all DSC resource Modules are in the RequiredModules.ps1
 
 ### Fixed
 - Config data test 'No duplicate IP addresses should be used' threw when there
