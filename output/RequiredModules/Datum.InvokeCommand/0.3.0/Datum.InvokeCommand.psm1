@@ -234,11 +234,7 @@ function Invoke-InvokeCommandAction
         $Node
     )
 
-    $throwOnError = $true
-    if (Get-Item -Path Env:\DatumHandlerThrowsOnError -ErrorAction SilentlyContinue)
-    {
-        [void][bool]::TryParse($env:DatumHandlerThrowsOnError, [ref]$throwOnError)
-    }
+    $throwOnError = [bool]$datum.__Definition.DatumHandlersThrowOnError
 
     if ($InputObject -is [array])
     {
@@ -305,11 +301,8 @@ function Invoke-InvokeCommandAction
             }
             catch
             {
-                $throwOnError = $true
-                if (Get-Item -Path Env:\DatumHandlerThrowsOnError -ErrorAction SilentlyContinue)
-                {
-                    [void][bool]::TryParse($env:DatumHandlerThrowsOnError, [ref]$throwOnError)
-                }
+                $throwOnError = [bool]$datum.__Definition.DatumHandlersThrowOnError
+
                 if ($throwOnError)
                 {
                     Write-Error -Message "Error using Datum Handler $Handler, the error was: '$($_.Exception.Message)'. Returning InputObject ($InputObject)." -Exception $_.Exception -ErrorAction Stop
@@ -337,7 +330,7 @@ function Invoke-InvokeCommandAction
         $returnValue
     }
 }
-#EndRegion '.\Public\Invoke-InvokeCommandAction.ps1' 146
+#EndRegion '.\Public\Invoke-InvokeCommandAction.ps1' 139
 #Region '.\Public\Test-InvokeCommandFilter.ps1' 0
 function Test-InvokeCommandFilter
 {

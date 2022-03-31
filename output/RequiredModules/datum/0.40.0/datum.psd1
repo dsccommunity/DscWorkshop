@@ -24,7 +24,7 @@
         './ScriptsToProcess/Resolve-NodeProperty.ps1'
     )
 
-    FunctionsToExport = @('Clear-DatumRsopCache','ConvertTo-Datum','Get-DatumRsop','Get-DatumRsopCache','Get-FileProviderData','Get-MergeStrategyFromPath','Get-RelativeFileName','Invoke-TestHandlerAction','Merge-Datum','New-DatumFileProvider','New-DatumStructure','Resolve-Datum','Resolve-DatumPath','Test-TestHandlerFilter')
+    FunctionsToExport = @('Clear-DatumRsopCache','ConvertTo-Datum','Get-DatumRsop','Get-DatumRsopCache','Get-DatumSourceFile','Get-FileProviderData','Get-MergeStrategyFromPath','Invoke-TestHandlerAction','Merge-Datum','New-DatumFileProvider','New-DatumStructure','Resolve-Datum','Resolve-DatumPath','Test-TestHandlerFilter')
 
     AliasesToExport   = ''
 

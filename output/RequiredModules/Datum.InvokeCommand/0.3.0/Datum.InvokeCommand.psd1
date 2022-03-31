@@ -30,7 +30,7 @@
 
             IconUri      = 'https://dsccommunity.org/images/DSC_Logo_300p.png'
 
-            Prerelease   = 'fix0001'
+            Prerelease   = 'preview0005'
 
             ReleaseNotes = ''
 

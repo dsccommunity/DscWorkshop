@@ -444,7 +444,7 @@ function Get-RsopValueString
     }
     else
     {
-        $fileInfo = (Get-RelativeFileName -Path $InputString.__File)
+        $fileInfo = (Get-DatumSourceFile -Path $InputString.__File)
 
         $i = if ($env:DatumRsopIndentation)
         {
@@ -1184,7 +1184,7 @@ function Get-DatumRsop
         }
     }
 }
-#EndRegion '.\Public\Get-DatumRsop.ps1' 97
+#EndRegion '.\Public\Get-DatumRsop.ps1' 105
 #Region '.\Public\Get-DatumRsopCache.ps1' 0
 function Get-DatumRsopCache
 {
@@ -1203,6 +1203,55 @@ function Get-DatumRsopCache
     }
 }
 #EndRegion '.\Public\Get-DatumRsopCache.ps1' 17
+#Region '.\Public\Get-DatumSourceFile.ps1' 0
+function Get-DatumSourceFile
+{
+    <#
+    .SYNOPSIS
+        Gets the source file for the given datum.
+    .DESCRIPTION
+
+        This command gets the relative source file for the given datum. The source file path
+        is relative to the current directory and skips the first directory in the path.
+
+    .EXAMPLE
+        PS C:\> Get-DatumSourceFile -Path D:\git\datum\tests\Integration\assets\DscWorkshopConfigData\Roles\DomainController.yml
+
+        This command returns the source file path like this:
+            assets\DscWorkshopConfigData\Roles\DomainController
+
+    .INPUTS
+        string
+
+    .OUTPUTS
+        string
+    #>
+
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)]
+        [AllowEmptyString()]
+        [string]$Path
+    )
+
+    if (-not $Path)
+    {
+        return [string]::Empty
+    }
+
+    try
+    {
+        $p = Resolve-Path -Path $Path -Relative -ErrorAction Stop
+        $p = $p -split '\\'
+        $p[-1] = [System.IO.Path]::GetFileNameWithoutExtension($p[-1])
+        $p[2..($p.Length - 1)] -join '\'
+    }
+    catch
+    {
+        Write-Verbose 'Get-DatumSourceFile: nothing to catch here'
+    }
+}
+#EndRegion '.\Public\Get-DatumSourceFile.ps1' 48
 #Region '.\Public\Get-FileProviderData.ps1' 0
 function Get-FileProviderData
 {
@@ -1321,34 +1370,6 @@ function Get-MergeStrategyFromPath
     }
 }
 #EndRegion '.\Public\Get-MergeStrategyFromPath.ps1' 48
-#Region '.\Public\Get-RelativeFileName.ps1' 0
-function Get-RelativeFileName
-{
-    [CmdletBinding()]
-    param (
-        [Parameter(Mandatory = $true)]
-        [AllowEmptyString()]
-        [string]$Path
-    )
-
-    if (-not $Path)
-    {
-        return [string]::Empty
-    }
-
-    try
-    {
-        $p = Resolve-Path -Path $Path -Relative -ErrorAction Stop
-        $p = $p -split '\\'
-        $p[-1] = [System.IO.Path]::GetFileNameWithoutExtension($p[-1])
-        $p[2..($p.Length - 1)] -join '\'
-    }
-    catch
-    {
-        Write-Verbose 'Get-RelativeFileName: nothing to catch here'
-    }
-}
-#EndRegion '.\Public\Get-RelativeFileName.ps1' 27
 #Region '.\Public\Invoke-TestHandlerAction.ps1' 0
 function Invoke-TestHandlerAction
 {
@@ -1968,7 +1989,7 @@ function Resolve-Datum
     {
         #through the hierarchy
         $arraySb = [System.Collections.ArrayList]@()
-        $currentSearch = [System.IO.Path]::Combine($searchPrefix, $PropertyPath)
+        $currentSearch = Join-Path -Path $searchPrefix -ChildPath $PropertyPath
         Write-Verbose -Message ''
         Write-Verbose -Message " Lookup <$currentSearch> $($Node.Name)"
         #extract script block for execution into array, replace by substition strings {0},{1}...
@@ -2116,3 +2137,4 @@ function Test-TestHandlerFilter
     $InputObject -is [string] -and $InputObject -match '^\[TEST=[\w\W]*\]$'
 }
 #EndRegion '.\Public\Test-TestHandlerFilter.ps1' 12
+
