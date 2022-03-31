@@ -172,6 +172,54 @@ function Compare-Hashtable
 #Region '.\Private\Copy-Object.ps1' 0
 function Copy-Object
 {
+    <#
+    .SYNOPSIS
+        Creates a real copy of an object recursive including all the referenced objects it points to.
+
+    .DESCRIPTION
+
+        In .net reference types (classes), cannot be copied easily. If a type implements the IClonable interface it can be copied
+        or cloned but the objects it references to will not be cloned. Rather the reference is cloned like shown in this example:
+
+        $a = @{
+            k1 = 'v1'
+            k2 = @{
+                kk1 = 'vv1'
+                kk2 = 'vv2'
+            }
+        }
+
+        $b = @{}
+        $validKeys = 'k1', 'k2'
+        foreach ($validKey in $validKeys)
+        {
+            if ($a.ContainsKey($validKey))
+            {
+                $b.Add($validKey, $a.Item($validKey))
+            }
+        }
+
+        Write-Host '-------- Before removal of kk2 -------------'
+        Write-Host "Key count of a.k2: $($a.k2.Keys.Count)"
+        Write-Host "Key count in b.k2: $($b.k2.Keys.Count)"
+
+        $b.k2.Remove('kk2')
+        Write-Host '-------- After removal of kk2 --------------'
+        Write-Host "Key count of a.k2: $($a.k2.Keys.Count)"
+        Write-Host "Key count in b.k2: $($b.k2.Keys.Count)"
+
+
+    .EXAMPLE
+        PS C:\> $clonedObject = Copy-Object -DeepCopyObject $someObject
+
+    .INPUTS
+        [object]
+
+    .OUTPUTS
+        [object]
+
+    #>
+
     param (
         [Parameter(Mandatory = $true)]
         [object]
@@ -181,7 +229,7 @@ function Copy-Object
     $serialData = [System.Management.Automation.PSSerializer]::Serialize($DeepCopyObject)
     [System.Management.Automation.PSSerializer]::Deserialize($serialData)
 }
-#EndRegion '.\Private\Copy-Object.ps1' 12
+#EndRegion '.\Private\Copy-Object.ps1' 60
 #Region '.\Private\Expand-RsopHashtable.ps1' 0
 function Expand-RsopHashtable
 {
@@ -200,7 +248,7 @@ function Expand-RsopHashtable
 
         [Parameter()]
         [switch]
-        $NoSourceInformation
+        $AddSourceInformation
     )
 
     $Depth++
@@ -216,7 +264,7 @@ function Expand-RsopHashtable
         $keys = [string[]]$InputObject.Keys
         foreach ($key in $keys)
         {
-            $newObject.$key = Expand-RsopHashtable -InputObject $InputObject[$key] -Depth $Depth -NoSourceInformation:$NoSourceInformation
+            $newObject.$key = Expand-RsopHashtable -InputObject $InputObject[$key] -Depth $Depth -AddSourceInformation:$AddSourceInformation
         }
 
         [ordered]@{} + $newObject
@@ -230,7 +278,7 @@ function Expand-RsopHashtable
         }
         $items = foreach ($item in $InputObject)
         {
-            Expand-RsopHashtable -InputObject $item -IsArrayValue:$doesUseYamlArraySyntax -Depth $Depth -NoSourceInformation:$NoSourceInformation
+            Expand-RsopHashtable -InputObject $item -IsArrayValue:$doesUseYamlArraySyntax -Depth $Depth -AddSourceInformation:$AddSourceInformation
         }
         $items
     }
@@ -239,11 +287,11 @@ function Expand-RsopHashtable
         $cred = $InputObject.GetNetworkCredential()
         $cred = "$($cred.UserName)@$($cred.Domain)$(if($cred.Domain){':'})$('*' * $cred.Password.Length)" | Add-Member -Name __File -MemberType NoteProperty -Value $InputObject.__File -PassThru
 
-        Get-RsopValueString -InputString $cred -Key $key -Depth $depth -IsArrayValue:$IsArrayValue -NoSourceInformation:$NoSourceInformation
+        Get-RsopValueString -InputString $cred -Key $key -Depth $depth -IsArrayValue:$IsArrayValue -AddSourceInformation:$AddSourceInformation
     }
     else
     {
-        Get-RsopValueString -InputString $InputObject -Key $key -Depth $depth -IsArrayValue:$IsArrayValue -NoSourceInformation:$NoSourceInformation
+        Get-RsopValueString -InputString $InputObject -Key $key -Depth $depth -IsArrayValue:$IsArrayValue -AddSourceInformation:$AddSourceInformation
     }
 }
 #EndRegion '.\Private\Expand-RsopHashtable.ps1' 64
@@ -387,10 +435,10 @@ function Get-RsopValueString
 
         [Parameter()]
         [switch]
-        $NoSourceInformation
+        $AddSourceInformation
     )
 
-    if ($NoSourceInformation)
+    if (-not $AddSourceInformation)
     {
         $InputString.psobject.BaseObject
     }
@@ -425,6 +473,58 @@ function Get-RsopValueString
 #Region '.\Private\Invoke-DatumHandler.ps1' 0
 function Invoke-DatumHandler
 {
+    <#
+    .SYNOPSIS
+        Invokes the configured datum handlers.
+
+    .DESCRIPTION
+        This function goes through all datum handlers configured in the 'datum.yml'. For all handlers, it calls the test function
+        first that identifies if the particular handler should be invoked at all for the given InputString. The test function
+        look for a prefix and suffix in orer to know if a handler should be called. For the handler 'Datum.InvokeCommand' the
+        prefix is '[x=' and the siffix '=]'.
+
+        Let's assume the handler is defined in a module named 'Datum.InvokeCommand'. The handler is introduced in the 'datum.yml'
+        like this:
+
+        DatumHandlers:
+            Datum.InvokeCommand::InvokeCommand:
+                SkipDuringLoad: true
+
+        The name of the function that checks if the handler should be called is constructed like this:
+
+            <FilterModuleName>\Test-<FilterName>Filter
+
+        Considering the definition in the 'datum.yml', the actual function name will be:
+
+            Datum.InvokeCommand\Test-InvokeCommandFilter
+
+        Same rule applies for the action function that is actually the handler. Datum searches a function with the name
+
+            <FilterModuleName>\Invoke-<FilterName>Action
+
+        which will be in case of the filter module named 'Datum.InvokeCommand' and the filter name 'InvokeCommand':
+
+            Datum.InvokeCommand\Invoke-InvokeCommandAction
+
+    .EXAMPLE
+        This sample calls the handlers defined in the 'Datum.yml' on the value  '[x= { Get-Date } =]'. Only a handler will
+        be invoked that has the prefix '[x=' and the siffix '=]'.
+
+        PS C:\> $d = New-DatumStructure -DefinitionFile .\tests\Integration\assets\DscWorkshopConfigData\Datum.yml
+        PS C:\> $result = $nul
+        PS C:\> Invoke-DatumHandler -InputObject '[x= { Get-Date } =]' -DatumHandlers $d.__Definition.DatumHandlers -Result ([ref]$result)
+        PS C:\> $result #-> Thursday, March 24, 2022 1:54:51 AM
+
+    .INPUTS
+        [object]
+
+    .OUTPUTS
+        Whatever the datum handler returns.
+
+    .NOTES
+
+    #>
+
     param (
         [Parameter(Mandatory = $true)]
         [object]
@@ -448,17 +548,18 @@ function Invoke-DatumHandler
             continue
         }
 
-        $FilterModule, $FilterName = $Handler -split '::'
-        if (-not (Get-Module $FilterModule))
+        $filterModule, $filterName = $handler -split '::'
+        if (-not (Get-Module $filterModule))
         {
-            Import-Module $FilterModule -Force -ErrorAction Stop
+            Import-Module $filterModule -Force -ErrorAction Stop
         }
-        $filterCommand = Get-Command -ErrorAction SilentlyContinue ('{0}\Test-{1}Filter' -f $FilterModule, $FilterName)
+
+        $filterCommand = Get-Command -ErrorAction SilentlyContinue ('{0}\Test-{1}Filter' -f $filterModule, $filterName)
         if ($filterCommand -and ($InputObject | &$filterCommand))
         {
             try
             {
-                if ($actionCommand = Get-Command -Name ('{0}\Invoke-{1}Action' -f $FilterModule, $FilterName) -ErrorAction SilentlyContinue)
+                if ($actionCommand = Get-Command -Name ('{0}\Invoke-{1}Action' -f $filterModule, $filterName) -ErrorAction SilentlyContinue)
                 {
                     $actionParams = @{}
                     $commandOptions = $DatumHandlers.$handler.CommandOptions.Keys
@@ -488,12 +589,7 @@ function Invoke-DatumHandler
             }
             catch
             {
-                $throwOnError = $true
-
-                if (Get-Item -Path Env:\DatumHandlerThrowsOnError -ErrorAction SilentlyContinue)
-                {
-                    [void][bool]::TryParse($env:DatumHandlerThrowsOnError, [ref]$throwOnError)
-                }
+                $throwOnError = [bool]$datum.__Definition.DatumHandlersThrowOnError
 
                 if ($throwOnError)
                 {
@@ -501,7 +597,7 @@ function Invoke-DatumHandler
                 }
                 else
                 {
-                    Write-Warning "Error using Datum Handler $Handler, the error was: '$($_.Exception.Message)'. Returning InputObject ($InputObject)."
+                    Write-Warning "Error using Datum Handler '$Handler', the error was: '$($_.Exception.Message)'. Returning InputObject ($InputObject)."
                     $Result = $InputObject
                     return $false
                 }
@@ -511,7 +607,7 @@ function Invoke-DatumHandler
 
     return $return
 }
-#EndRegion '.\Private\Invoke-DatumHandler.ps1' 89
+#EndRegion '.\Private\Invoke-DatumHandler.ps1' 137
 #Region '.\Private\Merge-DatumArray.ps1' 0
 function Merge-DatumArray
 {
@@ -859,9 +955,9 @@ function Clear-DatumRsopCache
 
     param ()
 
-    if ($rsopCache.Count)
+    if ($script:rsopCache.Count)
     {
-        $rsopCache.Clear()
+        $script:rsopCache.Clear()
         Write-Verbose -Message 'Datum RSOP Cache cleared'
     }
 }
@@ -1043,10 +1139,10 @@ function Get-DatumRsop
             Write-Verbose "Key not found in the cache: '$($node.Name)'. Creating RSOP..."
             $rsopNode = $node.Clone()
 
-            $Configurations = Resolve-NodeProperty -PropertyPath $CompositionKey -Node $node -DatumTree $Datum -DefaultValue @()
-            $rsopNode."$CompositionKey" = $Configurations
+            $configurations = Resolve-NodeProperty -PropertyPath $CompositionKey -Node $node -DatumTree $Datum -DefaultValue @()
+            $rsopNode."$CompositionKey" = $configurations
 
-            $Configurations.ForEach{
+            $configurations.ForEach{
                 $value = Resolve-NodeProperty -PropertyPath $_ -DefaultValue @{} -Node $node -DatumTree $Datum
                 $rsopNode."$_" = $value
             }
@@ -1068,11 +1164,11 @@ function Get-DatumRsop
 
         if ($IncludeSource)
         {
-            Expand-RsopHashtable -InputObject $script:rsopCache."$($node.Name)" -Depth 0
+            Expand-RsopHashtable -InputObject $script:rsopCache."$($node.Name)" -Depth 0 -AddSourceInformation
         }
         elseif ($RemoveSource)
         {
-            Expand-RsopHashtable -InputObject $script:rsopCache."$($node.Name)" -Depth 0 -NoSourceInformation
+            Expand-RsopHashtable -InputObject $script:rsopCache."$($node.Name)" -Depth 0
         }
         else
         {
@@ -1088,16 +1184,17 @@ function Get-DatumRsopCache
 
     param ()
 
-    if ($rsopCache.Count)
+    if ($script:rsopCache.Count)
     {
-        $rsopCache
+        $script:rsopCache
     }
     else
     {
+        $script:rsopCache = @{}
         Write-Verbose 'The Datum RSOP Cache is empty.'
     }
 }
-#EndRegion '.\Public\Get-DatumRsopCache.ps1' 16
+#EndRegion '.\Public\Get-DatumRsopCache.ps1' 17
 #Region '.\Public\Get-FileProviderData.ps1' 0
 function Get-FileProviderData
 {
@@ -1134,36 +1231,29 @@ function Get-FileProviderData
     else
     {
         Write-Verbose -Message "Getting File Provider Data for Path: $Path"
-        try
+        $data = switch ($file.Extension)
         {
-            $data = switch ($file.Extension)
+            '.psd1'
             {
-                '.psd1'
-                {
-                    Import-PowerShellDataFile -Path $file | ConvertTo-Datum -DatumHandlers $DatumHandlers
-                }
-                '.json'
-                {
-                    ConvertFrom-Json -InputObject (Get-Content -Path $Path -Encoding $Encoding -Raw) | ConvertTo-Datum -DatumHandlers $DatumHandlers
-                }
-                '.yml'
-                {
-                    ConvertFrom-Yaml -Yaml (Get-Content -Path $Path -Encoding $Encoding -Raw) -Ordered | ConvertTo-Datum -DatumHandlers $DatumHandlers
-                }
-                '.yaml'
-                {
-                    ConvertFrom-Yaml -Yaml (Get-Content -Path $Path -Encoding $Encoding -Raw) -Ordered | ConvertTo-Datum -DatumHandlers $DatumHandlers
-                }
-                Default
-                {
-                    Write-Verbose -Message "File extension $($file.Extension) not supported. Defaulting on RAW."
-                    Get-Content -Path $Path -Encoding $Encoding -Raw
-                }
+                Import-PowerShellDataFile -Path $file | ConvertTo-Datum -DatumHandlers $DatumHandlers
             }
-        }
-        catch
-        {
-            Write-Warning "'ConvertTo-Datum' threw an error reading $($File.FullName): $($_.Exception.Message)"
+            '.json'
+            {
+                ConvertFrom-Json -InputObject (Get-Content -Path $Path -Encoding $Encoding -Raw) | ConvertTo-Datum -DatumHandlers $DatumHandlers
+            }
+            '.yml'
+            {
+                ConvertFrom-Yaml -Yaml (Get-Content -Path $Path -Encoding $Encoding -Raw) -Ordered | ConvertTo-Datum -DatumHandlers $DatumHandlers
+            }
+            '.yaml'
+            {
+                ConvertFrom-Yaml -Yaml (Get-Content -Path $Path -Encoding $Encoding -Raw) -Ordered | ConvertTo-Datum -DatumHandlers $DatumHandlers
+            }
+            Default
+            {
+                Write-Verbose -Message "File extension $($file.Extension) not supported. Defaulting on RAW."
+                Get-Content -Path $Path -Encoding $Encoding -Raw
+            }
         }
 
         $script:FileProviderDataCache[$file.FullName] = @{
@@ -1173,7 +1263,7 @@ function Get-FileProviderData
         , $data
     }
 }
-#EndRegion '.\Public\Get-FileProviderData.ps1' 75
+#EndRegion '.\Public\Get-FileProviderData.ps1' 68
 #Region '.\Public\Get-MergeStrategyFromPath.ps1' 0
 function Get-MergeStrategyFromPath
 {
@@ -1635,7 +1725,7 @@ function New-DatumStructure
     foreach ($store in $DatumHierarchyDefinition.DatumStructure)
     {
         $storeParams = @{
-            Store    = (ConvertTo-Datum ([hashtable]$store).clone())
+            Store    = (ConvertTo-Datum ([hashtable]$store).Clone())
             Path     = $store.StoreOptions.Path
             Encoding = $Encoding
         }
@@ -1879,7 +1969,8 @@ function Resolve-Datum
                     [Parameter()]
                     $match
                 )
-                $expr = $match.groups['sb'].value
+
+                $expr = $match.Groups['sb'].value
                 $index = $arraySb.Add($expr)
                 "`$({$index})"
             }, @('IgnoreCase', 'SingleLine', 'MultiLine'))
@@ -1929,7 +2020,7 @@ function Resolve-Datum
     }
     , $mergeResult
 }
-#EndRegion '.\Public\Resolve-Datum.ps1' 241
+#EndRegion '.\Public\Resolve-Datum.ps1' 242
 #Region '.\Public\Resolve-DatumPath.ps1' 0
 function Resolve-DatumPath
 {
@@ -2017,4 +2108,3 @@ function Test-TestHandlerFilter
     $InputObject -is [string] -and $InputObject -match '^\[TEST=[\w\W]*\]$'
 }
 #EndRegion '.\Public\Test-TestHandlerFilter.ps1' 12
-
