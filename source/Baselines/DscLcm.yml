@@ -7,7 +7,7 @@ Configurations:
 DscTagging:
   Version: 0.3.0
   Layers:
-    - '[x={ Get-RelativeFileName -Path $File } =]'
+    - '[x={  Get-DatumSourceFile -Path $File } =]'
 
 DscLcmMaintenanceWindows:
   MaintenanceWindows:

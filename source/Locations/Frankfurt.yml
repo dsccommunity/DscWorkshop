@@ -8,4 +8,4 @@ FilesAndFolders:
 
 DscTagging:
   Layers:
-    - '[x={ Get-RelativeFileName -Path $File } =]'
+    - '[x={  Get-DatumSourceFile -Path $File } =]'
