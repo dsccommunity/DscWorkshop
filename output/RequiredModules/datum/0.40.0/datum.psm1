@@ -1147,10 +1147,18 @@ function Get-DatumRsop
                 $rsopNode."$_" = $value
             }
 
-            $lcmConfig = Resolve-NodeProperty -PropertyPath LcmConfig -DefaultValue $null
-            if ($lcmConfig)
+            $lcmConfigKeyName = $datum.__Definition.DscLocalConfigurationManagerKeyName
+            if ($lcmConfigKeyName)
             {
-                $rsopNode.LcmConfig = $lcmConfig
+                $lcmConfig = Resolve-NodeProperty -PropertyPath $lcmConfigKeyName -DefaultValue $null
+                if ($lcmConfig)
+                {
+                    $rsopNode.LcmConfig = $lcmConfig
+                }
+                else
+                {
+                    Write-Host -Object "`tWARNING: 'DscLocalConfigurationManagerKeyName' is defined in the 'datum.yml' but did not return a result for node '$($node.Name)'" -ForegroundColor Yellow
+                }
             }
 
             $clonedRsopNode = Copy-Object -DeepCopyObject $rsopNode

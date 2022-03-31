@@ -7,7 +7,13 @@ Configuration RootMetaMOF {
 
     Node $ConfigurationData.AllNodes.NodeName {
 
-        $clonedProperties = $rsopCache."$($Node.Name)".LcmConfig
+        $lcmConfigKeyName = $datum.__Definition.DscLocalConfigurationManagerKeyName
+        $clonedProperties = $rsopCache."$($Node.Name)".$lcmConfigKeyName
+
+        if (-not $clonedProperties)
+        {
+            Write-Error "LCM configuration key not found for node $($Node.Name). You can define one in the 'datum.yml' using the key 'DscLocalConfigurationManagerKeyName'." -ErrorAction Stop
+        }
 
         $lcmConfig = $clonedProperties.Settings
 
