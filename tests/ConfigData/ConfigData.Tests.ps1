@@ -102,10 +102,9 @@ BeforeDiscovery {
 Describe 'Validate All Definition Files' -Tag Integration {
 
     It "'<Name>' is a valid yaml" -TestCases $allDefinitions {
-        { $content | ConvertFrom-Yaml } | Should -Not -Throw
+        { Get-Content -Path $FullName -Raw | ConvertFrom-Yaml } | Should -Not -Throw
     }
 }
-
 
 Describe 'Datum Tree Definition' -Tag Integration {
     It 'Exists in source Folder' -TestCases $definitionTests {
