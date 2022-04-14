@@ -11,7 +11,7 @@ configuration RootConfiguration
             [string]$Environment
         )
         $Script:PSTopConfigurationName = "MOF_$($Environment)_$($BuildVersion)"
-    } $buildVersion, $environment
+    } $ModuleVersion, $environment
 
     node $ConfigurationData.AllNodes.NodeName {
         Write-Host -Object "`r`n$('-'*75)`r`n$($Node.Name) : $($Node.NodeName) : $(&$module { $Script:PSTopConfigurationName })" -ForegroundColor Yellow
