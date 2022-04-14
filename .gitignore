@@ -1,11 +1,1 @@
-!output/
-
-output/*
-!output/RequiredModules
-output/RequiredModules/*
-
-!output/RequiredModules/CommonTasks
-!output/RequiredModules/PSModulesDsc
-!output/RequiredModules/Sampler.DscPipeline
-!output/RequiredModules/Datum
-!output/RequiredModules/Datum.InvokeCommand
+output/
