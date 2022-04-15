@@ -3,7 +3,7 @@
 }
 
 $projectName = 'DscWorkshop'
-$projectGitUrl = 'https://github.com/DscCommunity/DscWorkshop'
+$projectGitUrl = 'https://github.com/raandree/DscWorkshop'
 $collectionName = 'AutomatedLab'
 
 $lab = Get-Lab
@@ -47,5 +47,5 @@ Invoke-LabCommand -ActivityName 'Set RepositoryUri and create Build Pipeline' -S
 Write-ScreenInfo done
 
 # in case you screw something up
-#Checkpoint-LabVM -All -SnapshotName AfterPipelines
+Checkpoint-LabVM -All -SnapshotName AfterPipelines
 Write-Host "3. - Creating Snapshot 'AfterPipelines'" -ForegroundColor Magenta
