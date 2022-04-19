@@ -29,7 +29,7 @@ LcmConfig:
 
 DscTagging:
   Layers:
-    - '[x={  Get-DatumSourceFile -Path $File } =]'
+    - '[x={ Get-DatumSourceFile -Path $File } =]'
 
 FilesAndFolders:
   Items:
