@@ -10,16 +10,16 @@ Before starting any exercise, please make sure you have met the following requir
 - Create a free Azure test account if you don't have one yet with enough credits left: <https://azure.microsoft.com/en-us/free/>. You may want to create a new email address if you already have one and used all your credits already (required to test Azure Automation DSC in a release pipeline)
 - Create one or two virtual machines in the test subscription and don’t forget to turn them off. The machine must have the status "deallocated", otherwise they are eating up your credits.
 - Have a notebook computer (ideally Windows 10) with you that has the following software installed:
-  - git: https://git-scm.com/downloads
-  - Visual Studio Code: https://code.visualstudio.com/Download
+  - [Download Git](https://git-scm.com/downloads)
+  - [Download Visual Studio Code](https://code.visualstudio.com/Download)
     - Install the PowerShell extensions
     - Install the RedHat yaml extension
-   - Install the Az module (Install-Module -Name Az)
-   - Test logging into your free Azure test subscription (Login-AzAccount)
- 
+    - Install the Az module (Install-Module -Name Az)
+    - Test logging into your free Azure test subscription (Login-AzAccount)
+
 Please execute the [prerequisite check](CheckPrereq.ps1) in Windows PowerShell to check if everything is configured correctly on you computer.
 
-> ***Please not that this test requires Pester > 4 to run.***
+> ***Please note that this test requires Pester > 4 to run.***
 
 ## Task 1
 

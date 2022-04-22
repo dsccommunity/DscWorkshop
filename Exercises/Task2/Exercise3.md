@@ -2,7 +2,7 @@
 
 *Estimated time to completion: 30-60 minutes*
 
-To kick off a new build, the script 'Build.ps1' is going to be used. Whether or not you are in a build pipeline, the build script will create all artifacts in your current environment.
+To kick off a new build, the script `build.ps1` is going to be used. Whether or not you are in a build pipeline, the build script will create all artifacts in your current environment.
 
 ***Remember to check the [prerequisites](../CheckPrereq.ps1)!***
 
@@ -14,9 +14,9 @@ Now, your branch office in Frankfurt has requested a new role for WSUS servers. 
 
 This new role should enable WSUS administrators to build on top of the basic infrastructure.
 
-1. Let us now create a new role for a WSUS Server in the 'DSC\DscConfigData\Roles' folder. This role's YAML will subscribe to the configuration "WindowsFeatures" and will define configuration data (Settings) for the configuration.
+1. Let us now create a new role for a WSUS Server in the `source\Roles` folder. This role's YAML will subscribe to the configuration `WindowsFeatures` and will define configuration data (Settings) for the configuration.
 
-Create a new file in 'DSC\DscConfigData\Roles' named 'WsusServer.yml'. Paste the following code into the new file and save it.
+Create a new file in `source\Roles` named `WsusServer.yml`. Paste the following code into the new file and save it.
 
   ```yml
   Configurations:
@@ -27,19 +27,19 @@ Create a new file in 'DSC\DscConfigData\Roles' named 'WsusServer.yml'. Paste the
     - +UpdateServices
   ```
 
-2. Now let us add a new node YAML (DSCWS01.yml) in the Test which is based on this Role. Create the new file 'DSCWS01.yml' in the folder 'DSC\DscConfigData\AllNodes\Test'. Paste the following content into the file and save it.
+1. Now let us add a new node YAML `DSCWS01.yml` in the Test environment which is based on this role. Create the new file `DSCWS01.yml` in the folder `source\AllNodes\Test`. Paste the following content into the file and save it.
 
   ```yml
-  NodeName: DSCWS01
-  Environment: Test
+  NodeName: '[x={ $Node.Name }=]'
+  Environment: '[x={ $File.Directory.BaseName } =]'
   Role: WsusServer
-  Description: WSUS Server in Test
+  Description: '[x= "$($Node.Role) in $($Node.Environment)" =]'
   Location: Frankfurt
   Baseline: Server
 
   ComputerSettings:
-    Name: DSCWS01
-    Description: WSUS Server in Test
+    Name: '[x={ $Node.NodeName }=]'
+    Description: '[x= "$($Node.Role) in $($Node.Environment)" =]'
 
   NetworkIpConfiguration:
     Interfaces:
@@ -57,11 +57,11 @@ Create a new file in 'DSC\DscConfigData\Roles' named 'WsusServer.yml'. Paste the
   LcmConfig:
     ConfigurationRepositoryWeb:
       Server:
-        ConfigurationNames: DSCWS01
+        ConfigurationNames: '[x={ $Node.NodeName }=]'
 
   DscTagging:
     Layers:
-      - AllNodes\Test\DSCWS01
+      - '[x={ Get-DatumSourceFile -Path $File } =]'
   ```
 
 > Note: The YAML rendering does not always show the indention correctly. Please have a look at another node file to check the indention.
@@ -69,10 +69,10 @@ Create a new file in 'DSC\DscConfigData\Roles' named 'WsusServer.yml'. Paste the
 
 Once again, it is that easy. New roles (i.e. WsusServer), environments (i.e. Test) and nodes (i.e. DSCWS01) just require adding YAML files. The devil is in the details: Providing the appropriate configuration data for your configurations like the network configuration requires knowledge of the underlying infrastructure of course.
 
-In order to build the new node 'DSCWS01' which uses the 'WsusServer' role, simply start up the build again.
+In order to build the new node `DSCWS01` which uses the `WsusServer` role, simply start up the build again.
 
   ```powershell
-  .\Build.ps1
+  .\build.ps1
   ```
 
 After the build has completed take a look at the new nodes resulting files.
@@ -81,11 +81,11 @@ After the build has completed take a look at the new nodes resulting files.
 
 ## 2.4 Modify a role
 
-Modifying a role is even easier as adding a new one. Let's try changing the default time server for all the file servers. If the setting effect all time servers, it must be defined in the 'FileServer' role
+Modifying a role is even easier as adding a new one. Let's try changing the default time server for all the file servers. If the setting effect all time servers, it must be defined in the `FileServer` role.
 
-1. Open the 'FileServer.yml' from your roles directory. We are modifying an already existing role definition now.
+1. Open the `FileServer.yml` from your roles directory. We are modifying an already existing role definition now.
 
-2. In order to change a configuration item, just modify or add to your YAML file:
+1. In order to change a configuration item, just modify or add to your YAML file:
 
   ```yaml
   RegistryValues:
@@ -97,12 +97,12 @@ Modifying a role is even easier as adding a new one. Let's try changing the defa
       Ensure: Present
   ```
 
-3. After committing your changes, you can restart the build again to see your results in action. All file server artifacts that have been created will now have a modified MOF and RSoP. You can either use the VSCode UI or the following commands: 
+1. After committing your changes, you can restart the build again to see your results in action. All file server artifacts that have been created will now have a modified MOF and RSoPs. You can either use the VSCode UI or the following commands:
 
   ```powershell
   git add .
-  git commit -m "Modified the ntp server setting for the file server role."
-  .\Build.ps1
+  git commit -m 'Modified the ntp server setting for the file server role.'
+  .\build.ps1
   ```
 
 You should have a feeling now how easy it is to modify config data used by DSC when using Datum.

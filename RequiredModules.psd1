@@ -33,7 +33,7 @@
     'DscResource.Test'           = 'latest'
 
     # Composites
-    'DscConfig.Demo'             = '0.7.1-preview0002'
+    'DscConfig.Demo'             = '0.8.0'
 
     #DSC Resources
     xPSDesiredStateConfiguration = '9.1.0'
