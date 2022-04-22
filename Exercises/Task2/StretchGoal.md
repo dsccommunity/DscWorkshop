@@ -79,17 +79,31 @@ At your customer, this is all customer-specific code and should be collected in 
     ```powershell
     configuration Disks
     {
-        param
-        (
-            [Parameter(Mandatory)]
+        param (
+            [Parameter(Mandatory = $true)]
             [hashtable[]]
-            $DiskLayout
+            $Disks
         )
 
+        Import-DscResource -ModuleName PSDesiredStateConfiguration
         Import-DscResource -ModuleName StorageDsc
 
-        foreach ($disk in $DiskLayout.GetEnumerator()) {
-            (Get-DscSplattedResource -ResourceName Disk -ExecutionName $disk.DiskId -Properties $disk -NoInvoke).Invoke($disk)
+        foreach ($disk in $Disks)
+        {
+            # convert string with KB/MB/GB into Uint64
+            if ($null -ne $disk.Size)
+            {
+                $disk.Size = [Uint64] ($disk.Size / 1)
+            }
+
+            # convert string with KB/MB/GB into Uint32
+            if ($null -ne $disk.AllocationUnitSize)
+            {
+                $disk.AllocationUnitSize = [Uint32] ($disk.AllocationUnitSize / 1)
+            }
+
+            $executionName = $disk.DiskId
+            (Get-DscSplattedResource -ResourceName Disk -ExecutionName $executionName -Properties $disk -NoInvoke).Invoke($disk)
         }
     }
     ```
@@ -133,20 +147,27 @@ At your customer, this is all customer-specific code and should be collected in 
     .\build.ps1 -ResolveDependency
     ```
 
-1. 
-    
-    The build will not fail but wait for further input like this:
+    > Note: This may take a while, good time to grab a coffee.
+
+1. The build will not fail but wait for further input like this:
 
     ```code
-    DSCFile01 : DSCFile01 : MOF__0.0.0 NA
-        DSCFile01 : FileServer ::> FilesAndFolders .....................................................OK
-        DSCFile01 : FileServer ::> RegistryValues ......................................................OK
+    Did not find 'RootConfiguration.ps1' and 'CompileRootConfiguration.ps1' in 'source', using the ones in 'Sampler.DscPipeline'
+    RootConfiguration will import these composite resource modules as defined in 'build.yaml':
+            - PSDesiredStateConfiguration
+            - DscConfig.Demo
+
+
+    ---------------------------------------------------------------------------
+    DSCFile02 : DSCFile02 : MOF__ NA
+        DSCFile02 : FileServer ::> FilesAndFolders .....................................................OK
+        DSCFile02 : FileServer ::> RegistryValues ......................................................OK
     cmdlet Disks at command pipeline position 1
     Supply values for the following parameters:
-    DiskLayout[0]:
+    Disks[0]: 
     ```
 
-    So why does the build require additional data? Adding the 'Disks' resource to the configurations makes the build script calls it when compiling the MOF files. The resource has a mandatory parameter but no argument for this mandatory parameter is available in the configuration data.
+    So why does the build require additional data? Adding the `Disks` resource to the configurations makes the build script calls it when compiling the MOF files. The resource has a mandatory parameter but no argument for this mandatory parameter is available in the configuration data.
 
     ```powershell
     param
@@ -157,11 +178,11 @@ At your customer, this is all customer-specific code and should be collected in 
     )
     ```
 
-2. So let's add the configuration data so the 'Disks' resource knows what to do. Please add the following section to the file server role:
+1. So let's add the configuration data so the 'Disks' resource knows what to do. Please add the following section to the file server role:
 
     ```yaml
     Disks:
-      DiskLayout:
+      Disks:
         - DiskId: 0
           DiskIdType: Number
           DriveLetter: C
@@ -172,7 +193,7 @@ At your customer, this is all customer-specific code and should be collected in 
           FSLabel: Data
     ```
 
-    If the build has finished, examine the MOF files in the 'BuildOutput' folder. You should see the config you have made reflected there.
+    If the build has finished, examine the MOF files in the `output` folder. You should see the config you have made reflected there.
 
 Congratulations! You have walked through the entire process of making this repository your own! We hope you are successful with this concept - we certainly are.
 
