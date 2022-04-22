@@ -1,5 +1,5 @@
 @{
     Gallery         = 'PSGallery'
     AllowPrerelease = $false
-    WithYAML        = $false # Will also bootstrap PowerShell-Yaml to read other config files
+    WithYAML        = $true # Will also bootstrap PowerShell-Yaml to read other config files
 }
