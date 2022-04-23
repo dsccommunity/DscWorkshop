@@ -7,10 +7,15 @@ ResolutionPrecedence:
   - Baselines\$($Node.Baseline)
   - Baselines\DscLcm
 
+DatumHandlersThrowOnError: true
 DatumHandlers:
   Datum.ProtectedData::ProtectedDatum:
     CommandOptions:
       PlainTextPassword: SomeSecret
+  Datum.InvokeCommand::InvokeCommand:
+    SkipDuringLoad: true
+
+DscLocalConfigurationManagerKeyName: LcmConfig
 
 default_lookup_options: MostSpecific
 
@@ -48,8 +53,14 @@ lookup_options:
       tuple_keys:
         - Key
 
-  NetworkIpConfiguration:
-    merge_hash: deep
+  #NetworkIpConfiguration:
+  #  merge_hash: deep
+  #NetworkIpConfiguration\Interfaces:
+  #  #merge_basetype_array: Deep
+  #  merge_hash_array: DeepTuple
+  #  merge_options:
+  #    tuple_keys:
+  #      - InterfaceAlias
 
   ComputerSettings:
     merge_hash: deep

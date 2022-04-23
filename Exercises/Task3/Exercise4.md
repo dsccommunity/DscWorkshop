@@ -27,13 +27,13 @@ The template selection will pop up. Select "Empty job" on the very top.
 
 > Note: The names may vary depending on the name you have given to the project.
 
-2. Rename 'Stage 1' to 'Dev'. Add two additional stages (environemnts), called 'Test' and 'Production', each with an empty job.
+1. Rename 'Stage 1' to 'Dev'. Add two additional stages (environments), called 'Test' and 'Production', each with an empty job.
 
 The design of the pipeline depends very much on where it should operate. Your build steps might have included copying the files to an Azure blob storage instead of an on-premises file share. This would be the recommended way in case you want your Azure Automation DSC pull server to host the MOF files. The release step would be to execute New-AzAutomationModule with the URIs of your uploaded, compressed modules.
 
 For now, we will only upload the MOF files to Azure Automation, but you can add a similar release task for uploading the modules for example.
 
-3. Open your first stage, dev, and navigate to variables. For the dev stage, we want for example to deploy to the dev automation account. Variables you add here are available as environment variables in the release process. The environment variables are used later by the PowerShell scripts. By selecting the appropriate scope, you can control the variable contents for each stage.
+1. Open your first stage, dev, and navigate to variables. For the dev stage, we want for example to deploy to the dev automation account. Variables you add here are available as environment variables in the release process. The environment variables are used later by the PowerShell scripts. By selecting the appropriate scope, you can control the variable contents for each stage.
 
     Please add the following variables to the 'Dev' stage:
 
@@ -47,7 +47,7 @@ For now, we will only upload the MOF files to Azure Automation, but you can add 
 
     ---
 
-4. Add a new 'Azure PowerShell' task for uploading the MOF files to the Azure automation account.
+1. Add a new 'Azure PowerShell' task for uploading the MOF files to the Azure automation account.
 
     > Note: In the task select your subscription and authorize Azure DevOps to access your subscription.
 
@@ -82,7 +82,7 @@ For now, we will only upload the MOF files to Azure Automation, but you can add 
 
     ---
 
-5. Add a new 'Azure PowerShell' task for uploading the compressed modules to the Azure automation account
+1. Add a new 'Azure PowerShell' task for uploading the compressed modules to the Azure automation account
 
     This is almost the same as for the previous task for uploading the MOF files but this time we want to upload the compressed modules. These modules are required to apply the DSC configuration on the nodes. After a node has downloaded its configuration (MOF) from the automation account, it will look for the modules referenced in the configuration. If the automation account does not provide the required modules, applying the configuration will fail.
 
@@ -158,7 +158,7 @@ For now, we will only upload the MOF files to Azure Automation, but you can add 
 
     You can trigger a new release either manually or automatically after a build has successfully finished. If you have an automation account set up, you can try it out! Simply set up your build variables properly and observe.
 
-6. Examine what the release process has done in your Azure Automation Account. Please click on your Azure Automation Account and then on the menu 'Configuration Management -> State configuration (DSC)'. So far, no nodes have been onboarded yet so the numbers here are not that interesting. But if you click on 'Configurations', things get more interesting.
+1. Examine what the release process has done in your Azure Automation Account. Please click on your Azure Automation Account and then on the menu 'Configuration Management -> State configuration (DSC)'. So far, no nodes have been onboarded yet so the numbers here are not that interesting. But if you click on 'Configurations', things get more interesting.
 
     ![Azure Automation Account MOF Files](img/DscResourcesOnAzureAA.png)
 

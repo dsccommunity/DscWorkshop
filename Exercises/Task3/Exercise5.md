@@ -14,10 +14,10 @@ This task assumes that you have access to dev.azure.com in order to create your 
 
 1. Please create a machine in Azure or on hour local Hyper-V named 'DSCFile01'. The operating system should be Windows 2016 or 2019.
 
-2. Please open an PowerShell ISE on the new virtual machine and paste the following code into a new empty script window:
+1. Please open an PowerShell ISE on the new virtual machine and paste the following code into a new empty script window:
 
     ```powershell
-    # The DSC configuration that will generate metaconfigurations
+    # The DSC configuration that will generate meta configurations
     [DscLocalConfigurationManager()]
     Configuration DscMetaConfigs
     {
@@ -104,7 +104,7 @@ This task assumes that you have access to dev.azure.com in order to create your 
         }
     }
 
-    # Create the metaconfigurations
+    # Create the meta configurations
     # NOTE: DSC Node Configuration names are case sensitive in the portal.
     # TODO: edit the below as needed for your use case
     $Params = @{
@@ -132,15 +132,15 @@ This task assumes that you have access to dev.azure.com in order to create your 
 
     ![Azure Automation Account Keys](img/AzureAutomationAccountKeys.png)
 
-3. Please execute the script by pressing the run button or ```F5```. The result is a Meta.MOF file that configures the machines DSC local configuration manager to pull configurations from the Azure Automation DSC pull server.
+1. Please execute the script by pressing the run button or `F5`. The result is a Meta.MOF file that configures the machines DSC local configuration manager to pull configurations from the Azure Automation DSC pull server.
 
-4. Use the following command to actually apply the Meta.MOF file where the path is the one that was returned in the previous activity.
+1. Use the following command to actually apply the Meta.MOF file where the path is the one that was returned in the previous activity.
 
     ```powershell
     Set-DscLocalConfigurationManager -Path C:\Users\Install.contoso\DscMetaConfigs -Verbose
     ```
 
-    The output the command ```Set-DscLocalConfigurationManager``` returns should look like this:
+    The output the command `Set-DscLocalConfigurationManager` returns should look like this:
 
     ```code
     VERBOSE: Performing the operation "Start-DscConfiguration: SendMetaConfigurationApply" on target "MSFT_DSCLocalConfigurationManager".
@@ -164,7 +164,7 @@ This task assumes that you have access to dev.azure.com in order to create your 
     VERBOSE: Set-DscLocalConfigurationManager finished in 1.053 seconds.
     ```
 
-5. In max 30 minutes the node will pull the new configuration from the Azure pull server. If you don't want to wait that long, use this command:
+1. In max 30 minutes the node will pull the new configuration from the Azure pull server. If you don't want to wait that long, use this command:
 
     ```powershell
     Update-DscConfiguration -Wait -Verbose

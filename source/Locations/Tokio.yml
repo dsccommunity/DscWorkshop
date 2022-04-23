@@ -3,9 +3,9 @@ Configurations:
 
 FilesAndFolders:
   Items:
-    - DestinationPath: C:\Test\Tokio
+    - DestinationPath: '[x= "C:\Test\$($File.BaseName)" =]'
       Type: Directory
 
 DscTagging:
   Layers:
-    - Locations\Tokio
+    - '[x={ Get-DatumSourceFile -Path $File } =]'

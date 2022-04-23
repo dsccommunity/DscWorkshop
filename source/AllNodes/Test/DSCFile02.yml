@@ -1,13 +1,13 @@
-NodeName: DSCFile02
-Environment: Test
+NodeName: '[x={ $Node.Name }=]'
+Environment: '[x={ $File.Directory.BaseName } =]'
 Role: FileServer
-Description: File Server in Test
+Description: '[x= "$($Node.Role) in $($Node.Environment)" =]'
 Location: Frankfurt
 Baseline: Server
 
 ComputerSettings:
-  Name: DSCFile02
-  Description: File Server in Test
+  Name: '[x={ $Node.NodeName }=]'
+  Description: '[x= "$($Node.Role) in $($Node.Environment)" =]'
 
 NetworkIpConfiguration:
   Interfaces:
@@ -25,8 +25,8 @@ PSDscAllowDomainUser: True
 LcmConfig:
   ConfigurationRepositoryWeb:
     Server:
-      ConfigurationNames: DSCFile02
+      ConfigurationNames: '[x={ $Node.NodeName }=]'
 
 DscTagging:
   Layers:
-    - AllNodes\Test\DscFile02
+    - '[x={ Get-DatumSourceFile -Path $File } =]'

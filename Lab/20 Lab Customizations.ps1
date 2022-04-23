@@ -173,8 +173,8 @@ Invoke-LabCommand -ActivityName 'Create link on AzureDevOps desktop' -ComputerNa
     $shortcut.TargetPath = "https://$($devOpsServer):$($originalPort)/AutomatedLab/DscWorkshop"
     $shortcut.Save()
 
-    $shortcut = $shell.CreateShortcut("$desktopPath\CommonTasks Project.url")
-    $shortcut.TargetPath = "https://$($devOpsServer):$($originalPort)/AutomatedLab/CommonTasks"
+    $shortcut = $shell.CreateShortcut("$desktopPath\DscConfig.Demo Project.url")
+    $shortcut.TargetPath = "https://$($devOpsServer):$($originalPort)/AutomatedLab/DscConfig.Demo"
     $shortcut.Save()
 
     $shortcut = $shell.CreateShortcut("$desktopPath\PowerShell Feed.url")

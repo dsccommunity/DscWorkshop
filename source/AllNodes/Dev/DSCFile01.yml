@@ -1,13 +1,13 @@
-NodeName: DSCFile01
-Environment: Dev
+NodeName: '[x={ $Node.Name }=]'
+Environment: '[x={ $File.Directory.BaseName } =]'
 Role: FileServer
-Description: File Server in Dev
+Description: '[x= "$($Node.Role) in $($Node.Environment)" =]'
 Location: Frankfurt
 Baseline: Server
 
 ComputerSettings:
-  Name: DSCFile01
-  Description: File Server in Dev
+  Name: '[x={ $Node.NodeName }=]'
+  Description: '[x= "$($Node.Role) in $($Node.Environment)" =]'
 
 NetworkIpConfiguration:
   Interfaces:
@@ -25,15 +25,13 @@ PSDscAllowDomainUser: True
 LcmConfig:
   ConfigurationRepositoryWeb:
     Server:
-      ConfigurationNames: DSCFile01
+      ConfigurationNames: '[x={ $Node.NodeName }=]'
 
 DscTagging:
   Layers:
-    - AllNodes\Dev\DscFile01
+    - '[x={ Get-DatumSourceFile -Path $File } =]'
 
 FilesAndFolders:
   Items:
     - DestinationPath: Z:\DoesNotWork
-      Type: Directory
-    - DestinationPath: C:\Test\211209 DscWorkshop
       Type: Directory

@@ -1,16 +1,16 @@
 DscTagging:
-  Environment: Dev
+  Environment: '[x={ $Node.Environment } =]'
   Layers:
-    - Environment\Dev
+    - '[x={ Get-DatumSourceFile -Path $File } =]'
 
 FilesAndFolders:
   Items:
-    - DestinationPath: C:\Test\Dev-Environment
+    - DestinationPath: '[x= "C:\Test\$($File.BaseName)-Environment" =]'
       Type: Directory
 
 RegistryValues:
   Values:
-    - Key: HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Netlogon\Parameters        
+    - Key: HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\Netlogon\Parameters
       ValueName: DBFlag
       ValueData: 545325055
       ValueType: DWORD
