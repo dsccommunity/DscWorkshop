@@ -31,6 +31,7 @@
     Metadata                     = 'latest'
     xDscResourceDesigner         = 'latest'
     'DscResource.Test'           = 'latest'
+    'DscResource.DocGenerator'   = 'latest'
 
     # Composites
     'DscConfig.Demo'             = '0.8.0'
