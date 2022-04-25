@@ -20,9 +20,10 @@ $requiredModules = Import-PowerShellDataFile -Path "$here\..\RequiredModules.psd
 $requiredModules.Remove('PSDependOptions')
 
 #Adding modules that are not defined in the PSDepend files but required in the lab
-$requiredModules.NTFSSecurity = 'latest'
-$requiredModules.PSDepend     = 'latest'
-$requiredModules.PSDeploy     = 'latest'
+$requiredModules.NTFSSecurity  = 'latest'
+$requiredModules.PSDepend      = 'latest'
+$requiredModules.PSDeploy      = 'latest'
+$requiredModules.PowerShellGet = 'latest'
 
 $requiredChocolateyPackages = @{
     putty            = '0.76'
@@ -110,10 +111,10 @@ Write-Host "Created artifacts feed 'Software' on Azure DevOps Server '$nugetServ
 $deployUserName = (Get-LabVM -Role WebServer).GetCredential((Get-Lab)).UserName
 $deployUserPassword = (Get-LabVM  -Role WebServer).GetCredential((Get-Lab)).GetNetworkCredential().Password
 
-Copy-LabFileItem -Path "$PSScriptRoot\LabData\LabSite.zip" -ComputerName (Get-LabVM -Role WebServer)
-Copy-LabFileItem -Path "$PSScriptRoot\LabData\DummyService.exe" -ComputerName (Get-LabVM -Role WebServer)
+Copy-LabFileItem -Path "$here\LabData\LabSite.zip" -ComputerName (Get-LabVM -Role WebServer)
+Copy-LabFileItem -Path "$here\LabData\DummyService.exe" -ComputerName (Get-LabVM -Role WebServer)
 $desktopPath = Invoke-LabCommand -ComputerName $devOpsServer -ScriptBlock { [System.Environment]::GetFolderPath('Desktop') } -PassThru
-Copy-LabFileItem -Path "$PSScriptRoot\LabData\Helpers.psm1" -ComputerName $devOpsServer -DestinationFolderPath $desktopPath
+Copy-LabFileItem -Path "$here\LabData\Helpers.psm1" -ComputerName $devOpsServer -DestinationFolderPath $desktopPath
 
 Invoke-LabCommand -Activity 'Setup Web Site' -ComputerName (Get-LabVM -Role WebServer) -ScriptBlock {
 
@@ -249,7 +250,7 @@ Invoke-LabCommand -ActivityName 'Install Chocolatey to all lab VMs' -ScriptBlock
 
     choco source add -n=Software -s $chocolateyFeed.NugetV2Url
 
-} -ComputerName (Get-LabVM) -Variable (Get-Variable -Name chocolateyFeed)
+} -ComputerName (Get-LabVM) -Variable (Get-Variable -Name chocolateyFeed) -ThrottleLimit 1 #to prevent error 429: Too Many Requests
 
 Remove-LabPSSession #this is required to make use of the new version of PowerShellGet
 
@@ -288,7 +289,7 @@ Invoke-LabCommand -ActivityName 'Downloading required modules from PSGallery' -C
         if ($requiredModule.Value -ne 'latest') {
             $installModuleParams.Add('RequiredVersion', $requiredModule.Value)
         }
-        if ($requiredModule.Value -like '*-*') {
+        if ($requiredModule.Value -like '*-*' -or $requiredModule.Value -eq 'Latest') {
             #if pre-release version
             $installModuleParams.Add('AllowPrerelease', $true)
         }
