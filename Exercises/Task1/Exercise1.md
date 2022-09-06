@@ -54,7 +54,7 @@ Desired State Configuration has been introduced with Windows Management Framewor
 
     >**Note:** Most DSC resources can be set to 'Present' and 'Absent' by using the 'Ensure' parameter. Setting the parameter to 'Absent' will delete an item without further confirmation.
 
-    >**Info:** The 'DependsOn' parameter is supported by all DSC resources and guarantees, that the used resources are called in the order as defined. If course, it does not make sense to create a file in the test folder before the test folder exists.
+    >**Info:** The 'DependsOn' parameter is supported by all DSC resources and guarantees, that the used resources are called in the order as defined. Of course, it does not make sense to create a file in the test folder before the test folder exists.
 
 5. In order to actually convert this code into something that the target machines can properly enact, you need to compile the configuration element into a MOF file.
 
