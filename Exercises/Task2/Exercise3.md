@@ -16,16 +16,16 @@ This new role should enable WSUS administrators to build on top of the basic inf
 
 1. Let us now create a new role for a WSUS Server in the `source\Roles` folder. This role's YAML will subscribe to the configuration `WindowsFeatures` and will define configuration data (Settings) for the configuration.
 
-Create a new file in `source\Roles` named `WsusServer.yml`. Paste the following code into the new file and save it.
+    Create a new file in `source\Roles` named `WsusServer.yml`. Paste the following content into the new file and save it.
 
-  ```yml
-  Configurations:
-  - WindowsFeatures
-  
-  WindowsFeatures:
-    Names:
-    - +UpdateServices
-  ```
+    ```yml
+    Configurations:
+    - WindowsFeatures
+    
+    WindowsFeatures:
+      Names:
+      - +UpdateServices
+    ```
 
 1. Now let us add a new node YAML `DSCWS01.yml` in the Test environment which is based on this role. Create the new file `DSCWS01.yml` in the folder `source\AllNodes\Test`. Paste the following content into the file and save it.
 
@@ -93,7 +93,7 @@ Modifying a role is even easier as adding a new one. Let's try changing the defa
     - Key: HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\W32Time\Parameters
       ValueName: NtpServer
       ValueData: pool.contoso.local,0x2
-      ValueType: DWORD
+      ValueType: String
       Ensure: Present
   ```
 
