@@ -19,3 +19,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   is no IP address configured.
 - Module versions incremented.
 - Fix typo in ConfigData tests.
+- Fixed some optional config data tests are never running.
