@@ -151,27 +151,26 @@ Describe 'Node Definition Files' -Tag Integration {
         }
     }
 
-    if ($node.Environment -and $node.Environment -notlike '`[x=*')
-    {
-        It "Environment of '<Name>' is '<Environment>' and does exist" -TestCases $allNodeTests {
+    It "Environment of '<Name>' is '<Environment>' and does exist" -TestCases $allNodeTests {
+        if ($node.Environment -and $node.Environment -notlike '`[x=*')
+        {
             $node.Environment -in $Environments | Should -BeTrue
         }
     }
 
-    if ($node.Role)
-    {
-        It "Role of '<Name>' is '<Role>' and does exist" -TestCases $allNodeTests {
+    It "Role of '<Name>' is '<Role>' and does exist" -TestCases $allNodeTests {
+        if ($node.Role)
+        {
             $node.Role -in $Roles | Should -BeTrue
         }
     }
 
-    if ($node.Baseline)
-    {
-        It "Baseline of '<Name>' is '<Baseline>' and does exist" -TestCases $allNodeTests {
+    It "Baseline of '<Name>' is '<Baseline>' and does exist" -TestCases $allNodeTests {
+        if ($node.Baseline)
+        {
             $node.Baseline -in $Baselines | Should -BeTrue
         }
     }
-
 
     Describe 'Roles Definition Files' -Tag Integration {
         It '<FullName> has valid yaml' -TestCases $nodeRoleTests {
