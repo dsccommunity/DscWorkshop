@@ -14,7 +14,7 @@ You are tasked with creating another layer that better reflects separate fire se
 
 1. To create a new layer, you need to find an appropriate structure. Since the file system is already quite good when it comes to displaying hierarchical data, we can add a subfolder called `FireSections` which should contain for example `Section1.yml` and `Section2.yml`. The file subscribes to the `RegistryValues` configuration to write a registry key to the nodes containing the fire section. You may either use VSCode to create the folder and the files or run the following commands:
 
-> **Note: Before running the commands, make sure you are in the directory `DSC`**.
+> **Note: Before running the commands, make sure you are in the solution's main directory `DscWorkshop`**.
 
 ```powershell
 @'
@@ -58,7 +58,7 @@ DscTagging:
 
     We have created config files containing the fire sections but the nodes have not been assigned a fire section yet.
 
-1. To assign a node to a fire section, please open the files for the nodes `DSCFile01` and `DSCWeb01` in the dev environment. Like a node is assigned to a location or role, you can add a line containing the fire section like this:
+1. To assign a node to a fire section, please open the files for the nodes `DSCFile01` and `DSCWeb01` in the `Dev` environment. Like a node is assigned to a location or role, you can add a line containing the fire section like this:
 
     ```yml
     NodeName: '[x={ $Node.Name }=]'
@@ -72,7 +72,7 @@ DscTagging:
 
 1. Please build the project again. This time you will see that the fire section number has made it to the node's RSoP files. However, something important is missing: The data about the registry key to write. Why is it still missing?
 
-1. In order to add completely new layers to your configuration, you need to tell Datum about it by modifying the lookup precedence. This is one in the global configuration file called `Datum.yml` stored in the directory `source`. Please open the file.
+1. In order to add completely new layers to your configuration, you need to tell `Datum` about it by modifying the lookup precedence. This is one in the global configuration file called `Datum.yml` stored in the directory `source`. Please open the file.
 
 1. Examine the current contents of `Datum.yml` and notice the resolution order for your files:
 
@@ -167,7 +167,7 @@ DscTagging:
       - Baselines\Security
       - Baselines\Server
       - Baselines\DscLcm
-    .
+    ...
     RegistryValues:
       DependsOn: '[FilesAndFolders]FilesAndFolders'
       Values:

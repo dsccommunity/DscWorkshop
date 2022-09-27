@@ -25,8 +25,8 @@ describe "Prerequisite check" {
     }
 
     Context "Task 2" {
-        it "Should have Az module installed" {
-            (Get-Module -List Az.*).Count | Should -BeGreaterOrEqual 45 -Because "We need the module Az installed with all its components"
+        it "Should have 'Az.Automation' module installed" {
+            Get-Module -List -Name Az.Automation | Should -Not -BeNullOrEmpty
         }
 
         it "Should be logged in to Azure (use Login-AzAccount)" {

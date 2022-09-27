@@ -16,7 +16,9 @@ Extending configurations based on the customer's needs will eventually require y
 
 There should rarely be the need for hard-coded values in your composite resources. Keep in mind though that they should abstract some of the complexity of DSC. A composite resource that requires massive amounts of configuration data is probably not the best choice.
 
-We cannot give you a blueprint that covers all your needs. However, the repository <https://github.com/raandree/DscConfig.Demo> can serve as a starting point again. The `DscConfig.Demo` module is our trusted module in the build and release pipeline and collects commonly used DSC composite resources.
+We cannot give you a blueprint that covers all your needs. However, the repository [DscConfig.Demo](https://github.com/raandree/DscConfig.Demo) can serve as a starting point again. The `DscConfig.Demo` module is our trusted module in the build and release pipeline and collects commonly used DSC composite resources.
+
+> Note: The DSC composite resource module [CommonTasks](https://github.com/dsccommunity/CommonTasks) has a much bigger choice of configurations (composite resources). To reduce the complexity of the `DscWorkshop` blueprint and these exercises and reduce the build time, we have created the [DscConfig.Demo](https://github.com/raandree/DscConfig.Demo) module which comes only with a small subset of the available configurations. If you want to start using the `DscWorkshop` in production, have a look at the abundance of available configurations in [CommonTasks](https://github.com/dsccommunity/CommonTasks).
 
 At your customer, this is all customer-specific code and should be collected in one or more separate PowerShell modules with their own build and release pipeline. This pipeline is trusted and will always deliver tested and working code to an internal gallery, for example [ProGet](https://inedo.com/proget), [Azure DevOps](https://dev.azure.com) or the free and open-source [NuGet](https://nuget.org).
 
@@ -30,7 +32,7 @@ At your customer, this is all customer-specific code and should be collected in 
 
     After cloning, please open the `DscConfig.Demo` repository in VSCode. You may want to open a new VSCode window so you can switch between both projects.
 
-1. This module contains some small DSC composite resources (in this context we call them configurations), that the `DscWorkshop` project uses. Please open the folder `DscConfig.Demo\DscResources` and have a look at the composite resources defined there.
+1. This module contains some small DSC composite resources (in this context we call them configurations), that the `DscWorkshop` project uses. Please open the folder `source\DscResources` and have a look at the composite resources defined there.
 
     You can get a list of all resources also with this command:
 
@@ -40,9 +42,9 @@ At your customer, this is all customer-specific code and should be collected in 
 
 1. Now let's add your own composite resource / configuration by adding the following files to the structure:
 
-    > Note: You can choose whatever name you like, but here are some recommendations. PowerShell function, cmdlet and parameter names are always in singular. To prevent conflicts, all the DSC composite resources in `DscConfig.Demo` are named in plural if they can effect one or multiple objects. The naming convention in PowerShell is naming cmdlets always in singular.
+    > Note: You can choose whatever name you like, but here are some recommendations. PowerShell function, cmdlet and parameter names are always in singular. To prevent conflicts, all the DSC composite resources in [DscConfig.Demo](https://github.com/raandree/DscConfig.Demo) are named in plural if they can effect one or multiple objects. The naming convention in PowerShell is naming cmdlets always in singular.
 
-    As we are going to create a composite resource that is configuring disks, you may want to name this resource just 'Disks'.
+    As we are going to create a composite resource that is configuring disks, you may want to name this resource just `Disks`.
 
     ```code
     source\
@@ -68,11 +70,39 @@ At your customer, this is all customer-specific code and should be collected in 
     }
     ```
 
-1. Your .psm1 file now should only contain your DSC configuration element, the composite resource. Depending on the DSC resources that you use in this composite, you can make use of Datum's cmdlet `Get-DscSplattedResource` or its alias `x` to pass parameter values to the resource in a single, beautiful line of code.
+1. Your `.psm1` file now should only contain your DSC configuration element, the composite resource. Depending on the DSC resources that you use in this composite, you can make use of Datum's cmdlet `Get-DscSplattedResource` or its alias `x` to pass parameter values to the resource in a single, beautiful line of code.
 
-    > Note: The ['WindowsServices'](https://github.com/dsccommunity/CommonTasks/blob/master/CommonTasks/DscResources/WindowsServices/WindowsServices.schema.psm1) composite resource in 'CommonTasks' shows the difference of splatting vs. passing the parameters in the classical way. If you want to read more about how PowerShell supports splatting, have a look at [About Splatting](https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_splatting?view=powershell-6). DSC does not support splatting out-of-the-box, but Datum adds that very useful feature.
+    ### Splatting
 
-    The following code uses the `Disk` resource published in the [StorageDsc](https://github.com/dsccommunity/StorageDsc) module to configure disk layouts. The `$DiskLayout` hashtable must have a pattern that matches exactly the parameter pattern defined in the `StorageDsc\Disk` resource.
+    Let's make a little detour and talk about splatting. Why is splatting so helpful? To learn more about splatting, have a look at Kevin Marquette's excellent article [Powershell: Everything you wanted to know about hashtables](https://powershellexplained.com/2016-11-06-powershell-hashtable-everything-you-wanted-to-know-about/#splatting-hashtables-at-cmdlets). DSC does not support splatting out-of-the-box. The cmdlet `Get-DscSplattedResource` adds thing long missing feature.
+
+    If there is no splatting available, we need to assign each parameter-argument pair by ourselves. This can result in massive code blocks. For the configuration [WindowsServices](https://github.com/raandree/DscConfig.Demo/tree/main/source/DSCResources/WindowsServices) the code would look like this:
+
+    ```powershell
+    Service $Service.Name {
+            Name        = $service.Name
+            Ensure      = 'Present'
+            Credential  = $service.Credential
+            DisplayName = $service.DisplayName
+            StartupType = $service.StartupType
+            State       = 'Running'
+            Path        = $service.Path
+    }
+    ```
+
+    This is still manageable, but there are resources with 50+ parameter and then things get boring and error-prone.
+
+    Splatting by means of `Get-DscSplattedResource` makes this code look much nicer:
+
+    ```powershell
+    Get-DscSplattedResource -ResourceName Service -ExecutionName $service.Name -Properties $service -NoInvoke).Invoke($service)
+    ```
+
+    With splatting we don't care how many parameter-argument pairs need to be matched. `Get-DscSplattedResource` does all the work.
+
+    ---
+
+    Going back to the task of creating a new configuration: The following code uses the `Disk` resource published in the [StorageDsc](https://github.com/dsccommunity/StorageDsc) module to configure disk layouts. The `$DiskLayout` hashtable must have a pattern that matches exactly the parameter pattern defined in the `StorageDsc\Disk` resource.
 
     Please put this code into the file `Disks.schema.psm1`.
 
@@ -108,9 +138,18 @@ At your customer, this is all customer-specific code and should be collected in 
     }
     ```
 
-    Great, you have created the first composite resource that serves as a configuration. But this resource only exists in the `DscConfig.Demo` project. We want to use it in the `DscWorkshop` project. In a real-life environment the build pipeline of the `DscWorkshop` project would pull the `DscWorkshop` module from an internal gallery. In case of this exercise the build pipeline downloads the `DscConfig.Demo` module from the [PowerShell Gallery](https://www.powershellgallery.com/packages/DscConfig.Demo), which of course doesn't know about the code that you want to add. To skip this step and inject your modified version which has the new `Disks` resource directory, run the following commands:
+1. After having added the new DSC composite resource, you need to build the solution. This works the same way like in the `DscWorkshop` repository. Just go in the project's directory (which should be `C:\Git\DscConfig.Demo`) and run the build script:
 
-    > Note: Please make sure you are in the directory you have cloned the repositories into. If you are not in the right location, these commands will fail.
+    ```powershell
+    Set-Location -Path C:\Git\DscConfig.Demo
+    .\Build.ps1
+    ```
+
+    The build will create the module but will fail, as there is no test data yet for the `Disks` configuration that you have created. But this is not an issue for now.
+
+    Great, you have created the first composite resource that serves as a configuration. But this resource only exists in the `DscConfig.Demo` project. We want to use it in the `DscWorkshop` project. In a real-life environment the build pipeline of the `DscWorkshop` project would pull the `DscConfig.Demo` module from an internal gallery. In case of this exercise the build pipeline downloads the `DscConfig.Demo` module from the [PowerShell Gallery](https://www.powershellgallery.com/packages/DscConfig.Demo), which of course doesn't know about the code that you have just added. To skip this step and inject your modified version which has the new `Disks` resource directory, run the following commands:
+
+    > **Note: Please make sure you are in the directory you have cloned the repositories into. If you are not in the right location, these commands will fail. If you have followed the exercises it should be `C:\Git`.**
 
     ```powershell
     Remove-Item -Path .\DscWorkshop\output\RequiredModules\DscConfig.Demo\ -Recurse -Force
@@ -135,6 +174,13 @@ At your customer, this is all customer-specific code and should be collected in 
 
     After saving the file, please start a new build using the script `build.ps1`. The build will fail because a Pester tests has discovered that the DSC resource module `StorageDsc` is missing.
 
+    ```
+    [-] DSC Resource Module 'StorageDsc' is defined in 'RequiredModules.psd1' 24ms (20ms|4ms)
+    at $VersionInPSDependFile | Should -Not -BeNullOrEmpty, E:\Git\DscWorkshop\tests\ConfigData\CompositeResources.Tests.ps1:90
+    at <ScriptBlock>, E:\Git\DscWorkshop\tests\ConfigData\CompositeResources.Tests.ps1:90
+    Expected a value, but got $null or empty.
+    ```
+
     Please add the following line to the file `.\RequiredModules.psd1`
 
     ```yaml
@@ -149,7 +195,7 @@ At your customer, this is all customer-specific code and should be collected in 
 
     > Note: This may take a while, good time to grab a coffee.
 
-1. The build will not fail but wait for further input like this:
+1. The build should not fail this time but waits for further input. This is what you should see on the console:
 
     ```code
     Did not find 'RootConfiguration.ps1' and 'CompileRootConfiguration.ps1' in 'source', using the ones in 'Sampler.DscPipeline'
