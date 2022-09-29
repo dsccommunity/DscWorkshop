@@ -149,12 +149,20 @@ Describe 'Node Definition Files' -Tag Integration {
         {
             $node.Location -in $Locations | Should -BeTrue
         }
+        else
+        {
+            Set-ItResult -Skipped -Because "Location for '$Name' is not set"
+        }
     }
 
     It "Environment of '<Name>' is '<Environment>' and does exist" -TestCases $allNodeTests {
         if ($node.Environment -and $node.Environment -notlike '`[x=*')
         {
             $node.Environment -in $Environments | Should -BeTrue
+        }
+        else
+        {
+            Set-ItResult -Skipped -Because "Environment for '$Name' is either not set or like '[x=*'"
         }
     }
 
@@ -163,12 +171,20 @@ Describe 'Node Definition Files' -Tag Integration {
         {
             $node.Role -in $Roles | Should -BeTrue
         }
+        else
+        {
+            Set-ItResult -Skipped -Because "Role for '$Name' is not set"
+        }
     }
 
     It "Baseline of '<Name>' is '<Baseline>' and does exist" -TestCases $allNodeTests {
         if ($node.Baseline)
         {
             $node.Baseline -in $Baselines | Should -BeTrue
+        }
+        else
+        {
+            Set-ItResult -Skipped -Because "Baseline for '$Name' is not set"
         }
     }
 
