@@ -142,6 +142,10 @@ Describe 'Node Definition Files' -Tag Integration {
             $pathElements = $FullName.Split('\')
             $pathElements -contains $node.Environment | Should -BeTrue
         }
+        else
+        {
+            Set-ItResult -Skipped -Because "Environment for '$Name' is either not set or like '[x=*'"
+        }
     }
 
     It "Location of '<Name>' is '<Location>' and does exist" -TestCases $allNodeTests {
@@ -149,29 +153,44 @@ Describe 'Node Definition Files' -Tag Integration {
         {
             $node.Location -in $Locations | Should -BeTrue
         }
+        else
+        {
+            Set-ItResult -Skipped -Because "Location for '$Name' is not set"
+        }
     }
 
-    if ($node.Environment -and $node.Environment -notlike '`[x=*')
-    {
-        It "Environment of '<Name>' is '<Environment>' and does exist" -TestCases $allNodeTests {
+    It "Environment of '<Name>' is '<Environment>' and does exist" -TestCases $allNodeTests {
+        if ($node.Environment -and $node.Environment -notlike '`[x=*')
+        {
             $node.Environment -in $Environments | Should -BeTrue
         }
+        else
+        {
+            Set-ItResult -Skipped -Because "Environment for '$Name' is either not set or like '[x=*'"
+        }
     }
 
-    if ($node.Role)
-    {
-        It "Role of '<Name>' is '<Role>' and does exist" -TestCases $allNodeTests {
+    It "Role of '<Name>' is '<Role>' and does exist" -TestCases $allNodeTests {
+        if ($node.Role)
+        {
             $node.Role -in $Roles | Should -BeTrue
         }
-    }
-
-    if ($node.Baseline)
-    {
-        It "Baseline of '<Name>' is '<Baseline>' and does exist" -TestCases $allNodeTests {
-            $node.Baseline -in $Baselines | Should -BeTrue
+        else
+        {
+            Set-ItResult -Skipped -Because "Role for '$Name' is not set"
         }
     }
 
+    It "Baseline of '<Name>' is '<Baseline>' and does exist" -TestCases $allNodeTests {
+        if ($node.Baseline)
+        {
+            $node.Baseline -in $Baselines | Should -BeTrue
+        }
+        else
+        {
+            Set-ItResult -Skipped -Because "Baseline for '$Name' is not set"
+        }
+    }
 
     Describe 'Roles Definition Files' -Tag Integration {
         It '<FullName> has valid yaml' -TestCases $nodeRoleTests {
