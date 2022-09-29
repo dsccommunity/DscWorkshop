@@ -142,6 +142,10 @@ Describe 'Node Definition Files' -Tag Integration {
             $pathElements = $FullName.Split('\')
             $pathElements -contains $node.Environment | Should -BeTrue
         }
+        else
+        {
+            Set-ItResult -Skipped -Because "Environment for '$Name' is either not set or like '[x=*'"
+        }
     }
 
     It "Location of '<Name>' is '<Location>' and does exist" -TestCases $allNodeTests {
