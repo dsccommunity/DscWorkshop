@@ -24,6 +24,10 @@ stages:
         pool:
           vmImage: 'windows-2019'
         steps:
+        
+          - pwsh: |
+              dir -Path env: | Out-String | Write-Host
+            displayName: 'Display Environment Variables'
 
           - pwsh: |
               dotnet tool install --global GitVersion.Tool
