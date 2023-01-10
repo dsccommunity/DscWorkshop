@@ -21,6 +21,7 @@ variables:
   storageAccountName: dscws # Storage Account to host zipped modules for import into Azure Automation Modules
   storageAccountResourceGroup: dscws # Resource Group of Storage Account
   storageContainerName: modules # Name of storage container that will store the module zips for an upload to AA
+  Agent.Source.Git.ShallowFetchDepth: 0
 
 stages:
   - stage: Build
