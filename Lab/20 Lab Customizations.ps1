@@ -37,10 +37,10 @@ $requiredChocolateyPackages = @{
 }
 
 $vsCodeDownloadUrl = 'https://go.microsoft.com/fwlink/?Linkid=852157'
-$gitDownloadUrl = 'https://github.com/git-for-windows/git/releases/download/v2.34.1.windows.1/Git-2.34.1-64-bit.exe'
-$vscodePowerShellExtensionDownloadUrl = 'https://marketplace.visualstudio.com/_apis/public/gallery/publishers/ms-vscode/vsextensions/PowerShell/2021.10.2/vspackage'
+$gitDownloadUrl = 'https://github.com/git-for-windows/git/releases/download/v2.39.2.windows.1/Git-2.39.2-64-bit.exe'
+$vscodePowerShellExtensionDownloadUrl = 'https://marketplace.visualstudio.com/_apis/public/gallery/publishers/ms-vscode/vsextensions/PowerShell/2023.1.0/vspackage'
 $chromeDownloadUrl = 'https://dl.google.com/tag/s/appguid%3D%7B8A69D345-D564-463C-AFF1-A69D9E530F96%7D%26iid%3D%7BC9D94BD4-6037-E88E-2D5A-F6B7D7F8F4CF%7D%26lang%3Den%26browser%3D5%26usagestats%3D0%26appname%3DGoogle%2520Chrome%26needsadmin%3Dprefers%26ap%3Dx64-stable-statsdef_1%26installdataindex%3Dempty/chrome/install/ChromeStandaloneSetup64.exe'
-$notepadPlusPlusDownloadUrl = 'https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v8.1.9.3/npp.8.1.9.3.Installer.exe'
+$notepadPlusPlusDownloadUrl = 'https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v8.4.9/npp.8.4.9.Installer.x64.exe'
 
 #-------------------------------------------------------------------------------------------------------------------------------------
 
@@ -274,58 +274,51 @@ Invoke-LabCommand -ActivityName 'Add Chocolatey internal source' -ScriptBlock {
 
 Invoke-LabCommand -ActivityName 'Downloading required modules from PSGallery' -ComputerName $devOpsServer -ScriptBlock {
 
-    Write-Host "Installing $($requiredModules.Count) modules on $(hostname.exe) for pushing them to the lab"
+    Write-Host "Saving $($requiredModules.Count) modules on $(hostname.exe) and publishing them to the on the Artifacts feed"
 
     foreach ($requiredModule in $requiredModules.GetEnumerator()) {
-        $installModuleParams = @{
+        $SaveModuleParams = @{
+            Path = 'C:\TempModules'
             Name               = $requiredModule.Key
             Repository         = 'PSGallery'
             Force              = $true
-            AllowClobber       = $true
-            SkipPublisherCheck = $true
             WarningAction      = 'SilentlyContinue'
             ErrorAction        = 'Stop'
         }
         if ($requiredModule.Value -ne 'latest') {
-            $installModuleParams.Add('RequiredVersion', $requiredModule.Value)
+            $SaveModuleParams.Add('RequiredVersion', $requiredModule.Value)
         }
         if ($requiredModule.Value -like '*-*' -or $requiredModule.Value -eq 'Latest') {
             #if pre-release version
-            $installModuleParams.Add('AllowPrerelease', $true)
+            $SaveModuleParams.Add('AllowPrerelease', $true)
         }
-        Write-Host "Installing module '$($requiredModule.Key)' with version '$($requiredModule.Value)'"
-        Install-Module @installModuleParams
+        Write-Host "Saving module '$($requiredModule.Key)' with version '$($requiredModule.Value)'"
+        Save-Module @SaveModuleParams
     }
-} -Variable (Get-Variable -Name requiredModules)
 
-Invoke-LabCommand -ActivityName 'Publishing required modules to internal repository' -ComputerName $devOpsServer -ScriptBlock {
+    $savedModules = Get-ChildItem -Path C:\TempModules
+    $repositoryName = 'PowerShell'
 
     $loopCount = 3
     Write-Host "Publishing modules to internal gallery $loopCount times. This is reuqired due to cross dependencies within the module list."
     foreach ($loop in (1..$loopCount)) {
         Write-Host "Publishing $($requiredModules.Count) modules to the internal repository (loop $loop)"
-        foreach ($requiredModule in $requiredModules.GetEnumerator()) {
-            $module = Get-Module $requiredModule.Key -ListAvailable | Sort-Object -Property Version -Descending | Select-Object -First 1
-            $version = $module.Version
-            if ($module.PrivateData.PSData.Prerelease) {
-                $version = "$version-$($module.PrivateData.PSData.Prerelease)"
+        foreach ($savedModule in $savedModules) {
+            $version = if ($requiredModules[$savedModule.Name] -eq 'latest') {
+                (dir -Path $savedModule.FullName | Sort-Object -Property Name -Descending | Select-Object -First 1).BaseName
             }
-            Write-Host "`t'$($module.Name) - $version'"
-            if (-not (Find-Module -Name $module.Name -Repository PowerShell -AllowPrerelease -ErrorAction SilentlyContinue)) {
+            else {
+                ($requiredModules[$savedModule.Name] -split '-')[0]
+            }
+            Write-Host "`t'$($savedModule.Name) - $version'"
+            if (-not (Find-Module -Name $savedModule.Name -Repository PowerShell -AllowPrerelease -ErrorAction SilentlyContinue)) {
                 $param = @{
-                    Name = $module.Name
-                    RequiredVersion = $version
-                    Repository = 'PowerShell'
+                    Path = "$($savedModule.FullName)\$($version)"
+                    Repository = $repositoryName
                     NuGetApiKey = $nuGetApiKey
-                    AllowPrerelease = $true
                     Force = $true
                     ErrorAction = 'SilentlyContinue'
                     WarningAction = 'SilentlyContinue'
-                }
-                #Removing ErrorAction and WarningAction to see errors in the last publish loop.
-                if ($loop -eq $loopCount) {
-                    $param.Remove('ErrorAction')
-                    $param.Remove('WarningAction')
                 }
 
                 Publish-Module @param
@@ -333,15 +326,17 @@ Invoke-LabCommand -ActivityName 'Publishing required modules to internal reposit
         }
     }
 
-    $modulesToUninstall = $requiredModules.GetEnumerator() | Where-Object Key -NotIn PowerShellGet, PackageManagement
-    Write-Host "Uninstalling $($requiredModules.Count) modules"
-    foreach ($module in $modulesToUninstall) {
-        Write-Host "`t'$($module.Name)"
-        Uninstall-Module -Name $module.Key -ErrorAction SilentlyContinue
+    $modulesNotPublished = foreach ($savedModule in $savedModules) {
+        if (-not (Find-Module -Name $savedModule.Name -Repository PowerShell -AllowPrerelease -ErrorAction SilentlyContinue)) {
+            $savedModule.Name
+        }
     }
-    foreach ($module in $modulesToUninstall) {
-        Write-Host "`t'$($module.Name)"
-        Uninstall-Module -Name $module.Key -ErrorAction SilentlyContinue
+    
+    Remove-Item -Path C:\TempModules -Force -Recurse
+
+    if ($modulesNotPublished)
+    {
+        Write-Error "These modules have not been published to the artifacts feed: $($modulesNotPublished -join ', ')"
     }
 } -Variable (Get-Variable -Name requiredModules, nuGetApiKey)
 
