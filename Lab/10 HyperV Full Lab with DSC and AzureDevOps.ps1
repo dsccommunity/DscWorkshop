@@ -24,6 +24,10 @@ Set-LabInstallationCredential -Username Install -Password Somepass1
 Add-LabIsoImageDefinition -Name AzDevOps -Path $labSources\ISOs\mul_azure_devops_server_2022_x64_dvd_9d49a4d6.iso #from https://docs.microsoft.com/en-us/azure/devops/server/download/azuredevopsserver?view=azure-devops
 Add-LabIsoImageDefinition -Name SQLServer2019 -Path $labsources\ISOs\SQLServer2019-x64-ENU.iso #from https://www.microsoft.com/en-us/evalcenter/evaluate-sql-server-2019. The EXE downloads the ISO.
 
+#Data Disks
+Add-LabDiskDefinition -Name DSCDO01_D -DiskSizeInGb 120 -Label DataDisk1 -DriveLetter D
+Add-LabDiskDefinition -Name DSCHost01_D -DiskSizeInGb 120 -Label DataDisk1 -DriveLetter D
+
 #defining default parameter values, as these ones are the same for all the machines
 $PSDefaultParameterValues = @{
     'Add-LabMachineDefinition:Network'         = $labName
@@ -56,20 +60,20 @@ $roles = @(
         SqlServer             = 'DSCCASQL01'
         DatabaseName          = 'DSC'
     }
-    Get-LabMachineRoleDefinition -Role TfsBuildWorker -Properties @{ NumberOfBuildWorkers = '4' }
+    #Get-LabMachineRoleDefinition -Role TfsBuildWorker -Properties @{ NumberOfBuildWorkers = '4' }
     Get-LabMachineRoleDefinition -Role WebServer
 )
-Add-LabMachineDefinition -Name DSCPull01 -Memory 4GB -Roles $roles -IpAddress 192.168.111.60 -OperatingSystem 'Windows Server 2022 Datacenter (Desktop Experience)'
+Add-LabMachineDefinition -Name DSCPull01 -Memory 4GB -Roles $roles -IpAddress 192.168.111.60
 
 # Build Server
-Add-LabMachineDefinition -Name DSCDO01 -Memory 4GB -Roles AzDevOps -IpAddress 192.168.111.70
+Add-LabMachineDefinition -Name DSCDO01 -Memory 4GB -Roles AzDevOps -IpAddress 192.168.111.70 -DiskName DSCDO01_D
 
 #Hyper-V Host
 $roles = @(
     Get-LabMachineRoleDefinition -Role TfsBuildWorker -Properties @{ NumberOfBuildWorkers = '4' }
     Get-LabMachineRoleDefinition -Role HyperV
 )
-Add-LabMachineDefinition -Name DSCHost01 -Memory 8GB -Roles $roles -IpAddress 192.168.111.80
+Add-LabMachineDefinition -Name DSCHost01 -Memory 8GB -Roles $roles -IpAddress 192.168.111.80 -DiskName DSCHost01_D
 
 # DSC target nodes - our legacy VMs with an existing configuration
 Add-LabMachineDefinition -Name DSCFile01 -Memory 1GB -Roles FileServer -IpAddress 192.168.111.100
