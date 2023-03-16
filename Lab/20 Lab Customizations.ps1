@@ -274,51 +274,58 @@ Invoke-LabCommand -ActivityName 'Add Chocolatey internal source' -ScriptBlock {
 
 Invoke-LabCommand -ActivityName 'Downloading required modules from PSGallery' -ComputerName $devOpsServer -ScriptBlock {
 
-    Write-Host "Saving $($requiredModules.Count) modules on $(hostname.exe) and publishing them to the on the Artifacts feed"
+    Write-Host "Installing $($requiredModules.Count) modules on $(hostname.exe) for pushing them to the lab"
 
     foreach ($requiredModule in $requiredModules.GetEnumerator()) {
-        $SaveModuleParams = @{
-            Path = 'C:\TempModules'
+        $installModuleParams = @{
             Name               = $requiredModule.Key
             Repository         = 'PSGallery'
             Force              = $true
+            AllowClobber       = $true
+            SkipPublisherCheck = $true
             WarningAction      = 'SilentlyContinue'
             ErrorAction        = 'Stop'
         }
         if ($requiredModule.Value -ne 'latest') {
-            $SaveModuleParams.Add('RequiredVersion', $requiredModule.Value)
+            $installModuleParams.Add('RequiredVersion', $requiredModule.Value)
         }
         if ($requiredModule.Value -like '*-*' -or $requiredModule.Value -eq 'Latest') {
             #if pre-release version
-            $SaveModuleParams.Add('AllowPrerelease', $true)
+            $installModuleParams.Add('AllowPrerelease', $true)
         }
-        Write-Host "Saving module '$($requiredModule.Key)' with version '$($requiredModule.Value)'"
-        Save-Module @SaveModuleParams
+        Write-Host "Installing module '$($requiredModule.Key)' with version '$($requiredModule.Value)'"
+        Install-Module @installModuleParams
     }
+} -Variable (Get-Variable -Name requiredModules)
 
-    $savedModules = Get-ChildItem -Path C:\TempModules
-    $repositoryName = 'PowerShell'
+Invoke-LabCommand -ActivityName 'Publishing required modules to internal repository' -ComputerName $devOpsServer -ScriptBlock {
 
     $loopCount = 3
     Write-Host "Publishing modules to internal gallery $loopCount times. This is reuqired due to cross dependencies within the module list."
     foreach ($loop in (1..$loopCount)) {
         Write-Host "Publishing $($requiredModules.Count) modules to the internal repository (loop $loop)"
-        foreach ($savedModule in $savedModules) {
-            $version = if ($requiredModules[$savedModule.Name] -eq 'latest') {
-                (dir -Path $savedModule.FullName | Sort-Object -Property Name -Descending | Select-Object -First 1).BaseName
+        foreach ($requiredModule in $requiredModules.GetEnumerator()) {
+            $module = Get-Module $requiredModule.Key -ListAvailable | Sort-Object -Property Version -Descending | Select-Object -First 1
+            $version = $module.Version
+            if ($module.PrivateData.PSData.Prerelease) {
+                $version = "$version-$($module.PrivateData.PSData.Prerelease)"
             }
-            else {
-                ($requiredModules[$savedModule.Name] -split '-')[0]
-            }
-            Write-Host "`t'$($savedModule.Name) - $version'"
-            if (-not (Find-Module -Name $savedModule.Name -Repository PowerShell -AllowPrerelease -ErrorAction SilentlyContinue)) {
+            Write-Host "`t'$($module.Name) - $version'"
+            if (-not (Find-Module -Name $module.Name -Repository PowerShell -AllowPrerelease -ErrorAction SilentlyContinue)) {
                 $param = @{
-                    Path = "$($savedModule.FullName)\$($version)"
-                    Repository = $repositoryName
+                    Name = $module.Name
+                    RequiredVersion = $version
+                    Repository = 'PowerShell'
                     NuGetApiKey = $nuGetApiKey
+                    AllowPrerelease = $true
                     Force = $true
                     ErrorAction = 'SilentlyContinue'
                     WarningAction = 'SilentlyContinue'
+                }
+                #Removing ErrorAction and WarningAction to see errors in the last publish loop.
+                if ($loop -eq $loopCount) {
+                    $param.Remove('ErrorAction')
+                    $param.Remove('WarningAction')
                 }
 
                 Publish-Module @param
@@ -326,17 +333,15 @@ Invoke-LabCommand -ActivityName 'Downloading required modules from PSGallery' -C
         }
     }
 
-    $modulesNotPublished = foreach ($savedModule in $savedModules) {
-        if (-not (Find-Module -Name $savedModule.Name -Repository PowerShell -AllowPrerelease -ErrorAction SilentlyContinue)) {
-            $savedModule.Name
-        }
+    $modulesToUninstall = $requiredModules.GetEnumerator() | Where-Object Key -NotIn PowerShellGet, PackageManagement
+    Write-Host "Uninstalling $($requiredModules.Count) modules"
+    foreach ($module in $modulesToUninstall) {
+        Write-Host "`t'$($module.Name)"
+        Uninstall-Module -Name $module.Key -ErrorAction SilentlyContinue
     }
-    
-    Remove-Item -Path C:\TempModules -Force -Recurse
-
-    if ($modulesNotPublished)
-    {
-        Write-Error "These modules have not been published to the artifacts feed: $($modulesNotPublished -join ', ')"
+    foreach ($module in $modulesToUninstall) {
+        Write-Host "`t'$($module.Name)"
+        Uninstall-Module -Name $module.Key -ErrorAction SilentlyContinue
     }
 } -Variable (Get-Variable -Name requiredModules, nuGetApiKey)
 
