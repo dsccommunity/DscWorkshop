@@ -1,34 +1,33 @@
 $labName = "DscWorkshop_$((1..6 | ForEach-Object { [char[]](97..122) | Get-Random }) -join '')"
 $azureLocation = 'West Europe'
 
-#region Lab setup
 #--------------------------------------------------------------------------------------------------------------------
 #----------------------- CHANGING ANYTHING BEYOND THIS LINE SHOULD NOT BE REQUIRED ----------------------------------
 #----------------------- + EXCEPT FOR THE LINES STARTING WITH: REMOVE THE COMMENT TO --------------------------------
 #----------------------- + EXCEPT FOR THE LINES CONTAINING A PATH TO AN ISO OR APP   --------------------------------
 #--------------------------------------------------------------------------------------------------------------------
 
-#create an empty lab template and define where the lab XML files and the VMs will be stored
+# Create an empty lab template and define where the lab XML files and the VMs will be stored
 New-LabDefinition -Name $labName -DefaultVirtualizationEngine Azure
 Add-LabAzureSubscription -DefaultLocationName $azureLocation
 
-#make the network definition
+# Make the network definition
 Add-LabVirtualNetworkDefinition -Name $labName -AddressSpace 192.168.111.0/24
 
-#and the domain definition with the domain admin account
+# and the domain definition with the domain admin account
 Add-LabDomainDefinition -Name contoso.com -AdminUser Install -AdminPassword Somepass1
 
-#these credentials are used for connecting to the machines. As this is a lab we use clear-text passwords
+# these credentials are used for connecting to the machines. As this is a lab we use clear-text passwords
 Set-LabInstallationCredential -Username Install -Password Somepass1
 
 # Add the reference to our necessary ISO files
 Add-LabIsoImageDefinition -Name AzDevOps -Path $labSources\ISOs\mul_azure_devops_server_2022_x64_dvd_9d49a4d6.iso #from https://docs.microsoft.com/en-us/azure/devops/server/download/azuredevopsserver?view=azure-devops
 
-#Data Disks
+# Data Disks
 Add-LabDiskDefinition -Name DSCDO01_D -DiskSizeInGb 120 -Label DataDisk1 -DriveLetter D
 Add-LabDiskDefinition -Name DSCHost01_D -DiskSizeInGb 120 -Label DataDisk1 -DriveLetter D
 
-#defining default parameter values, as these ones are the same for all the machines
+# Defining default parameter values, as these ones are the same for all the machines
 $PSDefaultParameterValues = @{
     'Add-LabMachineDefinition:Network'         = $labName
     'Add-LabMachineDefinition:ToolsPath'       = "$labSources\Tools"
@@ -60,9 +59,9 @@ $roles = @(
 Add-LabMachineDefinition -Name DSCPull01 -Memory 4GB -Roles $roles -IpAddress 192.168.111.60
 
 # Build Server
-Add-LabMachineDefinition -Name DSCDO01 -Memory 4GB -Roles AzDevOps -IpAddress 192.168.111.70 -DiskName DSCDO01_D
+Add-LabMachineDefinition -Name DSCDO01 -Memory 6GB -Roles AzDevOps -IpAddress 192.168.111.70 -DiskName DSCDO01_D
 
-#Hyper-V Host
+# Hyper-V Host
 $roles = @(
     Get-LabMachineRoleDefinition -Role TfsBuildWorker -Properties @{ NumberOfBuildWorkers = '4' }
     Get-LabMachineRoleDefinition -Role HyperV
@@ -86,9 +85,8 @@ Install-Lab
 Enable-LabCertificateAutoenrollment -Computer -User
 Install-LabWindowsFeature -ComputerName (Get-LabVM -Role DSCPullServer, FileServer, WebServer, AzDevOps) -FeatureName RSAT-AD-Tools
 
-# in case you screw something up
+# In case you screw something up
 Write-Host "1. - Creating Snapshot 'AfterInstall'" -ForegroundColor Magenta
 Checkpoint-LabVM -All -SnapshotName AfterInstall
-#endregion
 
 Show-LabDeploymentSummary -Detailed
