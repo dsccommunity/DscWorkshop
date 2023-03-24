@@ -19,6 +19,7 @@ variables:
   PSModuleFeed: PowerShell
   GalleryApiToken: NA
   RepositoryUri: RepositoryUri_WillBeChanged #will be replaced during DscWorkshop lab deployment
+  Agent.Source.Git.ShallowFetchDepth: 0
 
 stages:
   - stage: build

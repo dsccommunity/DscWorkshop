@@ -15,6 +15,7 @@ variables:
   buildFolderName: output
   testResultFolderName: testResults
   defaultBranch: main
+  Agent.Source.Git.ShallowFetchDepth: 0
 
 stages:
   - stage: Build
@@ -24,7 +25,7 @@ stages:
         pool:
           vmImage: 'windows-2019'
         steps:
-        
+
           - pwsh: |
               dir -Path env: | Out-String | Write-Host
             displayName: 'Display Environment Variables'
