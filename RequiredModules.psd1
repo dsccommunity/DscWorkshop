@@ -8,8 +8,8 @@
         }
     }
 
-    'powershell-yaml'            = '0.4.4'
-    InvokeBuild                  = '5.10.2'
+    'powershell-yaml'            = '0.4.7'
+    InvokeBuild                  = '5.10.3'
     PSScriptAnalyzer             = '1.21.0'
     Pester                       = '5.4.0'
     Plaster                      = '1.1.4'
