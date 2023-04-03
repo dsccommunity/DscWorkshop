@@ -30,7 +30,7 @@ WebApplicationPools:
       Ensure: Present
       IdentityType: ApplicationPoolIdentity
       State: Started
-      DependsOn: '[xWebAppPool]TestAppPool1'
+      DependsOn: '[WebAppPool]TestAppPool1'
   DependsOn:
     - '[FilesAndFolders]FilesAndFolders'
     - '[WindowsFeatures]WindowsFeatures'
@@ -47,7 +47,7 @@ WebApplications:
       WebAppPool: TestAppPool2
       Website: Default Web Site
       Ensure: Present
-      DependsOn: '[xWebApplication]TestApp1'
+      DependsOn: '[WebApplication]webapp_TestApp1'
   DependsOn: '[WebApplicationPools]WebApplicationPools'
 
 RegistryValues:

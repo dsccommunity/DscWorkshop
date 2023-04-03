@@ -34,6 +34,11 @@ BuildWorkflow:
     - Compress_Artifact_Collections
     - TestBuildAcceptance
 
+  rsop:
+    - Init
+    - LoadDatumConfigData
+    - CompileDatumRsop
+
 ####################################################
 #       PESTER  Configuration                      #
 ####################################################

@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
 - Added stages to cloud pipeline and added steps to publish modules to Azure Automation DSC.
 
 ### Changed
@@ -15,7 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Changed from 'CommonTasks' to 'DscConfig.Demo' for faster build time.
 
 ### Fixed
-- Config data test 'No duplicate IP addresses should be used' threw when there
+
+- Config data test 'No duplicate IP addresses should be used' threw when there.
   is no IP address configured.
 - Module versions incremented.
 - Fix typo in ConfigData tests.
