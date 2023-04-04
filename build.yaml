@@ -42,6 +42,7 @@ BuildWorkflow:
     - Init
     - LoadDatumConfigData
     - CompileDatumRsop
+    - TestDscResources
 
 ####################################################
 #       PESTER  Configuration                      #
