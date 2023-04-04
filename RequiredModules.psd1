@@ -19,7 +19,7 @@
     'Sampler.GitHubTasks'        = '0.3.5-preview0002'
     'Sampler.AzureDevOpsTasks'   = '0.1.2'
     PowerShellForGitHub          = '0.16.1'
-    'Sampler.DscPipeline'        = '0.2.0-preview0012'
+    'Sampler.DscPipeline'        = '0.2.0-preview0015'
     MarkdownLinkCheck            = '0.2.0'
     'DscResource.AnalyzerRules'  = '0.2.0'
     DscBuildHelpers              = '0.2.1'

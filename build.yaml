@@ -1,5 +1,6 @@
 ---
-BuiltModuleSubDirectory: AvoidPSPathOverlap
+BuiltModuleSubDirectory: Module
+
 ####################################################
 #       Sampler Pipeline Configuration             #
 ####################################################
@@ -19,9 +20,11 @@ BuildWorkflow:
   build:
     - Init
     - Clean
+    - Build_Module_ModuleBuilder
     - LoadDatumConfigData
     - TestConfigData
     - CompileDatumRsop
+    - Set_PSModulePath
     - TestDscResources
     - CompileRootConfiguration
     - CompileRootMetaMof
@@ -106,3 +109,10 @@ Sampler.DscPipeline:
   - DscConfig.Demo
   #- Name: CommonTasks
   #  Version: 0.3.259
+
+####################################################
+#           Setting Sampler PSModulePath           #
+####################################################
+SetPSModulePath:
+  RemovePersonal: true
+  RemoveProgramFiles: true
