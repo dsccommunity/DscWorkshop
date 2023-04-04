@@ -27,3 +27,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Pipeline YAMLs updated to configure unshallow fetch (Fixes issues with GitVersion).
 - Added task `Set_PSModulePath` which required adding also `Build_Module_ModuleBuilder`
   and a `DscWorkshop.psm1` dummy file.
+- Added `TestReferenceRsop` task.
