@@ -1,0 +1,134 @@
+WindowsFeatures:
+  Names:
+  - File-Services
+  - -Telnet-Client
+Description: 'FileServer in '
+DscDiagnostic: {}
+Name: ReferenceConfigurationProd
+DscLcmController:
+  MonitorInterval: 00:15:00
+  SendDscTaggingData: true
+  AutoCorrectInterval: 00:30:00
+  MaintenanceWindowMode: AutoCorrect
+  RefreshIntervalOverride: false
+  MaintenanceWindowOverride: false
+  ControllerInterval: 00:05:00
+  RefreshInterval: 00:30:00
+  MaxLcmRuntime: 00:30:00
+  LogHistoryTimeSpan: 7.00:00:00
+  WriteTranscripts: true
+  AutoCorrectIntervalOverride: false
+PSDscAllowPlainTextPassword: true
+PSDscAllowDomainUser: true
+ComputerSettings:
+  Name: ReferenceConfigurationProd
+  Description: 'FileServer in '
+  TimeZone: Greenwich Standard Time
+  DomainName: contoso.com
+  JoinOU: CN=Computers,dc=contoso,dc=com
+  Credential: install@contoso:*********
+DscLcmMaintenanceWindows:
+  MaintenanceWindows:
+    Name: Always
+    StartTime: 00:00:00
+    Timespan: 24:00:00
+  DependsOn: '[DscLcmController]DscLcmController'
+Configurations:
+- FilesAndFolders
+- RegistryValues
+- SecurityBase
+- WindowsFeatures
+- ComputerSettings
+- NetworkIpConfiguration
+- WindowsEventLogs
+- DscLcmController
+- DscLcmMaintenanceWindows
+- DscTagging
+- DscDiagnostic
+SecurityBase:
+  DependsOn: '[WindowsFeatures]WindowsFeatures'
+  Role: Baseline
+Baseline: Server
+NetworkIpConfiguration:
+  Interfaces:
+    DnsServer: 192.168.111.10
+    Gateway: 127.0.0.3
+    DisableNetbios: true
+    Prefix: 24
+    InterfaceAlias: DscWorkshop 0
+    IpAddress: 127.0.0.3
+DscTagging:
+  Environment: Prod
+  Version: 0.3.0
+  Layers:
+  - AllNodes\Prod\ReferenceConfigurationProd
+  - Environment\Prod
+  - Locations\Frankfurt
+  - Roles\FileServer
+  - Baselines\Security
+  - Baselines\Server
+  - Baselines\DscLcm
+FilesAndFolders:
+  Items:
+  - DestinationPath: C:\Test\Prod-Environment
+    Type: Directory
+  - DestinationPath: C:\Test\Frankfurt
+    Type: Directory
+  - DestinationPath: C:\Test
+    Type: Directory
+  - Contents: Some test data
+    Type: File
+    DependsOn: '[File]file_C__Test'
+    DestinationPath: C:\Test\Test1File1.txt
+  - Contents: Some test data
+    Type: File
+    DependsOn: '[File]file_C__Test'
+    DestinationPath: C:\Test\Test1File2.txt
+  - DestinationPath: C:\GpoBackup
+    Type: Directory
+    SourcePath: '\\DSCDC01\SYSVOL\contoso.com\Policies'
+NodeName: ReferenceConfigurationProd
+Environment: Prod
+Location: Frankfurt
+RegistryValues:
+  DependsOn: '[FilesAndFolders]FilesAndFolders'
+  Values:
+    ValueName: NtpServer
+    ValueType: String
+    ValueData: pool.ntp.org,0x9
+    Ensure: Present
+    Force: true
+    Key: HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\W32Time\Parameters
+LcmConfig:
+  ConfigurationRepositoryWeb:
+    Server:
+      ConfigurationNames: ReferenceConfigurationProd
+      RegistrationKey: ec717ee9-b343-49ee-98a2-26e53939eecf
+      ServerURL: https://dscpull01.contoso.com:8080/PSDSCPullServer.svc
+  ReportServerWeb:
+    RegistrationKey: ec717ee9-b343-49ee-98a2-26e53939eecf
+    ServerURL: https://dscpull01.contoso.com:8080/PSDSCPullServer.svc
+  Settings:
+    RefreshFrequencyMins: 30
+    AllowModuleOverwrite: true
+    ActionAfterReboot: ContinueConfiguration
+    RefreshMode: Pull
+    RebootNodeIfNeeded: true
+    ConfigurationMode: ApplyAndMonitor
+    ConfigurationModeFrequencyMins: 30
+Role: FileServer
+WindowsEventLogs:
+  Logs:
+  - LogMode: Circular
+    IsEnabled: true
+    LogName: System
+    MaximumSizeInBytes: 20971520
+  - LogMode: Circular
+    IsEnabled: true
+    LogName: Application
+    MaximumSizeInBytes: 20971520
+  - LogMode: Circular
+    IsEnabled: true
+    LogName: Security
+    MaximumSizeInBytes: 134217728
+  DependsOn: '[ComputerSettings]ComputerSettings'

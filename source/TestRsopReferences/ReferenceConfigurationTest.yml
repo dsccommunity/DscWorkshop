@@ -1,0 +1,171 @@
+WindowsFeatures:
+  Names:
+  - +Web-Server
+  - -WoW64-Support
+  - -Telnet-Client
+Description: 'WebServer in '
+DscDiagnostic: {}
+Name: ReferenceConfigurationTest
+DscLcmController:
+  MonitorInterval: 00:15:00
+  SendDscTaggingData: true
+  AutoCorrectInterval: 00:30:00
+  MaintenanceWindowMode: AutoCorrect
+  RefreshIntervalOverride: false
+  MaintenanceWindowOverride: false
+  ControllerInterval: 00:05:00
+  RefreshInterval: 00:30:00
+  MaxLcmRuntime: 00:30:00
+  LogHistoryTimeSpan: 7.00:00:00
+  WriteTranscripts: true
+  AutoCorrectIntervalOverride: false
+PSDscAllowPlainTextPassword: true
+PSDscAllowDomainUser: true
+ComputerSettings:
+  Name: ReferenceConfigurationTest
+  Description: 'WebServer in '
+  TimeZone: Greenwich Standard Time
+  DomainName: contoso.com
+  JoinOU: CN=Computers,dc=contoso,dc=com
+  Credential: install@contoso:*********
+DscLcmMaintenanceWindows:
+  MaintenanceWindows:
+    Name: Always
+    StartTime: 00:00:00
+    Timespan: 24:00:00
+  DependsOn: '[DscLcmController]DscLcmController'
+Configurations:
+- FilesAndFolders
+- WindowsServices
+- RegistryValues
+- WebApplicationPools
+- WebApplications
+- SecurityBase
+- WindowsFeatures
+- ComputerSettings
+- NetworkIpConfiguration
+- WindowsEventLogs
+- DscLcmController
+- DscLcmMaintenanceWindows
+- DscTagging
+- DscDiagnostic
+SecurityBase:
+  Role: WebServer
+Location: Singapore
+Baseline: Server
+NetworkIpConfiguration:
+  Interfaces:
+    DnsServer: 192.168.111.10
+    Gateway: 127.0.0.2
+    DisableNetbios: true
+    Prefix: 24
+    InterfaceAlias: DscWorkshop 0
+    IpAddress: 127.0.0.2
+DscTagging:
+  Environment: Test
+  Version: 0.3.0
+  Layers:
+  - AllNodes\Test\ReferenceConfigurationTest
+  - Environment\Test
+  - Locations\Singapore
+  - Roles\WebServer
+  - Baselines\Security
+  - Baselines\Server
+  - Baselines\DscLcm
+WindowsServices:
+  Services:
+    Path: C:\DummyService.exe
+    Name: FileDummy
+    StartupType: Automatic
+    DisplayName: Dummy Service on Web Servers
+  DependsOn: '[RegistryValues]RegistryValues'
+WebApplicationPools:
+  Items:
+  - Name: TestAppPool1
+    Ensure: Present
+    IdentityType: ApplicationPoolIdentity
+    State: Started
+  - DependsOn: '[WebAppPool]TestAppPool1'
+    Name: TestAppPool2
+    Ensure: Present
+    IdentityType: ApplicationPoolIdentity
+    State: Started
+  DependsOn:
+  - '[FilesAndFolders]FilesAndFolders'
+  - '[WindowsFeatures]WindowsFeatures'
+FilesAndFolders:
+  Items:
+  - DestinationPath: C:\Test\Test-Environment
+    Type: Directory
+  - DestinationPath: C:\Test\Singapore
+    Type: Directory
+  - DestinationPath: C:\Inetpub\TestApp1
+    Type: Directory
+  - DestinationPath: C:\Inetpub\TestApp2
+    Type: Directory
+  - Contents: This is TestApp1
+    Type: File
+    DependsOn: '[File]file_C__Inetpub_TestApp1'
+    DestinationPath: C:\Inetpub\TestApp1\default.html
+  - Contents: This is TestApp2
+    Type: File
+    DependsOn: '[File]file_C__Inetpub_TestApp2'
+    DestinationPath: C:\Inetpub\TestApp2\default.html
+NodeName: ReferenceConfigurationTest
+Environment: Test
+WebApplications:
+  Items:
+  - WebAppPool: TestAppPool1
+    Website: Default Web Site
+    PhysicalPath: C:\Inetpub\TestApp1
+    Ensure: Present
+    Name: TestApp1
+  - PhysicalPath: C:\Inetpub\TestApp2
+    Ensure: Present
+    Name: TestApp2
+    Website: Default Web Site
+    WebAppPool: TestAppPool2
+    DependsOn: '[WebApplication]webapp_TestApp1'
+  DependsOn: '[WebApplicationPools]WebApplicationPools'
+RegistryValues:
+  DependsOn: '[WebApplications]WebApplications'
+  Values:
+    ValueName: NtpServer
+    ValueType: String
+    ValueData: time.windows.com,0x9;
+    Ensure: Present
+    Force: true
+    Key: HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\W32Time\Parameters
+LcmConfig:
+  ConfigurationRepositoryWeb:
+    Server:
+      ConfigurationNames: ReferenceConfigurationTest
+      RegistrationKey: ec717ee9-b343-49ee-98a2-26e53939eecf
+      ServerURL: https://dscpull01.contoso.com:8080/PSDSCPullServer.svc
+  ReportServerWeb:
+    RegistrationKey: ec717ee9-b343-49ee-98a2-26e53939eecf
+    ServerURL: https://dscpull01.contoso.com:8080/PSDSCPullServer.svc
+  Settings:
+    RefreshFrequencyMins: 30
+    AllowModuleOverwrite: true
+    ActionAfterReboot: ContinueConfiguration
+    RefreshMode: Pull
+    RebootNodeIfNeeded: true
+    ConfigurationMode: ApplyAndMonitor
+    ConfigurationModeFrequencyMins: 30
+Role: WebServer
+WindowsEventLogs:
+  Logs:
+  - LogMode: Circular
+    IsEnabled: true
+    LogName: System
+    MaximumSizeInBytes: 20971520
+  - LogMode: Circular
+    IsEnabled: true
+    LogName: Application
+    MaximumSizeInBytes: 20971520
+  - LogMode: Circular
+    IsEnabled: true
+    LogName: Security
+    MaximumSizeInBytes: 134217728
+  DependsOn: '[ComputerSettings]ComputerSettings'
