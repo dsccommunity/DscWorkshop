@@ -7,7 +7,13 @@ BeforeDiscovery {
     $sourcePath = Join-Path -Path $ProjectPath -ChildPath $SourcePath
     $sourcePath = Join-Path -Path $sourcePath -ChildPath 'TestRsopReferences'
 
-    $ReferenceRsopFiles = Get-ChildItem -Path $sourcePath -Filter *.yml
+    $ReferenceRsopFiles = Get-ChildItem -Path $sourcePath -Filter *.yml -ErrorAction SilentlyContinue
+
+    if (-not $ReferenceRsopFiles)
+    {
+        return
+    }
+
     $RsopFiles = Get-ChildItem -Path "$OutputDirectory\RSOP" -Recurse -ErrorAction SilentlyContinue | Where-Object { $_.Name -in $ReferenceRsopFiles.Name }
 
     $allRsopTests = @(
