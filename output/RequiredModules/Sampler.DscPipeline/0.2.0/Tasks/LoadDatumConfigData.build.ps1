@@ -70,5 +70,12 @@ task LoadDatumConfigData {
         $getFilteredConfigurationDataParams['Filter'] = $Filter
     }
 
-    $global:configurationData = Get-FilteredConfigurationData @getFilteredConfigurationDataParams
+    try
+    {
+        $global:configurationData = Get-FilteredConfigurationData @getFilteredConfigurationDataParams
+    }
+    catch
+    {
+        Write-Error -Message "Could not get datum nodes. Pretty likely there is a syntax error in one of the node's yaml definitions." -Exception $_.Exception
+    }
 }
