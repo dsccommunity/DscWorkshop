@@ -10,15 +10,7 @@ BuildWorkflow:
     - build
     - pack
 
-  init: |
-    {
-        if ($PSVersionTable.PSEdition -ne 'Desktop') {
-            Write-Error "The build script required Windows PowerShell 5.1 to work"
-        }
-    }
-
   build:
-    - Init
     - Clean
     - Build_Module_ModuleBuilder
     - LoadDatumConfigData
@@ -31,7 +23,6 @@ BuildWorkflow:
     - CompileRootMetaMof
 
   pack:
-    - Init
     - LoadDatumConfigData
     - NewMofChecksums
     - CompressModulesWithChecksum
@@ -39,7 +30,6 @@ BuildWorkflow:
     - TestBuildAcceptance
 
   rsop:
-    - Init
     - LoadDatumConfigData
     - CompileDatumRsop
     - TestDscResources
