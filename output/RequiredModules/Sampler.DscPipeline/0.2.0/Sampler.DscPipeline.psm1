@@ -237,7 +237,7 @@ function Get-FilteredConfigurationData
     }
     catch
     {
-        Write-Error -Message "Could not get datum nodes. Pretty likely there is a syntax error in one of the node's yaml definitions." -Exception $_.Exception -ErrorAction Stop
+        Write-Error -Message "Could not get datum nodes. Pretty likely there is a syntax error in one of the node's yaml definitions." -Exception $_.Exception
     }
     $totalNodeCount = $allDatumNodes.Count
 
