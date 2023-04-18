@@ -19,7 +19,7 @@
     'Sampler.GitHubTasks'        = '0.3.5-preview0002'
     'Sampler.AzureDevOpsTasks'   = '0.1.2'
     PowerShellForGitHub          = '0.16.1'
-    'Sampler.DscPipeline'        = '0.2.0-preview0015'
+    #'Sampler.DscPipeline'        = '0.2.0-preview0015'
     MarkdownLinkCheck            = '0.2.0'
     'DscResource.AnalyzerRules'  = '0.2.0'
     DscBuildHelpers              = '0.2.1'
@@ -33,6 +33,7 @@
     xDscResourceDesigner         = '1.13.0.0'
     'DscResource.Test'           = '0.16.1'
     'DscResource.DocGenerator'   = '0.11.2'
+    PSDesiredStateConfiguration  = '2.0.6'
 
     # Composites
     'DscConfig.Demo'             = '0.8.3'
