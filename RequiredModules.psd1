@@ -42,7 +42,7 @@
     xPSDesiredStateConfiguration = '9.1.0'
     ComputerManagementDsc        = '9.0.0'
     NetworkingDsc                = '9.0.0'
-    #JeaDsc                       = '0.7.2'
+    JeaDsc                       = '0.7.2'
     WebAdministrationDsc         = '4.1.0'
     FileSystemDsc                = '1.1.1'
     SecurityPolicyDsc            = '2.10.0.0'
