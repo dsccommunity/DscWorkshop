@@ -9,7 +9,6 @@ Configuration UserAmyPresent {
         {
             Ensure   = 'Present'
             UserName = 'amy'
-            Disabled = $true
             Password = $cred
         }
     }

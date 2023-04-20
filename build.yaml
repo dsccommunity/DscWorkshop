@@ -21,6 +21,7 @@ BuildWorkflow:
   build:
     - Init
     - Clean
+    - build_guestconfiguration_packages
     - Build_Module_ModuleBuilder
     - LoadDatumConfigData
     - TestConfigData
