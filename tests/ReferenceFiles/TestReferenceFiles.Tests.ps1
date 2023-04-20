@@ -34,14 +34,14 @@ BeforeDiscovery {
 
 Describe 'Reference Files' -Tag ReferenceFiles {
 
-    It 'All reference files have RSOP files in output folder' -TestCases $allRsopTests {
+    It 'All reference files have RSOP files in output folder' -TestCases $allRsopTests -Skip:([bool]$Filter) {
         Write-Verbose "Reference File Count $($ReferenceFiles.Count)"
         Write-Verbose "RSOP File Count $($RsopFiles.Count)"
 
         $ReferenceFiles.Count | Should -Be $RsopFiles.Count
     }
 
-    It "Reference file '<Name>' should have same checksum as output\RSOP file" -TestCases $individualTests {
+    It "Reference file '<Name>' should have same checksum as output\RSOP file" -TestCases $individualTests -Skip:([bool]$Filter) {
         $true | Should -Be true
         $FilehashRef = (Get-FileHash $File.Fullname).Hash
         $FileHashRSOP = (Get-FileHash $PartnerFile.Fullname).Hash
