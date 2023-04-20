@@ -1,14 +1,16 @@
 Set-AzContext -SubscriptionName 'S1 Contoso3'
 $subscriptionId = (Get-AzContext).Subscription.Id
 
-$storageAccountName = 'gcs1'
+
 $machineName = 'M1'
-$resourceGroupName = 'GC1'
+$resourceGroupName = 'GCLab1'
+$storageAccountName = "$($resourceGroupName)sa1".ToLower()
 $resourceGroup = Get-AzResourceGroup -Name $resourceGroupName
 $guestConfigurationContainerName = 'guestconfiguration'
 $path = 'D:\DscWorkshop\output\GCPackages\UserAmyPresent_2.0.0.zip'
 $policyName = (Get-Item -Path $path).BaseName.Split('_')[0]
 
+New-AzStorageAccount -ResourceGroupName $resourceGroupName -Name $storageAccountName -Location $resourceGroup.Location -SkuName Standard_LRS -Kind StorageV2 -ErrorAction SilentlyContinue | Out-Null
 $storageAccountKeys = Get-AzStorageAccountKey -ResourceGroupName $resourceGroupName -Name $storageAccountName
 $storageContext = New-AzStorageContext -StorageAccountName $storageAccountName -StorageAccountKey $storageAccountKeys[0].Value
 
@@ -33,13 +35,16 @@ $policy = New-GuestConfigurationPolicy @params
 
 $policyDefinition = New-AzPolicyDefinition -Name $policyName -Policy $Policy.Path
 
-$vm = Get-AzVM -Name M1 -ResourceGroupName $resourceGroupName
-$id = '/subscriptions/329752f3-d90c-4ae8-8c85-46a678203df4/resourcegroups/GC1/providers/Microsoft.ManagedIdentity/userAssignedIdentities/PolId'
-$assignment = New-AzPolicyAssignment -Name $policyName -DisplayName $policyDefinition.Properties.DisplayName -Scope $vm.Id -PolicyDefinition $policyDefinition -Location uksouth -IdentityType UserAssigned -IdentityId $id
+$managedIdentity = Get-AzUserAssignedIdentity -ResourceGroupName $resourceGroupName -Name GCLab1_Remediation
+$vms = Get-AzVM -ResourceGroupName $resourceGroupName
 
-Start-AzPolicyRemediation -Name "$($policyName)Remediation" -PolicyAssignmentId $assignment.PolicyAssignmentId -Scope $vm.Id
+foreach ($vm in $vms)
+{
+    $assignment = New-AzPolicyAssignment -Name $policyName -DisplayName $policyDefinition.Properties.DisplayName -Scope $vm.Id -PolicyDefinition $policyDefinition -Location uksouth -IdentityType UserAssigned -IdentityId $managedIdentity.Id
 
-Get-AzPolicyAssignment  -Scope $resourceGroup.ResourceId
+    Start-AzPolicyRemediation -Name "$($policyName)Remediation" -PolicyAssignmentId $assignment.PolicyAssignmentId -Scope $vm.Id
+}
+Get-AzPolicyAssignment -Scope $resourceGroup.ResourceId
 
 
 $uri = "https://management.azure.com/subscriptions/$subscriptionId/resourceGroups/$resourceGroupName/providers/Microsoft.Compute/virtualMachines/$machineName/providers/Microsoft.GuestConfiguration/guestConfigurationAssignments?api-version=2022-01-25"
