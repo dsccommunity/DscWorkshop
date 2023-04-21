@@ -1,6 +1,6 @@
 Configurations:
   - SecurityBase
-  - WindowsFeatures
+  #- WindowsFeatures
 
 WindowsFeatures:
   Names:
@@ -8,7 +8,7 @@ WindowsFeatures:
 
 SecurityBase:
   Role: Baseline
-  DependsOn: '[WindowsFeatures]WindowsFeatures'
+  #DependsOn: '[WindowsFeatures]WindowsFeatures'
 
 DscTagging:
   Layers:

@@ -1,5 +1,5 @@
 Configurations:
-  - FilesAndFolders
+  #- FilesAndFolders
   - RegistryValues
 
 WindowsFeatures:
@@ -30,7 +30,7 @@ RegistryValues:
       ValueType: String
       Ensure: Present
       Force: true
-  DependsOn: '[FilesAndFolders]FilesAndFolders'
+  #DependsOn: '[FilesAndFolders]FilesAndFolders'
 
 SecurityBaseline:
   Role: FileServer

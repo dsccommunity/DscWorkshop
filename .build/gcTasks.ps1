@@ -64,11 +64,12 @@ task build_guestconfiguration_packages_from_MOF {
     $mofPath = Join-Path -Path $OutputDirectory -ChildPath $MofOutputFolder
     $mofFiles = Get-ChildItem -Path $mofPath -Filter '*.mof' -Recurse
 
+    $moduleVersion = '2.0.0'
+
     foreach ($mofFile in $mofFiles)
     {
-        $moduleVersion = '2.0.0'
-
-        Write-Verbose -Message "Package Name '$GCPackageName' with Configuration '$MOFFile', OutputDirectory $OutputDirectory, GCPackagesOutputPath '$GCPackagesOutputPath'."
+        $GCPackageName = $mofFile.BaseName
+        Write-Build DarkGray "Package Name '$GCPackageName' with Configuration '$MOFFile', OutputDirectory $OutputDirectory, GCPackagesOutputPath '$GCPackagesOutputPath'."
         $GCPackageOutput = Get-SamplerAbsolutePath -Path $GCPackagesOutputPath -RelativeTo $OutputDirectory
 
         $NewGCPackageParams = @{
