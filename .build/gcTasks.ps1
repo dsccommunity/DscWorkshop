@@ -42,7 +42,7 @@ param
 )
 
 # SYNOPSIS: Building the Azure Policy Guest Configuration Packages
-task build_guestconfiguration_packages {
+task build_guestconfiguration_packages_from_MOF {
     # Get the vales for task variables, see https://github.com/gaelcolas/Sampler#task-variables.
     . Set-SamplerTaskVariable -AsNewBuild
 
@@ -61,89 +61,19 @@ task build_guestconfiguration_packages {
     "`tGC Policies Path     = $GCPoliciesPath"
     "`t------------------------------------------------`r`n"
 
-    Get-ChildItem -Path $GCPackagesPath -Directory -ErrorAction SilentlyContinue | ForEach-Object -Process {
+    $mofPath = Join-Path -Path $OutputDirectory -ChildPath $MofOutputFolder
+    $mofFiles = Get-ChildItem -Path $mofPath -Filter '*.mof' -Recurse
+
+    foreach ($mofFile in $mofFiles)
+    {
         $moduleVersion = '2.0.0'
-        Write-Build Magenta "`r`n`tPackaging Guest Configuration Package '$($_.Name)'"
-        $GCPackageName = $_.Name
-        $ConfigurationFile = Join-Path -Path $_.FullName -ChildPath ('{0}.config.ps1' -f $GCPackageName)
-        $newPackageParamsFile = Join-Path -Path $_.FullName -ChildPath ('{0}.psd1' -f $GCPackageName)
-        $MOFFile = Join-Path -Path $_.FullName -ChildPath ('{0}.mof' -f $GCPackageName)
-
-        if (-not (Test-Path -Path $ConfigurationFile) -and -not (Test-Path -Path $MOFFile))
-        {
-            throw "The configuration '$ConfigurationFile' could not be found. Cannot compile MOF for '$GCPackageName' policy Package"
-        }
-
-        if (Test-Path -Path $MOFFile)
-        {
-            Write-Build Magenta "`t Creating GC Package from MOF file: '$MOFFile'"
-        }
-        else
-        {
-            Write-Build DarkGray "`t Creating GC Package from Configuration file: '$ConfigurationFile'"
-            try
-            {
-                $MOFFileAndErrors = & {
-                    . $ConfigurationFile
-
-                    $cd = @{
-                        AllNodes = @(
-                            @{
-                                NodeName                    = $GCPackageName
-                                PSDscAllowPlainTextPassword = $true
-                            }
-                        )
-                    }
-
-                    &$GCPackageName -OutputPath (Join-Path -Path $OutputDirectory -ChildPath 'MOFs') -ConfigurationData $cd -ErrorAction SilentlyContinue
-                } 2>&1
-
-                $CompilationErrors = @()
-                $MOFFile = $MOFFileAndErrors.Foreach{
-                    if ($_ -isnot [System.Management.Automation.ErrorRecord])
-                    {
-                        # If the MOF name is localhost.mof, mv to PackageName.mof
-                        $_
-                    }
-                    else
-                    {
-                        $CompilationErrors += $_
-                    }
-                }
-
-                $MOFFile = [string]($MOFFile[0]) # ensure it's a single string
-                Write-Build White "`t Compiled '$MOFFile'."
-
-                if ((Split-Path -Leaf -Path $MOFFile -ErrorAction 'SilentlyContinue') -eq 'localhost.mof')
-                {
-                    $destinationMof = Join-Path -Path (Join-Path -Path $OutputDirectory -ChildPath 'MOFs') -ChildPath ('{0}.mof' -f $GCPackageName)
-                    Write-Build DarkGray "`t Renaming MOF to '$destinationMof'."
-                    $null = Move-Item -Path $MOFFile -Destination $destinationMof -Force -ErrorAction Stop
-                    $MOFFile = $destinationMof
-                }
-            }
-            catch
-            {
-                throw "Compilation error. $($_.Exception.Message)"
-            }
-        }
-
-        if (Test-Path -Path $newPackageParamsFile)
-        {
-            $newPackageExtraParams = Import-PowerShellDataFile -Path $newPackageParamsFile -ErrorAction 'Stop'
-            Write-Build DarkGray "`t Using extra parameters from '$newPackageParamsFile'."
-        }
-        else
-        {
-            $newPackageExtraParams = @{}
-        }
 
         Write-Verbose -Message "Package Name '$GCPackageName' with Configuration '$MOFFile', OutputDirectory $OutputDirectory, GCPackagesOutputPath '$GCPackagesOutputPath'."
         $GCPackageOutput = Get-SamplerAbsolutePath -Path $GCPackagesOutputPath -RelativeTo $OutputDirectory
 
         $NewGCPackageParams = @{
-            Configuration = [string]$MOFFile
-            Name          = $GCPackageName
+            Configuration = $mofFile.FullName
+            Name          = $mofFile.BaseName
             Path          = $GCPackageOutput
             Force         = $true
             Version       = $ModuleVersion

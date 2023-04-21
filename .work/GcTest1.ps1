@@ -1,8 +1,6 @@
 Set-AzContext -SubscriptionName 'S1 Contoso3'
 $subscriptionId = (Get-AzContext).Subscription.Id
 
-
-$machineName = 'M1'
 $resourceGroupName = 'GCLab1'
 $storageAccountName = "$($resourceGroupName)sa1".ToLower()
 $resourceGroup = Get-AzResourceGroup -Name $resourceGroupName
@@ -40,9 +38,24 @@ $vms = Get-AzVM -ResourceGroupName $resourceGroupName
 
 foreach ($vm in $vms)
 {
-    $assignment = New-AzPolicyAssignment -Name $policyName -DisplayName $policyDefinition.Properties.DisplayName -Scope $vm.Id -PolicyDefinition $policyDefinition -Location uksouth -IdentityType UserAssigned -IdentityId $managedIdentity.Id
+    $param = @{
+        Name             = $policyName
+        DisplayName      = $policyDefinition.Properties.DisplayName
+        Scope            = $vm.Id
+        PolicyDefinition = $policyDefinition
+        Location         = 'uksouth'
+        IdentityType     = 'UserAssigned'
+        IdentityId       = $managedIdentity.Id
+    }
+    $assignment = New-AzPolicyAssignment @param
 
-    Start-AzPolicyRemediation -Name "$($policyName)Remediation" -PolicyAssignmentId $assignment.PolicyAssignmentId -Scope $vm.Id
+    $param = @{
+        Name                  = "$($policyName)Remediation"
+        PolicyAssignmentId    = $assignment.PolicyAssignmentId
+        Scope                 = $vm.Id
+        ResourceDiscoveryMode = 'ReEvaluateCompliance'
+    }
+    Start-AzPolicyRemediation @param
 }
 Get-AzPolicyAssignment -Scope $resourceGroup.ResourceId
 
