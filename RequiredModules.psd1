@@ -33,6 +33,7 @@
     xDscResourceDesigner         = '1.13.0.0'
     'DscResource.Test'           = '0.16.1'
     'DscResource.DocGenerator'   = '0.11.2'
+    PSDesiredStateConfiguration  = 'latest'
 
     # Composites
     'DscConfig.Demo'             = '0.8.3'
