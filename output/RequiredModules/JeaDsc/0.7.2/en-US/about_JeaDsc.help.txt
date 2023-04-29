@@ -1,0 +1,27 @@
+TOPIC
+    about_JeaDsc
+
+SHORT DESCRIPTION
+    DSC resource to create and control Just Enough Administration endpoints and role capability files with DSC.
+
+LONG DESCRIPTION
+    DSC resource to create and control Just Enough Administration endpoints and role capability files with DSC. This module
+    contains a resource to create the role capability files (.psd1) and another one for creating endpoints which make use of
+    the roles.
+
+EXAMPLES
+    PS C:\> Get-DscResource -Module JeaDsc
+
+NOTE:
+    Thank you to the DSC Community contributors who contributed to this module by
+    writing code, sharing opinions, and provided feedback.
+
+TROUBLESHOOTING NOTE:
+    Go to the Github repository for read about issues, submit a new issue, and read
+    about new releases. https://github.com/dsccommunity/JeaDsc
+
+SEE ALSO
+    - https://github.com/dsccommunity/JeaDsc
+
+KEYWORDS
+    DSC, DscResource, JeaDsc
