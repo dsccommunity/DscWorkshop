@@ -12,6 +12,7 @@ BuildWorkflow:
 
   build:
     - Clean
+    - PowerShell5Compatibility
     - Build_Module_ModuleBuilder
     - LoadDatumConfigData
     - TestConfigData
