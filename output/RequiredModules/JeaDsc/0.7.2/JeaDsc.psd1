@@ -25,8 +25,6 @@
         'ConvertTo-Expression'
     )
 
-    CmdletsToExport      = @()
-
     VariablesToExport    = @()
 
     AliasesToExport      = @()
@@ -62,6 +60,3 @@
 
     }
 }
-
-
-
