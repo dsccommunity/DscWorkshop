@@ -70,5 +70,17 @@ task LoadDatumConfigData {
         $getFilteredConfigurationDataParams['Filter'] = $Filter
     }
 
+    try
+    {
+        $global:configurationData = Get-FilteredConfigurationData @getFilteredConfigurationDataParams
+    }
+    catch
+    {
+        Write-Warning "'Get-FilteredConfigurationData' could not load any configuration data. Retrying..."
+        Start-Sleep -Seconds 1
+    }
+
+    # When using PowerShell 7+, the first call to 'Get-FilteredConfigurationData' fails usually.
     $global:configurationData = Get-FilteredConfigurationData @getFilteredConfigurationDataParams
+
 }
