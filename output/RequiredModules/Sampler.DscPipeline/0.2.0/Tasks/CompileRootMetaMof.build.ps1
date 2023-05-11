@@ -43,53 +43,40 @@ task CompileRootMetaMof {
         $cd.AllNodes += @([hashtable]$node.Value)
     }
 
-    $originalPSModulePath = $env:PSModulePath
-    try
+    if (-not (Test-Path -Path $MetaMofOutputFolder))
     {
-        $env:PSModulePath = ($env:PSModulePath -split [System.IO.Path]::PathSeparator).Where({
-                $_ -notmatch ([regex]::Escape('powershell\7\Modules')) -and
-                $_ -notmatch ([regex]::Escape('Program Files\WindowsPowerShell\Modules')) -and
-                $_ -notmatch ([regex]::Escape('Documents\PowerShell\Modules'))
-            }) -join [System.IO.Path]::PathSeparator
+        $null = New-Item -ItemType Directory -Path $MetaMofOutputFolder
+    }
 
-        if (-not (Test-Path -Path $MetaMofOutputFolder))
+    if ($cd.AllNodes)
+    {
+        Write-Build Green ''
+        if (Test-Path -Path (Join-Path -Path $SourcePath -ChildPath RootMetaMof.ps1))
         {
-            $null = New-Item -ItemType Directory -Path $MetaMofOutputFolder
-        }
-
-        if ($cd.AllNodes)
-        {
-            Write-Build Green ''
-            if (Test-Path -Path (Join-Path -Path $SourcePath -ChildPath RootMetaMof.ps1))
-            {
-                Write-Build Green "Found and using 'RootMetaMof.ps1' in '$SourcePath'"
-                $rootMetaMofPath = Join-Path -Path $SourcePath -ChildPath RootMetaMof.ps1
-            }
-            else
-            {
-                Write-Build Green "Did not find 'RootMetaMof.ps1' in '$SourcePath', using 'RootMetaMof.ps1' the one in module 'Sampler.DscPipeline'"
-                $rootMetaMofPath = Split-Path -Path $PSScriptRoot -Parent
-                $rootMetaMofPath = Join-Path -Path $rootMetaMofPath -ChildPath Scripts
-                $rootMetaMofPath = Join-Path -Path $rootMetaMofPath -ChildPath RootMetaMof.ps1
-            }
-            . $rootMetaMofPath
-
-            $metaMofs = RootMetaMOF -ConfigurationData $cd -OutputPath $MetaMofOutputFolder
-            Write-Build Green "Successfully compiled $($metaMofs.Count) Meta MOF files."
-            if ($cd.AllNodes.Count -ne $metaMofs.Count)
-            {
-                Write-Warning -Message 'Compiled Meta MOF file count <> node count'
-            }
-
-            Write-Build Green "Successfully compiled $($metaMofs.Count) Meta MOF files."
+            Write-Build Green "Found and using 'RootMetaMof.ps1' in '$SourcePath'"
+            $rootMetaMofPath = Join-Path -Path $SourcePath -ChildPath RootMetaMof.ps1
         }
         else
         {
-            Write-Build Green 'No data to compile Meta MOF files'
+            Write-Build Green "Did not find 'RootMetaMof.ps1' in '$SourcePath', using 'RootMetaMof.ps1' the one in module 'Sampler.DscPipeline'"
+            $rootMetaMofPath = Split-Path -Path $PSScriptRoot -Parent
+            $rootMetaMofPath = Join-Path -Path $rootMetaMofPath -ChildPath Scripts
+            $rootMetaMofPath = Join-Path -Path $rootMetaMofPath -ChildPath RootMetaMof.ps1
         }
+        . $rootMetaMofPath
+
+        $metaMofs = RootMetaMOF -ConfigurationData $cd -OutputPath $MetaMofOutputFolder
+        Write-Build Green "Successfully compiled $($metaMofs.Count) Meta MOF files."
+        if ($cd.AllNodes.Count -ne $metaMofs.Count)
+        {
+            Write-Warning -Message 'Compiled Meta MOF file count <> node count'
+        }
+
+        Write-Build Green "Successfully compiled $($metaMofs.Count) Meta MOF files."
     }
-    finally
+    else
     {
-        $env:PSModulePath = $originalPSModulePath
+        Write-Build Green 'No data to compile Meta MOF files'
     }
+
 }
