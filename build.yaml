@@ -24,6 +24,7 @@ BuildWorkflow:
     - CompileRootMetaMof
 
   pack:
+    - PowerShell5Compatibility
     - LoadDatumConfigData
     - NewMofChecksums
     - CompressModulesWithChecksum
