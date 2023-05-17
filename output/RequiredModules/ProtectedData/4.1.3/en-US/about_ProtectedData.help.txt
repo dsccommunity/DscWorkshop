@@ -1,0 +1,101 @@
+TOPIC
+    about_ProtectedData
+
+SHORT DESCRIPTION
+    Provides background information about the ProtectedData module.
+    
+  About ProtectedData
+      When you need to store secret data, such as a set of credentials, in a
+      PowerShell script, you would typically use the Export-Clixml or
+      ConvertFrom-SecureString cmdlets to accomplish this.  These commands
+      leverage the Windows Data Protection API (DPAPI) to perform the encryption.
+
+      The DPAPI is extremely convenient, but it has a limitation:  the data can
+      only be decrypted by the user who originally encrypted it, and in many cases,
+      this decryption can only happen on the same computer where the encryption
+      took place (unless you have Credential Roaming or Roaming Profiles enabled
+      in an Active Directory environment.)
+
+      The ProtectedData module exists to overcome this limitation, while still
+      allowing the convenience of not having to worry about managing or protecting
+      encryption keys.  It does this, primarily, by leveraging digital certificates.
+
+      Note:  The latest versions of PowerShell have new cmdlets called Protect-CmsMessage
+      and Unprotect-CmsMessage which accomplish a very similar task.  The ProtectedData
+      module is compatible all the way back to PowerShell 2.0, though, and has some
+      features that the CmsMessage cmdlets do not.
+    
+  How It Works
+      When you send a piece of data to the Protect-Data command, it is encrypted
+      using a randomly-generated AES key and initialization vector (IV).  Copies
+      of this key and IV are then encrypted using either the public keys of RSA
+      or ECDH certificates, or using a password-derived AES key (more on that later.)
+
+      The resulting object can be persisted to disk with Export-Clixml, and can
+      later be read back in with Import-Clixml and then passed to the
+      Unprotect-Data command.  When you call Unprotect-Data, you must pass in either
+      one of the passwords that was to protect the data, or the thumbprint of one
+      of the certificates that was used to protect the data.  If you use a certificate
+      when calling Unprotect-Data, you must have the certificate's private key.
+
+  Regarding Password-derived Keys
+      This module's intended use is to leverage certificate-based encryption wherever
+      possible.  This is what provides security, without the need for the user to worry
+      about key protection or key management; the operating system takes care of this for
+      you when you install a certificate (with or without its private key.)
+
+      The various -Password parameters to the ProtectedData module's commands are
+      intended as a backup mechanism.  If you are unable to decrypt the data with
+      a certificate for some reason, you'd be able to enter the correct password
+      to retrieve it or to add a new certificate-encrypted copy of the keys.
+
+      If you do use the Password functionality of the module, you're encouraged to
+      always enter these passwords interactively.  If you try to persist the passwords
+      in some way, you're back to the original problem:  you can either use DPAPI
+      and accept its limitations, or you have to manage and protect encryption keys
+      yourself.
+
+      All passwords are passed to the ProtectedData commands in the form of
+      SecureString objects.
+
+  Supported Data Types
+      All data must be serialized to a byte array before it can be encrypted.  The
+      ProtectedData module supports automatic serialization / deserialization of
+      PSCredential, SecureString, and String objects.  If you want to encrypt another
+      data type instead, you're responsible for converting it to a byte array yourself
+      first, and passing the resulting byte array to Protect-Data's -InputObject
+      parameter.
+
+      The ProtectedData object which is returned from the Protect-Data command includes
+      a Type property.  When you pass the object to Unprotect-Data, it uses this information
+      to build and return an object of the original type for you (PSCredential, SecureString,
+      String or Byte[] .)
+  
+  Regarding In-Memory Security
+      The commands in the ProtectedData module make an effort to minimize the amount
+      of time that any sensitive, unencrypted data is left in memory as well, but
+      this is a tricky topic in a .NET application.  The Garbage Collector can
+      sometimes create copies of unencrypted byte arrays before the module has had
+      a chance to pin them.  This in-memory security is provided on a "best effort"
+      basis.
+
+  Certificate requirements
+      The RSA certificates used with this module must allow Key Encipherment in their
+      Key Usage extension.  ECDH certificate must allow the Key Agreement Key Usage
+      extension.
+
+      You can verify which of your certificates are usable for both encryption and
+      decryption ahead of time by running the following command:
+
+      Get-KeyEncryptionCertificate -RequirePrivateKey
+
+      (With this set of parameters, the command searches the entire Cert: drive, including
+      both CurrentUser and LocalMachine stores.)
+
+SEE ALSO
+    Protect-Data
+    Unprotect-Data
+    Add-ProtectedDataCredential
+    Remove-ProtectedDataCredential
+    Get-ProtectedDataSupportedTypes
+    Get-KeyEncryptionCertificate

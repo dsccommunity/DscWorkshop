@@ -24,7 +24,7 @@
     'DscResource.AnalyzerRules'  = '0.2.0'
     DscBuildHelpers              = '0.2.1'
     Datum                        = '0.40.1-preview0001'
-    ProtectedData                = '4.1.3'
+    #ProtectedData                = '4.1.3'
     'Datum.ProtectedData'        = '0.0.1'
     'Datum.InvokeCommand'        = '0.3.0'
     ReverseDSC                   = '2.0.0.14'
