@@ -6,5 +6,4 @@ output/*
 output/RequiredModules/*
 
 !output/RequiredModules/Sampler.DscPipeline
-!output/RequiredModules/JeaDsc
 !output/RequiredModules/ProtectedData
