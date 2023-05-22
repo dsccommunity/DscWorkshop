@@ -1,7 +1,7 @@
 Configurations:
   - WindowsServices
   - RegistryValues
-  - FilesAndFolders
+  #- FilesAndFolders
   - WebApplicationPools
   - WebApplications
 
@@ -32,8 +32,8 @@ WebApplicationPools:
       State: Started
       DependsOn: '[WebAppPool]TestAppPool1'
   DependsOn:
-    - '[FilesAndFolders]FilesAndFolders'
-    - '[WindowsFeatures]WindowsFeatures'
+    #- '[FilesAndFolders]FilesAndFolders'
+    #- '[WindowsFeatures]WindowsFeatures'
 
 WebApplications:
   Items:

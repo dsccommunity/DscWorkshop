@@ -35,6 +35,7 @@ BeforeDiscovery {
 Describe 'Reference Files' -Tag ReferenceFiles {
 
     It 'All reference files have RSOP files in output folder' -Skip:([bool]$Filter) -TestCases $allRsopTests {
+
         Write-Verbose "Reference File Count $($ReferenceFiles.Count)"
         Write-Verbose "RSOP File Count $($RsopFiles.Count)"
 

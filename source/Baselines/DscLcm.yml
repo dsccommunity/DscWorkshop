@@ -1,8 +1,8 @@
 Configurations:
-  - DscLcmController
-  - DscLcmMaintenanceWindows
+  #- DscLcmController
+  #- DscLcmMaintenanceWindows
   - DscTagging
-  - DscDiagnostic
+  #- DscDiagnostic
 
 DscTagging:
   Version: 0.3.0

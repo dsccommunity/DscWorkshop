@@ -13,6 +13,7 @@ BuildWorkflow:
   build:
     - Clean
     - PowerShell5Compatibility
+    #- build_guestconfiguration_packages_from_MOF
     - Build_Module_ModuleBuilder
     - LoadDatumConfigData
     - TestConfigData
