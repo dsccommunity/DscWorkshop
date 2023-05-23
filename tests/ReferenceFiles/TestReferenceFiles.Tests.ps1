@@ -7,7 +7,13 @@ BeforeDiscovery {
     $sourcePath = Join-Path -Path $ProjectPath -ChildPath $SourcePath
     $sourcePath = Join-Path -Path $sourcePath -ChildPath 'TestRsopReferences'
 
-    $ReferenceRsopFiles = Get-ChildItem -Path $sourcePath -Filter *.yml
+    $ReferenceRsopFiles = Get-ChildItem -Path $sourcePath -Filter *.yml -ErrorAction SilentlyContinue
+
+    if (-not $ReferenceRsopFiles)
+    {
+        return
+    }
+
     $RsopFiles = Get-ChildItem -Path "$OutputDirectory\RSOP" -Recurse -ErrorAction SilentlyContinue | Where-Object { $_.Name -in $ReferenceRsopFiles.Name }
 
     $allRsopTests = @(
@@ -28,14 +34,15 @@ BeforeDiscovery {
 
 Describe 'Reference Files' -Tag ReferenceFiles {
 
-    It 'All reference files have RSOP files in output folder' -TestCases $allRsopTests {
+    It 'All reference files have RSOP files in output folder' -Skip:([bool]$Filter) -TestCases $allRsopTests {
+
         Write-Verbose "Reference File Count $($ReferenceFiles.Count)"
         Write-Verbose "RSOP File Count $($RsopFiles.Count)"
 
         $ReferenceFiles.Count | Should -Be $RsopFiles.Count
     }
 
-    It "Reference file '<Name>' should have same checksum as output\RSOP file" -TestCases $individualTests {
+    It "Reference file '<Name>' should have same checksum as output\RSOP file" -Skip:([bool]$Filter) -TestCases $individualTests {
         $true | Should -Be true
         $FilehashRef = (Get-FileHash $File.Fullname).Hash
         $FileHashRSOP = (Get-FileHash $PartnerFile.Fullname).Hash

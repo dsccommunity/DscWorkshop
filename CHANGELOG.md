@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Migration to 'Sampler' and 'Sampler.DscPipeline'.
 - Migration to Pester 5+.
 - Changed from 'CommonTasks' to 'DscConfig.Demo' for faster build time.
+- Added support for PowerShell 7.
 
 ### Fixed
 
