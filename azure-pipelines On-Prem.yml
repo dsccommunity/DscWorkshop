@@ -268,7 +268,7 @@ stages:
       - DscDeploymentTest
     jobs:
       - deployment: Prod
-        displayName: Prodt Deployment
+        displayName: Prod Deployment
         environment: Prod
         pool:
           name: Default
