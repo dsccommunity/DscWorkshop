@@ -30,3 +30,5 @@ LcmConfig:
 DscTagging:
   Layers:
     - '[x={ Get-DatumSourceFile -Path $File } =]'
+  NodeVersion: '[x={ $datum.Baselines.DscLcm.DscTagging.Version } =]'
+  NodeRole: '[x={ $Node.Role } =]'
