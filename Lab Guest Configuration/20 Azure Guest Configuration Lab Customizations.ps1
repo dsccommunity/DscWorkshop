@@ -34,9 +34,3 @@ Write-Host "Assigning role 'Contributor' to user assigned identity '$($managedId
 New-AzRoleAssignment -ObjectId $managedIdentity.Id -RoleDefinitionName Contributor -Scope $lab.AzureSettings.DefaultResourceGroup.ResourceId
 Write-Host "Assigning role 'Guest Configuration Resource Contributor' to user assigned identity '$($managedIdentity.DisplayName)'"
 New-AzRoleAssignment -ObjectId $managedIdentity.Id -RoleDefinitionName 'Guest Configuration Resource Contributor' -Scope $lab.AzureSettings.DefaultResourceGroup.ResourceId
-
-#DevOps Organization and Service Connection must be created prior to running these lines
-$azureDevOpsOrganizationName = 'randree'
-$azureDevOpsProjectName = 'DscWorkshop'
-$serviceConnectionServicePrincipal = Get-AzADServicePrincipal | Where-Object DisplayName -like "$azureDevOpsOrganizationName-$azureDevOpsProjectName*"
-New-AzRoleAssignment -ObjectId $serviceConnectionServicePrincipal.Id -RoleDefinitionName 'Resource Policy Contributor'
