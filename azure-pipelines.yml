@@ -133,6 +133,7 @@ stages:
             inputs:
               filePath: './build.ps1'
               arguments: '-tasks pack'
+              pwsh: true
 
           - task: PublishPipelineArtifact@1
             displayName: 'Publish Output Folder'
@@ -171,5 +172,13 @@ stages:
             inputs:
               targetPath: '$(buildFolderName)/RSOP'
               artifact: 'RSOP7'
+              publishLocation: 'pipeline'
+              parallel: true
+
+          - task: PublishPipelineArtifact@1
+            displayName: 'Publish GC Packages'
+            inputs:
+              targetPath: '$(buildFolderName)/GCPackages'
+              artifact: 'GCPackages'
               publishLocation: 'pipeline'
               parallel: true

@@ -13,7 +13,6 @@ BuildWorkflow:
   build:
     - Clean
     - PowerShell5Compatibility
-    #- build_guestconfiguration_packages_from_MOF
     - Build_Module_ModuleBuilder
     - LoadDatumConfigData
     - TestConfigData
@@ -31,6 +30,8 @@ BuildWorkflow:
     - CompressModulesWithChecksum
     - Compress_Artifact_Collections
     - TestBuildAcceptance
+    - build_guestconfiguration_packages_from_MOF
+    - publish_guestconfiguration_packages
 
   rsop:
     - LoadDatumConfigData

@@ -3,7 +3,7 @@ DscTagging:
   Layers:
     - '[x={ Get-DatumSourceFile -Path $File } =]'
 
-FilesAndFolders:
+FileSystemObjects:
   Items:
     - DestinationPath: '[x= "C:\Test\$($File.BaseName)-Environment" =]'
       Type: Directory

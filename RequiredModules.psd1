@@ -34,6 +34,14 @@
     'DscResource.Test'           = '0.16.1'
     'DscResource.DocGenerator'   = '0.11.2'
     PSDesiredStateConfiguration  = '2.0.6'
+    GuestConfiguration           = '4.4.0'
+
+    'Az.Accounts'                = '2.12.3'
+    'Az.Storage'                 = '5.7.0'
+    'Az.ManagedServiceIdentity'  = '1.1.1'
+    'Az.Resources'               = '6.7.0'
+    'Az.PolicyInsights'          = '1.6.1'
+    'Az.Compute'                 = '6.0.0'
 
     # Composites
     'DscConfig.Demo'             = '0.8.3'
@@ -44,7 +52,7 @@
     NetworkingDsc                = '9.0.0'
     JeaDsc                       = '4.0.0-preview0005'
     WebAdministrationDsc         = '4.1.0'
-    FileSystemDsc                = '1.1.1'
+    #FileSystemDsc                = '1.1.1'
     SecurityPolicyDsc            = '2.10.0.0'
     xDscDiagnostics              = '2.8.0'
 

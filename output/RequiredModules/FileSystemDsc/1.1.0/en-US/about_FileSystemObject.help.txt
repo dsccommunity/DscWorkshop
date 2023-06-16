@@ -1,0 +1,97 @@
+.NAME
+    FileSystemObject
+
+.SYNOPSIS
+    The File resource enables file system operations on Linux and Windows.
+    With regards to parameters and globbing, it behaves like the Item and Content
+    cmdlets.
+
+.DESCRIPTION
+
+
+.PARAMETER DestinationPath
+    Key - string
+    The path to create/copy to.
+
+.PARAMETER SourcePath
+    Write - string
+    If data should be copied, the source path to copy from.
+
+.PARAMETER Ensure
+    Write - ensure
+    Indicates if destination should be created or removed. Values: Absent, Present. Default: Present.
+
+.PARAMETER Type
+    Write - objectType
+    The type of the object to create. Values: file, directory, symboliclink. Default: directory
+
+.PARAMETER Contents
+    Write - string
+    The file contents. Unused if type is directory
+
+.PARAMETER Checksum
+    Write - checksumType
+    The type of checksum to use for copy operations. Values: md5, CreationTime, LastModifiedTime. Default: md5
+
+.PARAMETER Recurse
+    Write - bool
+    Indicates that recurse should be used if data is copied.
+
+.PARAMETER Force
+    Write - bool
+    Indicates that folder structures should be created and existing files overwritten
+
+.PARAMETER Links
+    Write - linkBehavior
+    Link behavior, currently not implemented. Values: follow, manage. Default: follow
+
+.PARAMETER Group
+    Write - string
+    Linux group name for chown, currently not implemented.
+
+.PARAMETER Mode
+    Write - string
+    Linux mode for chmod, currently not implemented.
+
+.PARAMETER Owner
+    Write - string
+    Linux owner name for chown, currently not implemented.
+
+.PARAMETER CreatedDate
+    Read - datetime
+
+.PARAMETER ModifiedDate
+    Read - datetime
+
+.PARAMETER Encoding
+    Write - encoding
+    File encoding, used with Contents. Values: ASCII, Latin1, UTF7, UTF8, UTF32, BigEndianUnicode, Default, Unicode. Default: Default
+
+.PARAMETER IgnoreTrailingWhitespace
+    Write - bool
+    Indicates that trailing whitespace should be ignored when comparing file contents.
+
+.PARAMETER Reasons
+    Read - FileSystemDscReason[]
+
+.EXAMPLE 1
+
+
+Sample to create a file with contents.
+
+
+Configuration FileSystemObject_CreateFileWithContent_Config
+{
+    Import-DscResource -ModuleName FileSystemDsc
+
+    node localhost
+    {
+        FileSystemObject MyFile
+        {
+            DestinationPath = 'C:\inetpub\wwwroot\index.html'
+            Contents        = '<html><head><title>My Page</title></head><body>DSC is the best</body></html>'
+            Type            = 'file'
+            Ensure          = 'present'
+        }
+    }
+}

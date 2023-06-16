@@ -1,6 +1,6 @@
 Configurations:
   - ComputerSettings
-  - NetworkIpConfiguration
+  #- NetworkIpConfiguration
   - WindowsEventLogs
 
 NetworkIpConfiguration:
