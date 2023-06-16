@@ -1,8 +1,24 @@
+param
+(
+    [Parameter()]
+    [string]
+    $LocationName = 'West Europe',
+
+    [Parameter()]
+    [string]
+    $SubscriptionName
+)
+
 New-LabDefinition -Name GCLab1 -DefaultVirtualizationEngine Azure
 
-Add-LabAzureSubscription -SubscriptionName 'S1 Contoso2' -DefaultLocationName 'UK South'
-
-#Add-LabVirtualNetworkDefinition -Name $labName -AddressSpace 192.168.111.0/24
+$param = @{
+    DefaultLocationName = $LocationName
+}
+if ($SubscriptionName)
+{
+    $param.SubscriptionName = $SubscriptionName
+}
+Add-LabAzureSubscription @param
 
 Add-LabDomainDefinition -Name contoso.com -AdminUser Install -AdminPassword Somepass1
 Set-LabInstallationCredential -Username Install -Password Somepass1
