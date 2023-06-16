@@ -127,20 +127,6 @@ stages:
             env:
               ModuleVersion: $(NuGetVersionV2)
 
-          - task: AzureCLI@2
-            name: setVariables
-            displayName: Set Output Variables
-            continueOnError: false
-            inputs:
-              azureSubscription: GC1
-              scriptType: ps
-              scriptLocation: inlineScript
-              addSpnToEnvironment: true
-              inlineScript: |
-                Write-Host "##vso[task.setvariable variable=azureClientId;isOutput=true]$($env:servicePrincipalId)"
-                Write-Host "##vso[task.setvariable variable=azureClientSecret;isOutput=true]$($env:servicePrincipalKey)"
-                Write-Host "##vso[task.setvariable variable=azureTenantId;isOutput=true]$($env:tenantId)"
-
           - task: PowerShell@2
             name: pack
             displayName: 'Pack DSC Artifacts'
