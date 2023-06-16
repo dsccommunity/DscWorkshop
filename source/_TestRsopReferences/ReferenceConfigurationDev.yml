@@ -34,7 +34,7 @@ DscLcmMaintenanceWindows:
     Timespan: 24:00:00
   DependsOn: '[DscLcmController]DscLcmController'
 Configurations:
-- FilesAndFolders
+- FileSystemObjects
 - RegistryValues
 - SecurityBase
 - WindowsFeatures
@@ -68,7 +68,7 @@ DscTagging:
   - Baselines\Security
   - Baselines\Server
   - Baselines\DscLcm
-FilesAndFolders:
+FileSystemObjects:
   Items:
   - DestinationPath: Z:\DoesNotWork
     Type: Directory
@@ -80,7 +80,7 @@ FilesAndFolders:
     Type: Directory
   - Contents: Some test data
     Type: File
-    DependsOn: '[File]file_C__Test'
+    DependsOn: '[FileSystemObject]FileSystemObject_C__Test'
     DestinationPath: C:\Test\Test1File1.txt
   - Contents: Some test data
     Type: File
@@ -93,7 +93,7 @@ NodeName: ReferenceConfigurationDev
 Environment: Dev
 Location: Frankfurt
 RegistryValues:
-  DependsOn: '[FilesAndFolders]FilesAndFolders'
+  DependsOn: '[FileSystemObjects]FileSystemObjects'
   Values:
   - ValueName: DBFlag
     ValueType: DWORD

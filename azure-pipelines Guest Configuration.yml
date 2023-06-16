@@ -1,0 +1,126 @@
+trigger:
+  branches:
+    include:
+    - '*'
+  paths:
+    exclude:
+    - CHANGELOG.md
+  tags:
+    include:
+    - "v*"
+    exclude:
+    - "*-*"
+
+variables:
+  buildFolderName: output
+  testResultFolderName: testResults
+  defaultBranch: main
+  Agent.Source.Git.ShallowFetchDepth: 0
+
+stages:
+  - stage: Build
+    jobs:
+
+      - job: CompileDscOnPowerShellCore
+        displayName: Compile DSC Configuration on PowerShell Core
+        pool:
+          vmImage: 'windows-latest'
+        steps:
+
+          - pwsh: |
+              dir -Path env: | Out-String | Write-Host
+            displayName: 'Display Environment Variables'
+
+          - pwsh: |
+              dotnet tool install --global GitVersion.Tool
+              $gitVersionObject = dotnet-gitversion | ConvertFrom-Json
+              $gitVersionObject.PSObject.Properties.ForEach{
+                  Write-Host -Object "Setting Task Variable '$($_.Name)' with value '$($_.Value)'."
+                  Write-Host -Object "##vso[task.setvariable variable=$($_.Name);]$($_.Value)"
+              }
+              Write-Host -Object "##vso[build.updatebuildnumber]$($gitVersionObject.FullSemVer)"
+            displayName: Calculate ModuleVersion (GitVersion)
+
+          - task: PowerShell@2
+            name: build
+            displayName: 'Build DSC Artifacts'
+            inputs:
+              filePath: './build.ps1'
+              arguments: '-ResolveDependency -tasks build'
+              pwsh: true
+            env:
+              ModuleVersion: $(NuGetVersionV2)
+
+          - task: AzureCLI@2
+            name: setVariables
+            displayName: Set Output Variables
+            continueOnError: false
+            inputs:
+              azureSubscription: GC1
+              scriptType: ps
+              scriptLocation: inlineScript
+              addSpnToEnvironment: true
+              inlineScript: |
+                Write-Host "##vso[task.setvariable variable=azureClientId;isOutput=true]$($env:servicePrincipalId)"
+                Write-Host "##vso[task.setvariable variable=azureClientSecret;isOutput=true]$($env:servicePrincipalKey)"
+                Write-Host "##vso[task.setvariable variable=azureTenantId;isOutput=true]$($env:tenantId)"
+
+          - task: PowerShell@2
+            name: pack
+            displayName: 'Pack DSC Artifacts'
+            inputs:
+              filePath: './build.ps1'
+              arguments: '-tasks pack'
+              pwsh: true
+            env:
+              azureClientId: $(setVariables.azureClientId)
+              azureClientSecret: $(setVariables.azureClientSecret)
+              azureTenantId: $(setVariables.azureTenantId)
+
+          - task: PublishPipelineArtifact@1
+            displayName: 'Publish Output Folder'
+            inputs:
+              targetPath: '$(buildFolderName)/'
+              artifact: 'output7'
+              publishLocation: 'pipeline'
+              parallel: true
+
+          - task: PublishPipelineArtifact@1
+            displayName: 'Publish MOF Files'
+            inputs:
+              targetPath: '$(buildFolderName)/MOF'
+              artifact: 'MOF7'
+              publishLocation: 'pipeline'
+              parallel: true
+
+          - task: PublishPipelineArtifact@1
+            displayName: 'Publish Meta MOF Files'
+            inputs:
+              targetPath: '$(buildFolderName)/MetaMOF'
+              artifact: 'MetaMOF7'
+              publishLocation: 'pipeline'
+              parallel: true
+
+          - task: PublishPipelineArtifact@1
+            displayName: 'Publish Compressed Modules'
+            inputs:
+              targetPath: '$(buildFolderName)/CompressedModules'
+              artifact: 'CompressedModules7'
+              publishLocation: 'pipeline'
+              parallel: true
+
+          - task: PublishPipelineArtifact@1
+            displayName: 'Publish RSOP Files'
+            inputs:
+              targetPath: '$(buildFolderName)/RSOP'
+              artifact: 'RSOP7'
+              publishLocation: 'pipeline'
+              parallel: true
+
+          - task: PublishPipelineArtifact@1
+            displayName: 'Publish GC Packages'
+            inputs:
+              targetPath: '$(buildFolderName)/GCPackages'
+              artifact: 'GCPackages'
+              publishLocation: 'pipeline'
+              parallel: true

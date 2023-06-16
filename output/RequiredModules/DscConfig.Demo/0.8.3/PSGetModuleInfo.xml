@@ -1,0 +1,143 @@
+<Objs Version="1.1.0.1" xmlns="http://schemas.microsoft.com/powershell/2004/04">
+  <Obj RefId="0">
+    <TN RefId="0">
+      <T>Microsoft.PowerShell.Commands.PSRepositoryItemInfo</T>
+      <T>System.Management.Automation.PSCustomObject</T>
+      <T>System.Object</T>
+    </TN>
+    <MS>
+      <S N="Name">DscConfig.Demo</S>
+      <S N="Version">0.8.3</S>
+      <S N="Type">Module</S>
+      <S N="Description">DSC composite resource for https://github.com/dsccommunity/DscWorkshop</S>
+      <S N="Author">DSC Community</S>
+      <S N="CompanyName">Raimund</S>
+      <S N="Copyright">Copyright the DSC Community contributors. All rights reserved.</S>
+      <DT N="PublishedDate">2023-03-16T17:45:37+01:00</DT>
+      <Nil N="InstalledDate" />
+      <Nil N="UpdatedDate" />
+      <URI N="LicenseUri">https://github.com/dsccommunity/DscConfig.Demo/blob/main/LICENSE</URI>
+      <URI N="ProjectUri">https://github.com/dsccommunity/DscConfig.Demo</URI>
+      <URI N="IconUri">https://dsccommunity.org/images/DSC_Logo_300p.png</URI>
+      <Obj N="Tags" RefId="1">
+        <TN RefId="1">
+          <T>System.Object[]</T>
+          <T>System.Array</T>
+          <T>System.Object</T>
+        </TN>
+        <LST>
+          <S>DesiredStateConfiguration</S>
+          <S>DSC</S>
+          <S>DSCResource</S>
+          <S>PSModule</S>
+        </LST>
+      </Obj>
+      <Obj N="Includes" RefId="2">
+        <TN RefId="2">
+          <T>System.Collections.Hashtable</T>
+          <T>System.Object</T>
+        </TN>
+        <DCT>
+          <En>
+            <S N="Key">RoleCapability</S>
+            <Obj N="Value" RefId="3">
+              <TNRef RefId="1" />
+              <LST />
+            </Obj>
+          </En>
+          <En>
+            <S N="Key">Function</S>
+            <Ref N="Value" RefId="3" />
+          </En>
+          <En>
+            <S N="Key">Command</S>
+            <Ref N="Value" RefId="3" />
+          </En>
+          <En>
+            <S N="Key">DscResource</S>
+            <Obj N="Value" RefId="4">
+              <TNRef RefId="1" />
+              <LST>
+                <S>ComputerSettings</S>
+                <S>ConfigurationBase</S>
+                <S>DscDiagnostic</S>
+                <S>DscLcmController</S>
+                <S>DscLcmMaintenanceWindows</S>
+                <S>DscTagging</S>
+                <S>EnvironmentVariables</S>
+                <S>FilesAndFolders</S>
+                <S>LocalGroups</S>
+                <S>LocalUsers</S>
+                <S>NetworkIpConfiguration</S>
+                <S>RegistryValues</S>
+                <S>Scripts</S>
+                <S>SecurityBase</S>
+                <S>SmbShares</S>
+                <S>SoftwarePackages</S>
+                <S>WebApplicationPools</S>
+                <S>WebApplications</S>
+                <S>WebConfigProperties</S>
+                <S>WebConfigPropertyCollections</S>
+                <S>WebSites</S>
+                <S>WebVirtualDirectories</S>
+                <S>WindowsEventLogs</S>
+                <S>WindowsFeatures</S>
+                <S>WindowsOptionalFeatures</S>
+                <S>WindowsServices</S>
+              </LST>
+            </Obj>
+          </En>
+          <En>
+            <S N="Key">Workflow</S>
+            <Ref N="Value" RefId="3" />
+          </En>
+          <En>
+            <S N="Key">Cmdlet</S>
+            <Ref N="Value" RefId="3" />
+          </En>
+        </DCT>
+      </Obj>
+      <Nil N="PowerShellGetFormatVersion" />
+      <S N="ReleaseNotes">## [0.8.3] - 2023-03-16_x000D__x000A__x000D__x000A_### Changed_x000D__x000A__x000D__x000A_- These modules have been updated:_x000D__x000A_  - ComputerManagementDsc to '9.0.0'_x000D__x000A_  - NetworkingDsc to '9.0.0'_x000D__x000A_  - WebAdministrationDsc to '4.1.0'_x000D__x000A_- Added tasks from 'Sampler.AzureDevOpsTasks' to fix publishing issues in Azure DevOps Server.</S>
+      <Obj N="Dependencies" RefId="5">
+        <TNRef RefId="1" />
+        <LST />
+      </Obj>
+      <S N="RepositorySourceLocation">https://www.powershellgallery.com/api/v2</S>
+      <S N="Repository">PSGallery</S>
+      <S N="PackageManagementProvider">NuGet</S>
+      <Obj N="AdditionalMetadata" RefId="6">
+        <TN RefId="3">
+          <T>System.Management.Automation.PSCustomObject</T>
+          <T>System.Object</T>
+        </TN>
+        <MS>
+          <S N="copyright">Copyright the DSC Community contributors. All rights reserved.</S>
+          <S N="description">DSC composite resource for https://github.com/dsccommunity/DscWorkshop</S>
+          <S N="requireLicenseAcceptance">False</S>
+          <S N="releaseNotes">## [0.8.3] - 2023-03-16_x000D__x000A__x000D__x000A_### Changed_x000D__x000A__x000D__x000A_- These modules have been updated:_x000D__x000A_  - ComputerManagementDsc to '9.0.0'_x000D__x000A_  - NetworkingDsc to '9.0.0'_x000D__x000A_  - WebAdministrationDsc to '4.1.0'_x000D__x000A_- Added tasks from 'Sampler.AzureDevOpsTasks' to fix publishing issues in Azure DevOps Server.</S>
+          <S N="isLatestVersion">True</S>
+          <S N="isAbsoluteLatestVersion">True</S>
+          <S N="versionDownloadCount">295</S>
+          <S N="downloadCount">1906</S>
+          <S N="packageSize">41965</S>
+          <S N="published">3/16/2023 5:45:37 PM +01:00</S>
+          <S N="created">3/16/2023 5:45:37 PM +01:00</S>
+          <S N="lastUpdated">6/5/2023 3:12:26 PM +02:00</S>
+          <S N="tags">DesiredStateConfiguration DSC DSCResource PSModule PSDscResource_ComputerSettings PSDscResource_ConfigurationBase PSDscResource_DscDiagnostic PSDscResource_DscLcmController PSDscResource_DscLcmMaintenanceWindows PSDscResource_DscTagging PSDscResource_EnvironmentVariables PSDscResource_FilesAndFolders PSDscResource_LocalGroups PSDscResource_LocalUsers PSDscResource_NetworkIpConfiguration PSDscResource_RegistryValues PSDscResource_Scripts PSDscResource_SecurityBase PSDscResource_SmbShares PSDscResource_SoftwarePackages PSDscResource_WebApplicationPools PSDscResource_WebApplications PSDscResource_WebConfigProperties PSDscResource_WebConfigPropertyCollections PSDscResource_WebSites PSDscResource_WebVirtualDirectories PSDscResource_WindowsEventLogs PSDscResource_WindowsFeatures PSDscResource_WindowsOptionalFeatures PSDscResource_WindowsServices PSIncludes_DscResource</S>
+          <S N="developmentDependency">False</S>
+          <S N="updated">2023-06-05T15:12:26Z</S>
+          <S N="NormalizedVersion">0.8.3</S>
+          <S N="Authors">DSC Community</S>
+          <S N="IsPrerelease">false</S>
+          <S N="ItemType">Module</S>
+          <S N="FileList">DscConfig.Demo.nuspec|DSCResources\DscTagging\DscTagging.schema.psm1|DSCResources\Scripts\Scripts.schema.psm1|DSCResources\WebConfigPropertyCollections\WebConfigPropertyCollections.schema.psm1|DscConfig.Demo.psd1|DSCResources\EnvironmentVariables\EnvironmentVariables.psd1|DSCResources\SecurityBase\SecurityBase.psd1|DSCResources\WebSites\Websites.psd1|DscConfig.Demo.psm1|DSCResources\EnvironmentVariables\EnvironmentVariables.schema.psm1|DSCResources\SecurityBase\SecurityBase.schema.psm1|DSCResources\WebSites\Websites.schema.psm1|DSCResources\ComputerSettings\ComputerSettings.psd1|DSCResources\FilesAndFolders\FilesAndFolders.psd1|DSCResources\SmbShares\SmbShares.psd1|DSCResources\WebVirtualDirectories\WebVirtualDirectories.psd1|DSCResources\ComputerSettings\ComputerSettings.schema.psm1|DSCResources\FilesAndFolders\FilesAndFolders.schema.psm1|DSCResources\SmbShares\SmbShares.schema.psm1|DSCResources\WebVirtualDirectories\WebVirtualDirectories.schema.psm1|DSCResources\ConfigurationBase\ConfigurationBase.psd1|DSCResources\LocalGroups\LocalGroups.psd1|DSCResources\SoftwarePackages\SoftwarePackages.psd1|DSCResources\WindowsEventLogs\WindowsEventLogs.psd1|DSCResources\ConfigurationBase\ConfigurationBase.schema.psm1|DSCResources\LocalGroups\LocalGroups.schema.psm1|DSCResources\SoftwarePackages\SoftwarePackages.schema.psm1|DSCResources\WindowsEventLogs\WindowsEventLogs.schema.psm1|DSCResources\DscDiagnostic\DscDiagnostic.psd1|DSCResources\LocalUsers\LocalUsers.psd1|DSCResources\WebApplicationPools\WebApplicationPools.psd1|DSCResources\WindowsFeatures\WindowsFeatures.psd1|DSCResources\DscDiagnostic\DscDiagnostic.schema.psm1|DSCResources\LocalUsers\LocalUsers.schema.psm1|DSCResources\WebApplicationPools\WebApplicationPools.schema.psm1|DSCResources\WindowsFeatures\WindowsFeatures.schema.psm1|DSCResources\DscLcmController\DscLcmController.psd1|DSCResources\NetworkIpConfiguration\NetworkIpConfiguration.psd1|DSCResources\WebApplications\WebApplications.psd1|DSCResources\WindowsOptionalFeatures\WindowsOptionalFeatures.psd1|DSCResources\DscLcmController\DscLcmController.schema.psm1|DSCResources\NetworkIpConfiguration\NetworkIpConfiguration.schema.psm1|DSCResources\WebApplications\WebApplications.schema.psm1|DSCResources\WindowsOptionalFeatures\WindowsOptionalFeatures.schema.psm1|DSCResources\DscLcmMaintenanceWindows\DscLcmMaintenanceWindows.psd1|DSCResources\RegistryValues\RegistryValues.psd1|DSCResources\WebConfigProperties\WebConfigProperties.psd1|DSCResources\WindowsServices\WindowsServices.psd1|DSCResources\DscLcmMaintenanceWindows\DscLcmMaintenanceWindows.schema.psm1|DSCResources\RegistryValues\RegistryValues.schema.psm1|DSCResources\WebConfigProperties\WebConfigProperties.schema.psm1|DSCResources\WindowsServices\WindowsServices.schema.psm1|DSCResources\DscTagging\DscTagging.psd1|DSCResources\Scripts\Scripts.psd1|DSCResources\WebConfigPropertyCollections\WebConfigPropertyCollections.psd1|en-US\about_DscConfig.Demo.help.txt</S>
+          <S N="GUID">63e8bf79-62d3-4249-8fe6-9a766fbe8481</S>
+          <S N="PowerShellVersion">5.1</S>
+          <S N="CompanyName">DSC Community</S>
+        </MS>
+      </Obj>
+      <S N="InstalledLocation">D:\Git\DscWorkshop\output\RequiredModules\DscConfig.Demo\0.8.3</S>
+    </MS>
+  </Obj>
+</Objs>

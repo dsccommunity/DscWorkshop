@@ -1,25 +1,26 @@
 Configurations:
-  #- FilesAndFolders
+  - FileSystemObjects
   - RegistryValues
 
 WindowsFeatures:
   Names:
     - File-Services
 
-FilesAndFolders:
+FileSystemObjects:
   Items:
     - DestinationPath: C:\Test
       Type: Directory
     - DestinationPath: C:\Test\Test1File1.txt
       Type: File
       Contents: Some test data
-      DependsOn: '[File]file_C__Test'
+      DependsOn: '[FileSystemObject]FileSystemObject_C__Test'
     - DestinationPath: C:\Test\Test1File2.txt
       Type: File
       Contents: Some test data
-      DependsOn: '[File]file_C__Test'
+      DependsOn: '[FileSystemObject]FileSystemObject_C__Test'
     - DestinationPath: C:\GpoBackup
-      SourcePath: '[x= "\\DSCDC01\SYSVOL\$($Datum.Global.Domain.DomainFqdn)\Policies" =]'
+      #SourcePath: '[x= "\\DSCDC01\SYSVOL\$($Datum.Global.Domain.DomainFqdn)\Policies" =]'
+      SourcePath: C:\Windows\Media
       Type: Directory
 
 RegistryValues:
@@ -30,7 +31,7 @@ RegistryValues:
       ValueType: String
       Ensure: Present
       Force: true
-  #DependsOn: '[FilesAndFolders]FilesAndFolders'
+  DependsOn: '[FileSystemObjects]FileSystemObjects'
 
 SecurityBaseline:
   Role: FileServer
