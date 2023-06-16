@@ -134,10 +134,6 @@ stages:
               filePath: './build.ps1'
               arguments: '-tasks pack'
               pwsh: true
-            env:
-              azureClientId: $(setVariables.azureClientId)
-              azureClientSecret: $(setVariables.azureClientSecret)
-              azureTenantId: $(setVariables.azureTenantId)
 
           - task: PublishPipelineArtifact@1
             displayName: 'Publish Output Folder'
