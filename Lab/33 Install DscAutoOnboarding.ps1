@@ -20,7 +20,7 @@ Invoke-LabCommand -ActivityName "Removing DSC nodes from config data for onboard
     git clone https://contoso\install:Somepass1@dscdo01:8080/AutomatedLab/DscWorkshop/_git/DscWorkshop $temp 2>&1 | Out-Null
     Push-Location -Path $temp
 
-    Rename-Item .\DSC\DscConfigData\AllNodes\ -NewName BackupAllNodes   
+    Rename-Item .\DSC\DscConfigData\AllNodes\ -NewName BackupAllNodes
     git add .
     git commit -m "Removed all DSC demo nodes for 'DscAutoOnboardingEndpoint' by renaming 'AllNodes' folder" | Out-Null
     $result = git push 2>&1

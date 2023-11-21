@@ -1,4 +1,5 @@
-if (-not (Get-Lab -ErrorAction SilentlyContinue).Name -eq 'DscWorkshop') {
+if (-not (Get-Lab -ErrorAction SilentlyContinue).Name -eq 'DscWorkshop')
+{
     Import-Lab -Name DscWorkshop -NoValidation -ErrorAction Stop
 }
 
@@ -20,27 +21,21 @@ $requiredModules = Import-PowerShellDataFile -Path "$here\..\RequiredModules.psd
 $requiredModules.Remove('PSDependOptions')
 
 #Adding modules that are not defined in the PSDepend files but required in the lab
-$requiredModules.NTFSSecurity  = 'latest'
-$requiredModules.PSDepend      = 'latest'
-$requiredModules.PSDeploy      = 'latest'
+$requiredModules.NTFSSecurity = 'latest'
+$requiredModules.PSDepend = 'latest'
+$requiredModules.PSDeploy = 'latest'
 $requiredModules.PowerShellGet = 'latest'
 
 $requiredChocolateyPackages = @{
-    putty            = '0.76'
-    winrar           = '6.0.2'
-    notepadplusplus  = '8.1.9'
-    vscode           = '1.61.2'
-    wireshark        = '3.4.9'
-    winpcap          = '4.1.3.20161116'
+    putty                 = '0.76'
+    winrar                = '6.0.2'
+    notepadplusplus       = '8.1.9'
+    vscode                = '1.61.2'
+    wireshark             = '3.4.9'
+    winpcap               = '4.1.3.20161116'
     'gitversion.portable' = '5.7.0'
     firefox               = '94.0.1'
 }
-
-$vsCodeDownloadUrl = 'https://go.microsoft.com/fwlink/?Linkid=852157'
-$gitDownloadUrl = 'https://github.com/git-for-windows/git/releases/download/v2.40.0.windows.1/Git-2.40.0-64-bit.exe'
-$vscodePowerShellExtensionDownloadUrl = 'https://marketplace.visualstudio.com/_apis/public/gallery/publishers/ms-vscode/vsextensions/PowerShell/2023.3.3/vspackage'
-$chromeDownloadUrl = 'https://dl.google.com/tag/s/appguid%3D%7B8A69D345-D564-463C-AFF1-A69D9E530F96%7D%26iid%3D%7BC9D94BD4-6037-E88E-2D5A-F6B7D7F8F4CF%7D%26lang%3Den%26browser%3D5%26usagestats%3D0%26appname%3DGoogle%2520Chrome%26needsadmin%3Dprefers%26ap%3Dx64-stable-statsdef_1%26installdataindex%3Dempty/chrome/install/ChromeStandaloneSetup64.exe'
-$notepadPlusPlusDownloadUrl = 'https://github.com/notepad-plus-plus/notepad-plus-plus/releases/download/v8.5.1/npp.8.5.1.Installer.x64.exe'
 
 #-------------------------------------------------------------------------------------------------------------------------------------
 
@@ -49,7 +44,7 @@ $lab = Get-Lab
 $dc = Get-LabVM -Role ADDS | Select-Object -First 1
 $domainName = $lab.Domains[0].Name
 $devOpsServer = Get-LabVM -Role AzDevOps
-$devOpsRole = $devOpsServer.Roles | Where-Object Name -eq AzDevOps
+$devOpsRole = $devOpsServer.Roles | Where-Object Name -EQ AzDevOps
 $devOpsPort = $originalPort = 8080
 if ($devOpsRole.Properties.ContainsKey('Port'))
 {
@@ -73,17 +68,18 @@ $domainSid = Invoke-LabCommand -ActivityName 'Get domain SID' -ScriptBlock {
 
     $domainContext = New-Object System.DirectoryServices.ActiveDirectory.DirectoryContext('Domain', $domainName)
     $domain = [System.DirectoryServices.ActiveDirectory.Domain]::GetDomain($domainContext).GetDirectoryEntry()
-    $domainSid = [byte[]]$domain.Properties["objectSID"].Value
+    $domainSid = [byte[]]$domain.Properties['objectSID'].Value
     $domainSid = (New-Object System.Security.Principal.SecurityIdentifier($domainSid, 0)).Value
     $domainSid
 
 } -ComputerName $dc -Variable (Get-Variable -Name domainName) -NoDisplay -PassThru
 #endregion
 
-if (-not (Test-LabMachineInternetConnectivity -ComputerName $devOpsServer)) {
+if (-not (Test-LabMachineInternetConnectivity -ComputerName $devOpsServer))
+{
     Write-Error "The lab is not connected to the internet. Check the connectivity of the machine '$router' which is acting as a router." -ErrorAction Stop
 }
-Write-Host "Lab is connected to the internet, continuing with customizations."
+Write-Host 'Lab is connected to the internet, continuing with customizations.'
 
 $feedPermissions = @()
 $feedPermissions += (New-Object pscustomobject -Property @{ role = 'administrator'; identityDescriptor = "System.Security.Principal.WindowsIdentity;$domainSid-1000" })
@@ -109,7 +105,7 @@ Write-Host "Created artifacts feed 'Software' on Azure DevOps Server '$nugetServ
 
 # Web server
 $deployUserName = (Get-LabVM -Role WebServer).GetCredential((Get-Lab)).UserName
-$deployUserPassword = (Get-LabVM  -Role WebServer).GetCredential((Get-Lab)).GetNetworkCredential().Password
+$deployUserPassword = (Get-LabVM -Role WebServer).GetCredential((Get-Lab)).GetNetworkCredential().Password
 
 Copy-LabFileItem -Path "$here\LabData\LabSite.zip" -ComputerName (Get-LabVM -Role WebServer)
 Copy-LabFileItem -Path "$here\LabData\DummyService.exe" -ComputerName (Get-LabVM -Role WebServer)
@@ -127,42 +123,71 @@ Invoke-LabCommand -Activity 'Setup Web Site' -ComputerName (Get-LabVM -Role WebS
     $pool.processModel.password = $deployUserPassword
     $pool | Set-Item
 
-    New-Website -name "PSConfSite" -PhysicalPath C:\PsConfSite -ApplicationPool "PSConfSite"
+    New-Website -name 'PSConfSite' -PhysicalPath C:\PsConfSite -ApplicationPool 'PSConfSite'
 } -Variable (Get-Variable deployUserName, deployUserPassword)
 
 # File server
 Invoke-LabCommand -Activity 'Creating folders and shares' -ComputerName (Get-LabVM -Role FileServer) -ScriptBlock {
     New-Item -ItemType Directory -Path C:\UserHome -Force
-    foreach ($User in (Get-ADUser -Filter * | Select-Object -First 1000)) {
+    foreach ($User in (Get-ADUser -Filter * | Select-Object -First 1000))
+    {
         New-Item -ItemType Directory -Path C:\UserHome -Name $User.samAccountName -Force
     }
 
     New-Item -ItemType Directory -Path C:\GroupData -Force
 
     'Accounting', 'Legal', 'HR', 'Janitorial' | ForEach-Object {
-        New-Item -ItemType Directory -Path C:\GroupData -Name $_  -Force
+        New-Item -ItemType Directory -Path C:\GroupData -Name $_ -Force
     }
 
     New-SmbShare -Name Home -Path C:\UserHome -ErrorAction SilentlyContinue
     New-SmbShare -Name Department -Path C:\GroupData -ErrorAction SilentlyContinue
 }
 
-# Azure DevOps Server
-$vscodeInstaller = Get-LabInternetFile -Uri $vscodeDownloadUrl -Path $labSources\SoftwarePackages -PassThru
-$gitInstaller = Get-LabInternetFile -Uri $gitDownloadUrl -Path $labSources\SoftwarePackages -PassThru
-Get-LabInternetFile -Uri $vscodePowerShellExtensionDownloadUrl -Path $labSources\SoftwarePackages\VSCodeExtensions\ps.vsix
-$chromeInstaller = Get-LabInternetFile -Uri $chromeDownloadUrl -Path $labSources\SoftwarePackages -PassThru
-$notepadPlusPlusInstaller = Get-LabInternetFile -Uri $notepadPlusPlusDownloadUrl -Path $labSources\SoftwarePackages -PassThru
+# Software Installation
+$softwarePackages = Import-PowerShellDataFile -Path "$here\20 SoftwarePackages.psd1"
+foreach ($softwarePackage in $softwarePackages.GetEnumerator())
+{
+    $destinationFolder = if ($softwarePackage.Value.DestinationFolder)
+    {
+        "$labSources\$($softwarePackage.Value.DestinationFolder)"
+    }
+    else
+    {
+        "$labSources\SoftwarePackages"
+    }
+    Write-Host "Downloading '$($softwarePackage.Name)' ($($softwarePackage.Value.Url)) to '$destinationFolder'" -NoNewline
+    $softwarePackage.Value.Installer = Get-LabInternetFile -Uri $softwarePackage.Value.Url -Path $labSources\SoftwarePackages -PassThru
+    Write-Host done.
 
-Install-LabSoftwarePackage -Path $notepadPlusPlusInstaller.FullName -CommandLine /S -ComputerName (Get-LabVM)
-Install-LabSoftwarePackage -Path $vscodeInstaller.FullName -CommandLine /SILENT -ComputerName $devOpsServer
-Install-LabSoftwarePackage -Path $gitInstaller.FullName -CommandLine /SILENT -ComputerName ((@($devOpsServer) + $buildWorkers) | Select-Object -Unique)
-Install-LabSoftwarePackage -Path $chromeInstaller.FullName -ComputerName ((@($devOpsServer) + $buildWorkers) | Select-Object -Unique) -CommandLine '/silent /install'
+    if ($softwarePackage.Value.Roles)
+    {
+        $machines = if ($softwarePackage.Value.Roles -eq 'All')
+        {
+            Get-LabVM
+        }
+        else
+        {
+            $roles = $softwarePackage.Value.Roles -split ','
+            foreach ($role in $roles)
+            {
+                $role = $role.Trim()
+                Get-LabVM -Role $role
+            }
+        }
+        Write-Host "Installing '$($softwarePackage.Name)' to machines '$($machines)'" -NoNewline
+        Install-LabSoftwarePackage -ComputerName $machines -Path $softwarePackage.Value.Installer.FullName -CommandLine $softwarePackage.Value.CommandLine
+        Write-Host done.
+    }
+
+}
+
+
 Restart-LabVM -ComputerName $devOpsServer #somehow required to finish all parts of the VSCode installation
 
 Copy-LabFileItem -Path $labSources\SoftwarePackages\VSCodeExtensions -ComputerName $devOpsServer
 Invoke-LabCommand -ActivityName 'Install VSCode Extensions' -ComputerName $devOpsServer -ScriptBlock {
-    dir -Path C:\VSCodeExtensions | ForEach-Object {
+    Get-ChildItem -Path C:\VSCodeExtensions | ForEach-Object {
         code --install-extension $_.FullName 2>$null #suppressing errors
     }
 } -NoDisplay
@@ -196,18 +221,21 @@ Invoke-LabCommand -ActivityName 'Create link on AzureDevOps desktop' -ComputerNa
 } -Variable (Get-Variable -Name devOpsServer, sqlServer, powerShellFeed, chocolateyFeed, pullServer, originalPort)
 
 #in server 2019 there seems to be an issue with dynamic DNS registration, doing this manually
-foreach ($domain in (Get-Lab).Domains) {
+foreach ($domain in (Get-Lab).Domains)
+{
     $vms = Get-LabVM -All -IncludeLinux | Where-Object {
         $_.DomainName -eq $domain.Name -and
         $_.OperatingSystem -like '*2019*' -or
         $_.OperatingSystem -like '*CentOS*'
     }
 
-    $dc = Get-LabVM -Role ADDS | Where-Object DomainName -eq $domain.Name | Select-Object -First 1
+    $dc = Get-LabVM -Role ADDS | Where-Object DomainName -EQ $domain.Name | Select-Object -First 1
 
     Invoke-LabCommand -ActivityName 'Registering DNS records' -ScriptBlock {
-        foreach ($vm in $vms) {
-            if (-not (Get-DnsServerResourceRecord -Name $vm.Name -ZoneName $vm.DomainName -ErrorAction SilentlyContinue)) {
+        foreach ($vm in $vms)
+        {
+            if (-not (Get-DnsServerResourceRecord -Name $vm.Name -ZoneName $vm.DomainName -ErrorAction SilentlyContinue))
+            {
                 "Running 'Add-DnsServerResourceRecord -ZoneName $($vm.DomainName) -IPv4Address $($vm.IpV4Address) -Name $($vm.Name) -A'"
                 Add-DnsServerResourceRecord -ZoneName $vm.DomainName -IPv4Address $vm.IpV4Address -Name $vm.Name -A
             }
@@ -225,7 +253,8 @@ Invoke-LabCommand -ActivityName 'Get tested nuget.exe and register Azure DevOps 
     Install-Module -Name PackageManagement -RequiredVersion 1.1.7.0 -Force -WarningAction SilentlyContinue
     Install-Module -Name PowerShellGet -RequiredVersion 1.6.0 -Force -WarningAction SilentlyContinue
 
-    if (-not (Get-PSRepository -Name PowerShell -ErrorAction SilentlyContinue)) {
+    if (-not (Get-PSRepository -Name PowerShell -ErrorAction SilentlyContinue))
+    {
         Register-PSRepository -Name PowerShell -SourceLocation $powerShellFeed.NugetV2Url -PublishLocation $powerShellFeed.NugetV2Url -Credential $powerShellFeed.NugetCredential -InstallationPolicy Trusted -ErrorAction Stop
     }
 
@@ -233,18 +262,21 @@ Invoke-LabCommand -ActivityName 'Get tested nuget.exe and register Azure DevOps 
 
 Invoke-LabCommand -ActivityName 'Install Chocolatey to all lab VMs' -ScriptBlock {
 
-    if (([Net.ServicePointManager]::SecurityProtocol -band 'Tls12') -ne 'Tls12') {
+    if (([Net.ServicePointManager]::SecurityProtocol -band 'Tls12') -ne 'Tls12')
+    {
         [Net.ServicePointManager]::SecurityProtocol += [Net.SecurityProtocolType]::Tls12
     }
 
     Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
 
-    if (-not (Find-PackageProvider NuGet -ErrorAction SilentlyContinue)) {
+    if (-not (Find-PackageProvider NuGet -ErrorAction SilentlyContinue))
+    {
         Install-PackageProvider -Name NuGet
     }
     Import-PackageProvider -Name NuGet
 
-    if (-not (Get-PackageSource -Name $chocolateyFeed.name -ErrorAction SilentlyContinue)) {
+    if (-not (Get-PackageSource -Name $chocolateyFeed.name -ErrorAction SilentlyContinue))
+    {
         Register-PackageSource -Name $chocolateyFeed.name -ProviderName NuGet -Location $chocolateyFeed.NugetV2Url -Trusted
     }
 
@@ -264,7 +296,8 @@ Restart-LabVM -ComputerName (Get-LabVM -Role WebServer, FileServer, DSCPullServe
 
 Invoke-LabCommand -ActivityName 'Add Chocolatey internal source' -ScriptBlock {
 
-    if (([Net.ServicePointManager]::SecurityProtocol -band 'Tls12') -ne 'Tls12') {
+    if (([Net.ServicePointManager]::SecurityProtocol -band 'Tls12') -ne 'Tls12')
+    {
         [Net.ServicePointManager]::SecurityProtocol += [Net.SecurityProtocolType]::Tls12
     }
 
@@ -276,7 +309,8 @@ Invoke-LabCommand -ActivityName 'Downloading required modules from PSGallery' -C
 
     Write-Host "Installing $($requiredModules.Count) modules on $(hostname.exe) for pushing them to the lab"
 
-    foreach ($requiredModule in $requiredModules.GetEnumerator()) {
+    foreach ($requiredModule in $requiredModules.GetEnumerator())
+    {
         $installModuleParams = @{
             Name               = $requiredModule.Key
             Repository         = 'PSGallery'
@@ -286,10 +320,12 @@ Invoke-LabCommand -ActivityName 'Downloading required modules from PSGallery' -C
             WarningAction      = 'SilentlyContinue'
             ErrorAction        = 'Stop'
         }
-        if ($requiredModule.Value -ne 'latest') {
+        if ($requiredModule.Value -ne 'latest')
+        {
             $installModuleParams.Add('RequiredVersion', $requiredModule.Value)
         }
-        if ($requiredModule.Value -like '*-*' -or $requiredModule.Value -eq 'Latest') {
+        if ($requiredModule.Value -like '*-*' -or $requiredModule.Value -eq 'Latest')
+        {
             #if pre-release version
             $installModuleParams.Add('AllowPrerelease', $true)
         }
@@ -302,28 +338,33 @@ Invoke-LabCommand -ActivityName 'Publishing required modules to internal reposit
 
     $loopCount = 3
     Write-Host "Publishing modules to internal gallery $loopCount times. This is reuqired due to cross dependencies within the module list."
-    foreach ($loop in (1..$loopCount)) {
+    foreach ($loop in (1..$loopCount))
+    {
         Write-Host "Publishing $($requiredModules.Count) modules to the internal repository (loop $loop)"
-        foreach ($requiredModule in $requiredModules.GetEnumerator()) {
+        foreach ($requiredModule in $requiredModules.GetEnumerator())
+        {
             $module = Get-Module $requiredModule.Key -ListAvailable | Sort-Object -Property Version -Descending | Select-Object -First 1
             $version = $module.Version
-            if ($module.PrivateData.PSData.Prerelease) {
+            if ($module.PrivateData.PSData.Prerelease)
+            {
                 $version = "$version-$($module.PrivateData.PSData.Prerelease)"
             }
             Write-Host "`t'$($module.Name) - $version'"
-            if (-not (Find-Module -Name $module.Name -Repository PowerShell -AllowPrerelease -ErrorAction SilentlyContinue)) {
+            if (-not (Find-Module -Name $module.Name -Repository PowerShell -AllowPrerelease -ErrorAction SilentlyContinue))
+            {
                 $param = @{
-                    Name = $module.Name
+                    Name            = $module.Name
                     RequiredVersion = $version
-                    Repository = 'PowerShell'
-                    NuGetApiKey = $nuGetApiKey
+                    Repository      = 'PowerShell'
+                    NuGetApiKey     = $nuGetApiKey
                     AllowPrerelease = $true
-                    Force = $true
-                    ErrorAction = 'SilentlyContinue'
-                    WarningAction = 'SilentlyContinue'
+                    Force           = $true
+                    ErrorAction     = 'SilentlyContinue'
+                    WarningAction   = 'SilentlyContinue'
                 }
                 #Removing ErrorAction and WarningAction to see errors in the last publish loop.
-                if ($loop -eq $loopCount) {
+                if ($loop -eq $loopCount)
+                {
                     $param.Remove('ErrorAction')
                     $param.Remove('WarningAction')
                 }
@@ -335,11 +376,13 @@ Invoke-LabCommand -ActivityName 'Publishing required modules to internal reposit
 
     $modulesToUninstall = $requiredModules.GetEnumerator() | Where-Object Key -NotIn PowerShellGet, PackageManagement
     Write-Host "Uninstalling $($requiredModules.Count) modules"
-    foreach ($module in $modulesToUninstall) {
+    foreach ($module in $modulesToUninstall)
+    {
         Write-Host "`t'$($module.Name)"
         Uninstall-Module -Name $module.Key -ErrorAction SilentlyContinue
     }
-    foreach ($module in $modulesToUninstall) {
+    foreach ($module in $modulesToUninstall)
+    {
         Write-Host "`t'$($module.Name)"
         Uninstall-Module -Name $module.Key -ErrorAction SilentlyContinue
     }
@@ -347,7 +390,8 @@ Invoke-LabCommand -ActivityName 'Publishing required modules to internal reposit
 
 Invoke-LabCommand -ActivityName 'Publishing required Chocolatey packages to internal repository' -ScriptBlock {
 
-    if (([Net.ServicePointManager]::SecurityProtocol -band 'Tls12') -ne 'Tls12') {
+    if (([Net.ServicePointManager]::SecurityProtocol -band 'Tls12') -ne 'Tls12')
+    {
         [Net.ServicePointManager]::SecurityProtocol += [Net.SecurityProtocolType]::Tls12
     }
 
@@ -356,23 +400,27 @@ Invoke-LabCommand -ActivityName 'Publishing required Chocolatey packages to inte
 
     $tempFolder = mkdir C:\ChocoTemp -Force
 
-    if (-not (Get-PackageSource -Name $chocolateyFeed.name -ErrorAction SilentlyContinue)) {
+    if (-not (Get-PackageSource -Name $chocolateyFeed.name -ErrorAction SilentlyContinue))
+    {
         Register-PackageSource -Name $chocolateyFeed.name -ProviderName NuGet -Location $chocolateyFeed.NugetV2Url -Trusted
     }
-    if (-not (Get-PackageSource -Name Choco -ErrorAction SilentlyContinue)) {
+    if (-not (Get-PackageSource -Name Choco -ErrorAction SilentlyContinue))
+    {
         Register-PackageSource -Name Choco -ProviderName NuGet -Location $publicFeedUri
     }
 
-    foreach ($kvp in $requiredChocolateyPackages.GetEnumerator()) {
+    foreach ($kvp in $requiredChocolateyPackages.GetEnumerator())
+    {
         Write-Host "Saving package '$($kvp.Name)', " -NoNewline
-        if (-not ($p = Find-Package -Name $kvp.Name -Source Choco)) {
+        if (-not ($p = Find-Package -Name $kvp.Name -Source Choco))
+        {
             Write-Error "Package '$($kvp.Name)' could not be found at the source '$publicFeedUri'"
             continue
         }
         $p | Save-Package -Path $tempFolder
     }
 
-    dir -Path $tempFolder | ForEach-Object {
+    Get-ChildItem -Path $tempFolder | ForEach-Object {
 
         Write-Host "Publishing package '$($_.FullName)'"
         choco push $_.FullName -s $chocolateyFeed.NugetV2Url --api-key $chocolateyFeed.NugetApiKey
@@ -413,7 +461,8 @@ Invoke-LabCommand -ActivityName 'Create Share on Pull Server' -ComputerName $pul
 
 Invoke-LabCommand -ActivityName 'Setting the worker service account to local system to be able to write to deployment path' -ComputerName $buildWorkers -ScriptBlock {
     $services = Get-CimInstance -ClassName Win32_Service -Filter 'Name like "vsts%"'
-    foreach ($service in $services) {
+    foreach ($service in $services)
+    {
         $service | Invoke-CimMethod -MethodName Change -Arguments @{ StartName = 'LocalSystem' } | Out-Null
     }
 }
@@ -422,13 +471,13 @@ Invoke-LabCommand -ActivityName "Install module 'xDscDiagnostics' required by DS
     Install-Module -Name xDscDiagnostics -Repository PowerShell -Force
 } -ComputerName $dscNodes
 
-Write-Host "----------------------------------------------------------------------------------------------------------" -ForegroundColor Magenta
-Write-Host "It is expected to see errors from here as the WinRM servicer on the pull server gets restarted" -ForegroundColor Magenta
-Write-Host "After the errors you should have the DscData endpoint installed (Get-PSSessionConfiguration -Name DscData)" -ForegroundColor Magenta
-Write-Host "----------------------------------------------------------------------------------------------------------" -ForegroundColor Magenta
+Write-Host '----------------------------------------------------------------------------------------------------------' -ForegroundColor Magenta
+Write-Host 'It is expected to see errors from here as the WinRM servicer on the pull server gets restarted' -ForegroundColor Magenta
+Write-Host 'After the errors you should have the DscData endpoint installed (Get-PSSessionConfiguration -Name DscData)' -ForegroundColor Magenta
+Write-Host '----------------------------------------------------------------------------------------------------------' -ForegroundColor Magenta
 
-Invoke-LabCommand -ActivityName "Create DscData JEA endpoint for allowing the LCM controller to send additional data to the DSC pull server" `
--FilePath $PSScriptRoot\DscTaggingData\New-DscDataEndpoint.ps1 -ComputerName $pullServer
+Invoke-LabCommand -ActivityName 'Create DscData JEA endpoint for allowing the LCM controller to send additional data to the DSC pull server' `
+    -FilePath $PSScriptRoot\DscTaggingData\New-DscDataEndpoint.ps1 -ComputerName $pullServer
 
 Restart-LabVM -ComputerName $devOpsServer, $buildWorkers -Wait
 
