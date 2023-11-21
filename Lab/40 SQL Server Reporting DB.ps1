@@ -8,7 +8,8 @@ Install-LabSoftwarePackage -Path $labsources\SoftwarePackages\SQLServerReporting
 
 Invoke-LabCommand -ActivityName 'Configuring SSRS' -ComputerName $sqlServer -FilePath $labSources\PostInstallationActivities\SqlServer\SetupSqlServerReportingServices.ps1
 
-if (-not (Get-Module -Name ReportingServicesTools -ListAvailable)) {
+if (-not (Get-Module -Name ReportingServicesTools -ListAvailable))
+{
     Install-Module -Name ReportingServicesTools -Force
 }
 $s = New-LabPSSession -ComputerName $sqlServer

@@ -1,4 +1,5 @@
-﻿if (-not (Get-Lab -ErrorAction SilentlyContinue).Name -eq 'DscWorkshop') {
+﻿if (-not (Get-Lab -ErrorAction SilentlyContinue).Name -eq 'DscWorkshop')
+{
     Import-Lab -Name DscWorkshop -NoValidation -ErrorAction Stop
 }
 
@@ -8,19 +9,28 @@ $collectionName = 'AutomatedLab'
 
 $lab = Get-Lab
 $devOpsServer = Get-LabVM -Role AzDevOps
-$devOpsHostName = if ($lab.DefaultVirtualizationEngine -eq 'Azure') { $devOpsServer.AzureConnectionInfo.DnsName } else { $devOpsServer.FQDN }
+$devOpsHostName = if ($lab.DefaultVirtualizationEngine -eq 'Azure')
+{
+    $devOpsServer.AzureConnectionInfo.DnsName
+}
+else
+{
+    $devOpsServer.FQDN
+}
 $nugetServer = Get-LabVM -Role AzDevOps
 $nugetFeed = Get-LabTfsFeed -ComputerName $nugetServer -FeedName PowerShell
 $pullServer = Get-LabVM -Role DSCPullServer
 $hypervHost = Get-LabVM -Role HyperV
 
-$devOpsRole = $devOpsServer.Roles | Where-Object Name -like AzDevOps
+$devOpsRole = $devOpsServer.Roles | Where-Object Name -Like AzDevOps
 $devOpsCred = $devOpsServer.GetCredential($lab)
 $devOpsPort = $originalPort = 8080
-if ($devOpsRole.Properties.ContainsKey('Port')) {
+if ($devOpsRole.Properties.ContainsKey('Port'))
+{
     $devOpsPort = $devOpsRole.Properties['Port']
 }
-if ($lab.DefaultVirtualizationEngine -eq 'Azure') {
+if ($lab.DefaultVirtualizationEngine -eq 'Azure')
+{
     $devOpsPort = (Get-LabAzureLoadBalancedPort -DestinationPort $devOpsPort -ComputerName $devOpsServer).Port
 }
 

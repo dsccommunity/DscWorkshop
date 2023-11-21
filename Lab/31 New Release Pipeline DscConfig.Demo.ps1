@@ -9,8 +9,8 @@ $collectionName = 'AutomatedLab'
 $gitVersion = @{
     Publisher = 'GitTools'
     Extension = 'GitVersion'
-    Version = '5.0.1.3'
-    VsixPath = 'C:\gittools.gitversion-5.0.1.3.vsix'
+    Version   = '5.0.1.3'
+    VsixPath  = 'C:\gittools.gitversion-5.0.1.3.vsix'
 }
 $lab = Get-Lab
 $devOpsServer = Get-LabVM -Role AzDevOps

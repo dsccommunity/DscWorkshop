@@ -66,7 +66,7 @@ $roles = @(
     Get-LabMachineRoleDefinition -Role TfsBuildWorker -Properties @{ NumberOfBuildWorkers = '4' }
     Get-LabMachineRoleDefinition -Role HyperV
 )
-Add-LabMachineDefinition -Name DSCHost01 -Memory 8GB -Roles $roles -IpAddress 192.168.111.80  -DiskName DSCHost01_D -AzureProperties @{RoleSize = 'Standard_D4s_v3'}
+Add-LabMachineDefinition -Name DSCHost01 -Memory 8GB -Roles $roles -IpAddress 192.168.111.80 -DiskName DSCHost01_D -AzureProperties @{RoleSize = 'Standard_D4s_v3' }
 
 # DSC target nodes - our legacy VMs with an existing configuration
 Add-LabMachineDefinition -Name DSCFile01 -Memory 1GB -Roles FileServer -IpAddress 192.168.111.100

@@ -44,7 +44,7 @@ $lab = Get-Lab
 $dc = Get-LabVM -Role ADDS | Select-Object -First 1
 $domainName = $lab.Domains[0].Name
 $devOpsServer = Get-LabVM -Role AzDevOps
-$devOpsRole = $devOpsServer.Roles | Where-Object Name -eq AzDevOps
+$devOpsRole = $devOpsServer.Roles | Where-Object Name -EQ AzDevOps
 $devOpsPort = $originalPort = 8080
 if ($devOpsRole.Properties.ContainsKey('Port'))
 {
@@ -68,7 +68,7 @@ $domainSid = Invoke-LabCommand -ActivityName 'Get domain SID' -ScriptBlock {
 
     $domainContext = New-Object System.DirectoryServices.ActiveDirectory.DirectoryContext('Domain', $domainName)
     $domain = [System.DirectoryServices.ActiveDirectory.Domain]::GetDomain($domainContext).GetDirectoryEntry()
-    $domainSid = [byte[]]$domain.Properties["objectSID"].Value
+    $domainSid = [byte[]]$domain.Properties['objectSID'].Value
     $domainSid = (New-Object System.Security.Principal.SecurityIdentifier($domainSid, 0)).Value
     $domainSid
 
@@ -79,7 +79,7 @@ if (-not (Test-LabMachineInternetConnectivity -ComputerName $devOpsServer))
 {
     Write-Error "The lab is not connected to the internet. Check the connectivity of the machine '$router' which is acting as a router." -ErrorAction Stop
 }
-Write-Host "Lab is connected to the internet, continuing with customizations."
+Write-Host 'Lab is connected to the internet, continuing with customizations.'
 
 $feedPermissions = @()
 $feedPermissions += (New-Object pscustomobject -Property @{ role = 'administrator'; identityDescriptor = "System.Security.Principal.WindowsIdentity;$domainSid-1000" })
@@ -105,7 +105,7 @@ Write-Host "Created artifacts feed 'Software' on Azure DevOps Server '$nugetServ
 
 # Web server
 $deployUserName = (Get-LabVM -Role WebServer).GetCredential((Get-Lab)).UserName
-$deployUserPassword = (Get-LabVM  -Role WebServer).GetCredential((Get-Lab)).GetNetworkCredential().Password
+$deployUserPassword = (Get-LabVM -Role WebServer).GetCredential((Get-Lab)).GetNetworkCredential().Password
 
 Copy-LabFileItem -Path "$here\LabData\LabSite.zip" -ComputerName (Get-LabVM -Role WebServer)
 Copy-LabFileItem -Path "$here\LabData\DummyService.exe" -ComputerName (Get-LabVM -Role WebServer)
@@ -123,7 +123,7 @@ Invoke-LabCommand -Activity 'Setup Web Site' -ComputerName (Get-LabVM -Role WebS
     $pool.processModel.password = $deployUserPassword
     $pool | Set-Item
 
-    New-Website -name "PSConfSite" -PhysicalPath C:\PsConfSite -ApplicationPool "PSConfSite"
+    New-Website -name 'PSConfSite' -PhysicalPath C:\PsConfSite -ApplicationPool 'PSConfSite'
 } -Variable (Get-Variable deployUserName, deployUserPassword)
 
 # File server
@@ -137,7 +137,7 @@ Invoke-LabCommand -Activity 'Creating folders and shares' -ComputerName (Get-Lab
     New-Item -ItemType Directory -Path C:\GroupData -Force
 
     'Accounting', 'Legal', 'HR', 'Janitorial' | ForEach-Object {
-        New-Item -ItemType Directory -Path C:\GroupData -Name $_  -Force
+        New-Item -ItemType Directory -Path C:\GroupData -Name $_ -Force
     }
 
     New-SmbShare -Name Home -Path C:\UserHome -ErrorAction SilentlyContinue
@@ -187,7 +187,7 @@ Restart-LabVM -ComputerName $devOpsServer #somehow required to finish all parts 
 
 Copy-LabFileItem -Path $labSources\SoftwarePackages\VSCodeExtensions -ComputerName $devOpsServer
 Invoke-LabCommand -ActivityName 'Install VSCode Extensions' -ComputerName $devOpsServer -ScriptBlock {
-    dir -Path C:\VSCodeExtensions | ForEach-Object {
+    Get-ChildItem -Path C:\VSCodeExtensions | ForEach-Object {
         code --install-extension $_.FullName 2>$null #suppressing errors
     }
 } -NoDisplay
@@ -229,7 +229,7 @@ foreach ($domain in (Get-Lab).Domains)
         $_.OperatingSystem -like '*CentOS*'
     }
 
-    $dc = Get-LabVM -Role ADDS | Where-Object DomainName -eq $domain.Name | Select-Object -First 1
+    $dc = Get-LabVM -Role ADDS | Where-Object DomainName -EQ $domain.Name | Select-Object -First 1
 
     Invoke-LabCommand -ActivityName 'Registering DNS records' -ScriptBlock {
         foreach ($vm in $vms)
@@ -420,7 +420,7 @@ Invoke-LabCommand -ActivityName 'Publishing required Chocolatey packages to inte
         $p | Save-Package -Path $tempFolder
     }
 
-    dir -Path $tempFolder | ForEach-Object {
+    Get-ChildItem -Path $tempFolder | ForEach-Object {
 
         Write-Host "Publishing package '$($_.FullName)'"
         choco push $_.FullName -s $chocolateyFeed.NugetV2Url --api-key $chocolateyFeed.NugetApiKey
@@ -471,12 +471,12 @@ Invoke-LabCommand -ActivityName "Install module 'xDscDiagnostics' required by DS
     Install-Module -Name xDscDiagnostics -Repository PowerShell -Force
 } -ComputerName $dscNodes
 
-Write-Host "----------------------------------------------------------------------------------------------------------" -ForegroundColor Magenta
-Write-Host "It is expected to see errors from here as the WinRM servicer on the pull server gets restarted" -ForegroundColor Magenta
-Write-Host "After the errors you should have the DscData endpoint installed (Get-PSSessionConfiguration -Name DscData)" -ForegroundColor Magenta
-Write-Host "----------------------------------------------------------------------------------------------------------" -ForegroundColor Magenta
+Write-Host '----------------------------------------------------------------------------------------------------------' -ForegroundColor Magenta
+Write-Host 'It is expected to see errors from here as the WinRM servicer on the pull server gets restarted' -ForegroundColor Magenta
+Write-Host 'After the errors you should have the DscData endpoint installed (Get-PSSessionConfiguration -Name DscData)' -ForegroundColor Magenta
+Write-Host '----------------------------------------------------------------------------------------------------------' -ForegroundColor Magenta
 
-Invoke-LabCommand -ActivityName "Create DscData JEA endpoint for allowing the LCM controller to send additional data to the DSC pull server" `
+Invoke-LabCommand -ActivityName 'Create DscData JEA endpoint for allowing the LCM controller to send additional data to the DSC pull server' `
     -FilePath $PSScriptRoot\DscTaggingData\New-DscDataEndpoint.ps1 -ComputerName $pullServer
 
 Restart-LabVM -ComputerName $devOpsServer, $buildWorkers -Wait
