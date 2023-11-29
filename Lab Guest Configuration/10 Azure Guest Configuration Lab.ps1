@@ -1,3 +1,23 @@
+<#
+.SYNOPSIS
+This script creates a lab environment for the Azure Guest Configuration lab.
+
+.PARAMETER LocationName
+Specifies the location where the lab environment will be created. Default is 'West Europe'.
+
+.PARAMETER SubscriptionName
+Specifies the name of the Azure subscription to use.
+
+.NOTES
+This script requires the Azure PowerShell module to be installed.
+
+.EXAMPLE
+.\10 Azure Guest Configuration Lab.ps1 -LocationName 'East US' -SubscriptionName 'MySubscription'
+
+This example creates a lab environment in the 'East US' location using the 'MySubscription' Azure subscription.
+
+#>
+
 param
 (
     [Parameter()]

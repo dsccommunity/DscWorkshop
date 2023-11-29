@@ -1,5 +1,19 @@
 #Requires -Modules AutomatedLab, Az.Resources, Az.ManagedServiceIdentity
 
+<#
+.SYNOPSIS
+This script customizes the Azure Guest Configuration lab environment.
+
+.NOTES
+This script requires the AutomatedLab, Az.Resources, and Az.ManagedServiceIdentity PowerShell modules to be installed.
+
+.EXAMPLE
+.\20 Azure Guest Configuration Lab Customizations.ps1
+
+This example customizes the Azure Guest Configuration lab environment.
+
+#>
+
 if (-not $lab)
 {
     $lab = Import-Lab -Name GCLab1 -NoValidation -PassThru
