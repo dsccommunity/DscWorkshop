@@ -13,7 +13,7 @@ This project serves as a blueprint for projects utilizing [DSC](https://docs.mic
 
 This project does not use DSC as an isolated technology. DSC is just one part in a pipeline that leverages a few Microsoft products and open-source.
 
-The is a fast-track learning path in [Exercises](./Exercises)
+There is a fast-track learning path in [Exercises](./Exercises)
 
 ### Credits
 This project is inspired by [Gael Colas'](https://twitter.com/gaelcolas) [DscInfraSample](https://github.com/gaelcolas/DscInfraSample) and Gael's opinions have an impact on its evolution.
