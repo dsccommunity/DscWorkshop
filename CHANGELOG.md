@@ -32,3 +32,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and a `DscWorkshop.psm1` dummy file.
 - Added `TestReferenceRsop` task.
 - Added `DscTagging` config data.
+- Removed a `-ListAvailable` Parameter from the `Get-PackageProvider` at Resolve-Dependency.ps1 which could lead to false positives, creates a warning in offline Build Servers and slows down the process.

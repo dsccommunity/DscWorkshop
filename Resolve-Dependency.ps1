@@ -175,7 +175,7 @@ Write-Progress -Activity 'Bootstrap:' -PercentComplete 0 -CurrentOperation 'NuGe
 $powerShellGetModule = Import-Module -Name 'PowerShellGet' -MinimumVersion '2.0' -ErrorAction 'SilentlyContinue' -PassThru
 
 # Install the package provider if it is not available.
-$nuGetProvider = Get-PackageProvider -Name 'NuGet' -ListAvailable | Select-Object -First 1
+$nuGetProvider = Get-PackageProvider -Name 'NuGet' | Select-Object -First 1
 
 if (-not $powerShellGetModule -and -not $nuGetProvider)
 {
