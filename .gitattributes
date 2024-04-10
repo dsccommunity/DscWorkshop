@@ -18,3 +18,4 @@
 *.so   binary
 *.zip  binary
 *.vsix binary
+*.pdf  binary
