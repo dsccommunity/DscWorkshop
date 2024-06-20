@@ -130,7 +130,7 @@ task build_guestconfiguration_packages_from_MOF -if ($PSVersionTable.PSEdition -
 }
 
 task publish_guestconfiguration_packages -if (
-    $PSVersionTable.PSEdition -eq 'Core' -and $env:azureClientSecret
+    $PSVersionTable.PSEdition -eq 'Core' -and ($env:azureClientSecret -or $env:azureIdToken)
 ) {
     $subscriptionId = $datum.Global.Azure.SubscriptionId
     $tenantId = $datum.Global.Azure.TenantId
@@ -139,8 +139,25 @@ task publish_guestconfiguration_packages -if (
 
     Update-AzConfig -DisplayBreakingChangeWarning $false
 
-    $credential = New-Object System.Management.Automation.PSCredential -ArgumentList $env:azureClientId, (ConvertTo-SecureString -String $env:azureClientSecret -AsPlainText -Force)
-    Connect-AzAccount -Credential $Credential -Tenant $tenantId -ServicePrincipal -SubscriptionId $subscriptionId | Out-Null
+    $parameters = @{
+        TenantId         = $tenantId
+        SubscriptionId   = $subscriptionId
+        Verbose          = $true
+        ServicePrincipal = $true
+    }
+
+    if ($env:azureIdToken)
+    {
+        # We are running with a managed identity
+        $parameters.FederatedToken = $env:azureIdToken
+        $parameters.ApplicationId = $env:azureClientId
+    }
+    else
+    {
+        $parameters.Credential = New-Object System.Management.Automation.PSCredential -ArgumentList $env:azureClientId, (ConvertTo-SecureString -String $env:azureClientSecret -AsPlainText -Force)
+    }
+
+    Connect-AzAccount @parameters | Out-Null
 
     $resourceGroup = Get-AzResourceGroup -Name $resourceGroupName
     $guestConfigurationContainerName = 'guestconfiguration'

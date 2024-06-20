@@ -64,6 +64,7 @@ stages:
                 Write-Host "##vso[task.setvariable variable=azureClientId;isOutput=true]$($env:servicePrincipalId)"
                 Write-Host "##vso[task.setvariable variable=azureClientSecret;isOutput=true]$($env:servicePrincipalKey)"
                 Write-Host "##vso[task.setvariable variable=azureTenantId;isOutput=true]$($env:tenantId)"
+                Write-Host "##vso[task.setvariable variable=azureIdToken;isOutput=true]$($env:idToken)"
 
           - task: PowerShell@2
             name: pack
@@ -76,6 +77,7 @@ stages:
               azureClientId: $(setVariables.azureClientId)
               azureClientSecret: $(setVariables.azureClientSecret)
               azureTenantId: $(setVariables.azureTenantId)
+              azureIdToken: $(setVariables.azureIdToken)
 
           - task: PublishPipelineArtifact@1
             displayName: 'Publish Output Folder'
