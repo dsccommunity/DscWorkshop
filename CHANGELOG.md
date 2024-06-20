@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added stages to cloud pipeline and added steps to publish modules to Azure Automation DSC.
 - Added support for Azure Guest Configuration.
+- Added support for federated credentials in Azure Pipelines
 
 ### Changed
 
