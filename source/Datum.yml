@@ -53,14 +53,14 @@ lookup_options:
       tuple_keys:
         - Key
 
-  #NetworkIpConfiguration:
-  #  merge_hash: deep
-  #NetworkIpConfiguration\Interfaces:
-  #  #merge_basetype_array: Deep
-  #  merge_hash_array: DeepTuple
-  #  merge_options:
-  #    tuple_keys:
-  #      - InterfaceAlias
+  NetworkIpConfiguration:
+    merge_hash: deep
+  NetworkIpConfiguration\Interfaces:
+    #merge_basetype_array: Deep
+    merge_hash_array: DeepTuple
+    merge_options:
+      tuple_keys:
+        - InterfaceAlias
 
   ComputerSettings:
     merge_hash: deep

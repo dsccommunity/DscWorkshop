@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Changed from 'CommonTasks' to 'DscConfig.Demo' for faster build time.
 - Added support for PowerShell 7.
 - Added support for Azure Guest Configuration.
+- Updated 'NetworkIpConfiguration\Interfaces' configuration data.
 
 ### Fixed
 

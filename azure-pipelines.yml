@@ -31,7 +31,7 @@ stages:
             displayName: 'Display Environment Variables'
 
           - pwsh: |
-              dotnet tool install --global GitVersion.Tool
+              dotnet tool install --global GitVersion.Tool --version 5.*
               $gitVersionObject = dotnet-gitversion | ConvertFrom-Json
               $gitVersionObject.PSObject.Properties.ForEach{
                   Write-Host -Object "Setting Task Variable '$($_.Name)' with value '$($_.Value)'."
@@ -108,7 +108,7 @@ stages:
             displayName: 'Display Environment Variables'
 
           - pwsh: |
-              dotnet tool install --global GitVersion.Tool
+              dotnet tool install --global GitVersion.Tool --version 5.*
               $gitVersionObject = dotnet-gitversion | ConvertFrom-Json
               $gitVersionObject.PSObject.Properties.ForEach{
                   Write-Host -Object "Setting Task Variable '$($_.Name)' with value '$($_.Value)'."
