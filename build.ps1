@@ -5,6 +5,10 @@
     .PARAMETER Tasks
         The task or tasks to run. The default value is '.' (runs the default task).
 
+    .PARAMETER Filter
+        Filter the MOF-Files that you want to get compiled.
+        The Syntax is "-Filter { $_.Environment -eq 'Dev' -and $_.Role -eq 'FileServer' }"
+
     .PARAMETER CodeCoverageThreshold
         The code coverage target threshold to uphold. Set to 0 to disable.
         The default value is '' (empty string).
