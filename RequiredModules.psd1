@@ -33,7 +33,7 @@
     xDscResourceDesigner         = '1.13.0.0'
     'DscResource.Test'           = '0.16.1'
     'DscResource.DocGenerator'   = '0.11.2'
-    PSDesiredStateConfiguration  = '2.0.6'
+    PSDesiredStateConfiguration  = '2.0.7'
     GuestConfiguration           = '4.4.0'
 
     'Az.Accounts'                = '2.12.3'
