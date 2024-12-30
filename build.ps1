@@ -1,6 +1,6 @@
 <#
     .DESCRIPTION
-        Bootstrap and build script for PowerShell module CI/CD pipeline
+        Bootstrap and build script for PowerShell module CI/CD pipeline.
 
     .PARAMETER Tasks
         The task or tasks to run. The default value is '.' (runs the default task).
@@ -60,6 +60,19 @@
 
     .PARAMETER AutoRestore
         Not yet written.
+
+    .PARAMETER UseModuleFast
+        Specifies to use ModuleFast instead of PowerShellGet to resolve dependencies
+        faster.
+
+    .PARAMETER UsePSResourceGet
+        Specifies to use PSResourceGet instead of PowerShellGet to resolve dependencies
+        faster. This can also be configured in Resolve-Dependency.psd1.
+
+    .PARAMETER UsePowerShellGetCompatibilityModule
+        Specifies to use the compatibility module PowerShellGet. This parameter
+        only works then the method of downloading dependencies is PSResourceGet.
+        This can also be configured in Resolve-Dependency.psd1.
 #>
 [CmdletBinding()]
 param
@@ -129,7 +142,19 @@ param
 
     [Parameter()]
     [System.Management.Automation.SwitchParameter]
-    $AutoRestore
+    $AutoRestore,
+
+    [Parameter()]
+    [System.Management.Automation.SwitchParameter]
+    $UseModuleFast,
+
+    [Parameter()]
+    [System.Management.Automation.SwitchParameter]
+    $UsePSResourceGet,
+
+    [Parameter()]
+    [System.Management.Automation.SwitchParameter]
+    $UsePowerShellGetCompatibilityModule
 )
 
 <#
@@ -140,7 +165,6 @@ param
 
 process
 {
-
     if ($MyInvocation.ScriptName -notLike '*Invoke-Build.ps1')
     {
         # Only run the process block through InvokeBuild (look at the Begin block at the bottom of this script).
@@ -152,7 +176,7 @@ process
 
     try
     {
-        Write-Host -Object "[build] Parsing defined tasks" -ForeGroundColor Magenta
+        Write-Host -Object '[build] Parsing defined tasks' -ForegroundColor Magenta
 
         # Load the default BuildInfo if the parameter BuildInfo is not set.
         if (-not $PSBoundParameters.ContainsKey('BuildInfo'))
@@ -186,7 +210,7 @@ process
                             ConvertFrom-Yaml -Yaml (Get-Content -Raw $configFile)
                         }
 
-                        # Native Support for JSON and JSONC (by Removing comments)
+                        # Support for JSON and JSONC (by Removing comments) when module PowerShell-Yaml is available
                         '\.[json|jsonc]'
                         {
                             $jsonFile = Get-Content -Raw -Path $configFile
@@ -335,7 +359,7 @@ process
             task $workflow $workflowItem
         }
 
-        Write-Host -Object "[build] Executing requested workflow: $($Tasks -join ', ')" -ForeGroundColor Magenta
+        Write-Host -Object "[build] Executing requested workflow: $($Tasks -join ', ')" -ForegroundColor Magenta
 
     }
     finally
@@ -344,7 +368,7 @@ process
     }
 }
 
-Begin
+begin
 {
     # Find build config if not specified.
     if (-not $BuildConfig)
@@ -374,7 +398,7 @@ Begin
 
     if ($MyInvocation.ScriptName -notlike '*Invoke-Build.ps1')
     {
-        Write-Host -Object "[pre-build] Starting Build Init" -ForegroundColor Green
+        Write-Host -Object '[pre-build] Starting Build Init' -ForegroundColor Green
 
         Push-Location $PSScriptRoot -StackName 'BuildModule'
     }
@@ -458,7 +482,8 @@ Begin
 
     if ($ResolveDependency)
     {
-        Write-Host -Object "[pre-build] Resolving dependencies." -ForegroundColor Green
+        Write-Host -Object '[pre-build] Resolving dependencies using preferred method.' -ForegroundColor Green
+
         $resolveDependencyParams = @{ }
 
         # If BuildConfig is a Yaml file, bootstrap powershell-yaml via ResolveDependency.
@@ -494,23 +519,23 @@ Begin
             }
         }
 
-        Write-Host -Object "[pre-build] Starting bootstrap process." -ForegroundColor Green
+        Write-Host -Object '[pre-build] Starting bootstrap process.' -ForegroundColor Green
 
         .\Resolve-Dependency.ps1 @resolveDependencyParams
     }
 
     if ($MyInvocation.ScriptName -notlike '*Invoke-Build.ps1')
     {
-        Write-Verbose -Message "Bootstrap completed. Handing back to InvokeBuild."
+        Write-Verbose -Message 'Bootstrap completed. Handing back to InvokeBuild.'
 
         if ($PSBoundParameters.ContainsKey('ResolveDependency'))
         {
-            Write-Verbose -Message "Dependency already resolved. Removing task."
+            Write-Verbose -Message 'Dependency already resolved. Removing task.'
 
             $null = $PSBoundParameters.Remove('ResolveDependency')
         }
 
-        Write-Host -Object "[build] Starting build with InvokeBuild." -ForegroundColor Green
+        Write-Host -Object '[build] Starting build with InvokeBuild.' -ForegroundColor Green
 
         Invoke-Build @PSBoundParameters -Task $Tasks -File $MyInvocation.MyCommand.Path
 
