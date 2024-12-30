@@ -32,7 +32,7 @@
     Metadata                     = '1.5.7'
     xDscResourceDesigner         = '1.13.0.0'
     'DscResource.Test'           = '0.16.3'
-    'DscResource.DocGenerator'   = '0.11.5'
+    'DscResource.DocGenerator'   = '0.12.5'
     PSDesiredStateConfiguration  = '2.0.7'
     GuestConfiguration           = '4.6.0'
 
