@@ -7,7 +7,7 @@ Best experience if you want to follow along with the entire lab
 - ```git clone https://github.com/AutomatedLab/DscWorkshop```  
 If you cannot use Azure and don't have the power to run the entire lab
 
-## DSC with TFS
+## DSC with Azure DevOps Server
 
 The full lab contains everything featured in Labs 01 and 02, which are not part of this workshop but can be used to test on your own. Additionally, it contains a TFS 2018 instance that powers our release pipeline as well as ProGet as the provider of a nuget feed.
 
