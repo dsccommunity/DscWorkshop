@@ -233,7 +233,7 @@ if ($UseModuleFast -and -not (Get-Module -Name 'ModuleFast'))
 
             $moduleFastBootstrapScriptBlockParameters.UseMain = $true
         }
-        elseif($ModuleFastVersion)
+        elseif ($ModuleFastVersion)
         {
             if ($ModuleFastVersion -notmatch 'v')
             {
@@ -409,8 +409,8 @@ if (-not ($UseModuleFast -or $UsePSResourceGet))
         #>
         Get-Module -ListAvailable PackageManagement |
             Where-Object -Property 'ModuleBase' -NotMatch 'powershell.7' |
-            Select-Object -First 1 |
-            Import-Module -Force
+                Select-Object -First 1 |
+                    Import-Module -Force
     }
 
     Write-Progress -Activity 'Bootstrap:' -PercentComplete 0 -CurrentOperation 'NuGet Bootstrap'
