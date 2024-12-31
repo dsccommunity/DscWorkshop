@@ -22,7 +22,7 @@
     #'Sampler.DscPipeline'        = '0.2.0-preview0015'
     MarkdownLinkCheck            = '0.2.0'
     'DscResource.AnalyzerRules'  = '0.2.0'
-    DscBuildHelpers              = '0.2.3'
+    DscBuildHelpers              = '0.3.0-preview0002'
     Datum                        = '0.40.1'
     ProtectedData                = '5.0.0'
     'Datum.ProtectedData'        = '0.0.1'
