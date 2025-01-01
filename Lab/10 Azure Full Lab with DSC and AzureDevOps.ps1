@@ -1,5 +1,6 @@
 $labName = "DscWorkshop_$((1..6 | ForEach-Object { [char[]](97..122) | Get-Random }) -join '')"
 $azureLocation = 'West Europe'
+$azureRoleSize = 'Standard_D8alds_v6'
 
 #--------------------------------------------------------------------------------------------------------------------
 #----------------------- CHANGING ANYTHING BEYOND THIS LINE SHOULD NOT BE REQUIRED ----------------------------------
@@ -21,7 +22,7 @@ Add-LabDomainDefinition -Name contoso.com -AdminUser Install -AdminPassword Some
 Set-LabInstallationCredential -Username Install -Password Somepass1
 
 # Add the reference to our necessary ISO files
-Add-LabIsoImageDefinition -Name AzDevOps -Path $labSources\ISOs\azuredevops2022.0.1.iso #from https://docs.microsoft.com/en-us/azure/devops/server/download/azuredevopsserver?view=azure-devops
+Add-LabIsoImageDefinition -Name AzDevOps -Path $labSources\ISOs\azuredevops2022.2.iso #from https://docs.microsoft.com/en-us/azure/devops/server/download/azuredevopsserver?view=azure-devops
 
 # Data Disks
 Add-LabDiskDefinition -Name DSCDO01_D -DiskSizeInGb 120 -Label DataDisk1 -DriveLetter D
@@ -34,6 +35,7 @@ $PSDefaultParameterValues = @{
     'Add-LabMachineDefinition:DomainName'      = 'contoso.com'
     'Add-LabMachineDefinition:DnsServer1'      = '192.168.111.10'
     'Add-LabMachineDefinition:OperatingSystem' = 'Windows Server 2022 Datacenter (Desktop Experience)'
+    'Add-LabMachineDefinition:AzureRoleSize'   = $azureRoleSize
 }
 
 #The PostInstallationActivity is just creating some users
