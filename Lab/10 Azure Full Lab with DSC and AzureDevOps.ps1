@@ -35,7 +35,7 @@ $PSDefaultParameterValues = @{
     'Add-LabMachineDefinition:DomainName'      = 'contoso.com'
     'Add-LabMachineDefinition:DnsServer1'      = '192.168.111.10'
     'Add-LabMachineDefinition:OperatingSystem' = 'Windows Server 2022 Datacenter (Desktop Experience)'
-    'Add-LabMachineDefinition:AzureRoleSize'   = $azureRoleSize
+    'Add-LabMachineDefinition:AzureProperties' = @{ 'StorageSku' = 'Premium_LRS' }
 }
 
 #The PostInstallationActivity is just creating some users
@@ -68,7 +68,7 @@ $roles = @(
     Get-LabMachineRoleDefinition -Role TfsBuildWorker -Properties @{ NumberOfBuildWorkers = '4' }
     Get-LabMachineRoleDefinition -Role HyperV
 )
-Add-LabMachineDefinition -Name DSCHost01 -Memory 8GB -Roles $roles -IpAddress 192.168.111.80 -DiskName DSCHost01_D -AzureProperties @{RoleSize = 'Standard_D4s_v3' }
+Add-LabMachineDefinition -Name DSCHost01 -Memory 16GB -Roles $roles -IpAddress 192.168.111.80 -DiskName DSCHost01_D
 
 # DSC target nodes - our legacy VMs with an existing configuration
 Add-LabMachineDefinition -Name DSCFile01 -Memory 1GB -Roles FileServer -IpAddress 192.168.111.100
@@ -82,7 +82,7 @@ Add-LabMachineDefinition -Name DSCWeb02 -Memory 1GB -Roles WebServer -IpAddress 
 Add-LabMachineDefinition -Name DSCFile03 -Memory 1GB -Roles FileServer -IpAddress 192.168.111.120
 Add-LabMachineDefinition -Name DSCWeb03 -Memory 1GB -Roles WebServer -IpAddress 192.168.111.121
 
-Install-Lab
+Install-Lab -NoValidation
 
 Enable-LabCertificateAutoenrollment -Computer -User
 Install-LabWindowsFeature -ComputerName (Get-LabVM -Role DSCPullServer, FileServer, WebServer, AzDevOps) -FeatureName RSAT-AD-Tools
