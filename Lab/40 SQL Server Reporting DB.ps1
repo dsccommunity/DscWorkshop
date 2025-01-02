@@ -1,4 +1,33 @@
-﻿$pullServer = Get-LabVM -Role DSCPullServer
+﻿param (
+    [Parameter()]
+    [string]$LabName = 'DscWorkshop'
+)
+
+if ((Get-Lab -ErrorAction SilentlyContinue).Name -ne $LabName)
+{
+    try
+    {
+        Write-host "Importing lab '$LabName'"
+        Import-Lab -Name $LabName -NoValidation -ErrorAction Stop
+    }
+    catch
+    {
+        Write-Host "Lab '$LabName' could not be imported. Trying to find a lab with a name starting with 'DscWorkshop*'"
+        $possibleLabs = Get-Lab -List | Where-Object { $_ -like 'DscWorkshop*' }
+        if ($possibleLabs.Count -gt 1)
+        {
+            Write-Error "There are multiple 'DscWorkshop' labs ($($possibleLabs -join ', ')). Please remove the ones you don't need."
+            exit
+        }
+        else
+        {
+            Write-Host "Importing lab '$possibleLabs'"
+            Import-Lab -Name $possibleLabs -NoValidation -ErrorAction Stop
+        }
+    }
+}
+
+$pullServer = Get-LabVM -Role DSCPullServer
 $sqlServer = Get-LabVM -Role SQLServer2017, SQLServer2019
 
 Get-LabInternetFile -Uri https://download.microsoft.com/download/5/E/B/5EB40744-DC0A-47C0-8B0A-1830E74D3C23/ReportBuilder.msi -Path $labSources\SoftwarePackages\ReportBuilder.msi
