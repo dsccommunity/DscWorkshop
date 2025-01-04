@@ -175,6 +175,8 @@ foreach ($domain in (Get-Lab).Domains)
     } -ComputerName $dc -Variable (Get-Variable -Name vms) -PassThru
 }
 
+Remove-LabPSSession #this is required to make use of the new version of PowerShellGet
+
 Invoke-LabCommand -ActivityName 'Get tested nuget.exe and register Azure DevOps Artifact Feed' -ComputerName (Get-LabVM) -ScriptBlock {
 
     [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
@@ -434,7 +436,7 @@ foreach ($softwarePackage in $softwarePackages.GetEnumerator())
 
 }
 
-Restart-LabVM -ComputerName $devOpsServer #somehow required to finish all parts of the VSCode installation
+Restart-LabVM -ComputerName $devOpsServer -Wait #somehow required to finish all parts of the VSCode installation
 
 Copy-LabFileItem -Path $labSources\SoftwarePackages\VSCodeExtensions -ComputerName $devOpsServer
 Invoke-LabCommand -ActivityName 'Install VSCode Extensions' -ComputerName $devOpsServer -ScriptBlock {
