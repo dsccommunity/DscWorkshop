@@ -48,15 +48,6 @@ $hypervHost = Get-LabVM -Role HyperV
 
 $devOpsRole = $devOpsServer.Roles | Where-Object Name -Like AzDevOps
 $devOpsCred = $devOpsServer.GetCredential($lab)
-$devOpsPort = $originalPort = 8080
-if ($devOpsRole.Properties.ContainsKey('Port'))
-{
-    $devOpsPort = $devOpsRole.Properties['Port']
-}
-if ($lab.DefaultVirtualizationEngine -eq 'Azure')
-{
-    $devOpsPort = (Get-LabAzureLoadBalancedPort -DestinationPort $devOpsPort -ComputerName $devOpsServer).Port
-}
 
 # Which will make use of Azure DevOps, clone the stuff, add the necessary build step, publish the test results and so on
 # You will see two remotes, Origin (Our code on GitHub) and Azure DevOps (Our code pushed to your lab)
