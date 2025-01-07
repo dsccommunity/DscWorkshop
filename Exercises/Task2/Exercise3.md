@@ -77,11 +77,11 @@ In order to build the new node `DSCWS01` which uses the `WsusServer` role, simpl
 
 After the build has completed take a look at the new nodes resulting files.
 
-> **NOTE: YAML syntax can be tricky so if you have errors during the build it very likely due to not well formed YAML. Please use also the previously mentioned YAML VS Code plug-in.**
+> **NOTE: YAML syntax can be tricky so if you have errors during the build it very likely due to a not well formed YAML. Please use also the previously mentioned YAML VS Code plug-in.**
 
 ## 2.4 Modify a role
 
-Modifying a role is even easier as adding a new one. Let's try changing the default time server for all the file servers. If the setting effect all time servers, it must be defined in the `FileServer` role.
+Modifying a role is even easier as adding a new one. Let's try changing the default time server for all the file servers. If the setting effects all time servers, it must be defined in the `FileServer` role.
 
 1. Open the `FileServer.yml` from your roles directory. We are modifying an already existing role definition now.
 
