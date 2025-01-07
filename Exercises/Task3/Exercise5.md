@@ -12,9 +12,9 @@ This task assumes that you have access to dev.azure.com in order to create your 
 
 ## Onboarding a node with the Azure DSC pull server
 
-1. Please create a machine in Azure or on hour local Hyper-V named 'DSCFile01'. The operating system should be Windows 2016 or 2019.
+1. Please create a machine in Azure or on your local Hyper-V named 'DSCFile01'. The operating system should be Windows 2016 or 2019.
 
-1. Please open an PowerShell ISE on the new virtual machine and paste the following code into a new empty script window:
+1. Please open a PowerShell ISE on the new virtual machine and paste the following code into a new empty script window:
 
     ```powershell
     # The DSC configuration that will generate meta configurations
@@ -170,7 +170,7 @@ This task assumes that you have access to dev.azure.com in order to create your 
     Update-DscConfiguration -Wait -Verbose
     ```
 
-    After the node has applied the configuration, have a look at the Azure DSC pull serer. The onboarded node should be visible there:
+    After the node has applied the configuration, have a look at the Azure DSC pull server. The onboarded node should be visible there:
 
     ![Azure Automation DSC overview](img/AzureAutomationAccountOverview.png)
 

@@ -143,7 +143,7 @@ DscTagging:
 
     We are using node-specific settings to select the correct files to import. This principle gives you a lot of flexibility to put your infrastructure and business requirements into DSC config data.
 
-    In summary, adding new layers is a bit more involved than adding a new role. You need to think about the resolution precedence and the way your settings will be merged. Our project can serve as a good starting point, but you still need to take care of organizational requirements and so on.
+    In summary, adding new layers is a bit more complex than adding a new role. You need to think about the resolution precedence and the way your settings will be merged. Our project can serve as a good starting point, but you still need to take care of organizational requirements and so on.
 
     If you start a new build now, you will find three references in the RSoP files to the fire section:
     - The fire section assignment on the node level.

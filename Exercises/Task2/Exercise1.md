@@ -6,7 +6,7 @@ This task is about building the solution locally. For that, no infrastructure or
 
 To kick off a new build, the script ```build.ps1``` is going to be used. Whether or not you are in a build pipeline, the build script will create all artifacts in your current environment.
 
-After completing this task, you have a gone through the build process for all artifacts that are required for a DSC pull server scenario (on-prem or Azure).
+After completing this task, you have gone through the build process for all artifacts that are required for a DSC pull server scenario (on-prem or Azure).
 
 > ## Note: Remember to check the [prerequisites](../CheckPrereq.ps1) first. You can just call the script `../CheckPrereq.ps1` to start the Pester tests that will check your system against the requirements.
 
@@ -14,7 +14,7 @@ After completing this task, you have a gone through the build process for all ar
 
 ## 2.1 Running a manual build locally
 
-1. Open Windows PowerShell as elevated Admin. Do this by pressing the Windows and then typing ```powershell.exe``` and then right-click select 'Run As Administrator'
+1. Open Windows PowerShell as elevated Admin. Do this by pressing the Windows-Symbol and then typing ```powershell.exe``` and then right-click select 'Run As Administrator'
 1. Execute the ```Get-ExecutionPolicy``` cmdlet. The resulting execution policy should be either RemoteSigned, Unrestricted or Bypass:
 
     ```code
@@ -59,7 +59,7 @@ Install-ChocolateyPackage -Name GitVersion.Portable
 
 1. In this and the following exercises we will be working with the open-source `DscWorkshop` repository hosted at <https://github.com/dsccommunity/DscWorkshop>. To clone this repository, please execute:
 
-    > Note: Please make sure you are in the 'C:\Git' folder or wherever you want to store project.
+    > Note: Please make sure you are in the 'C:\Git' folder or wherever you want to store the project.
 
     ```powershell
     git clone https://github.com/dsccommunity/DscWorkshop
@@ -92,7 +92,7 @@ Install-ChocolateyPackage -Name GitVersion.Portable
 
     PSDepend is another PowerShell module being used here which can be leveraged to define project dependencies to PowerShell modules, GitHub repositories and more.
 
-    On learn more about PSDepend, have a look at <https://github.com/RamblingCookieMonster/PSDepend>
+    To learn more about PSDepend, have a look at <https://github.com/RamblingCookieMonster/PSDepend>
 
 1. Without modifying anything yet, start the build script by executing:
 
@@ -104,7 +104,7 @@ Install-ChocolateyPackage -Name GitVersion.Portable
 
     While the script is running, you may want to explore the following folders. The `PSDepend` module downloads and stores the dependencies into the folder defined as target in the `RequiredModules.psd1`, which is `output\RequiredModules`.
 
-    >Note: Depending on you machine's speed, your internet connection and the performance of the PowerShell Gallery, the initial build with downloading all the resources may take 5 to 15 minutes. Subsequent builds should take around 2 to 4 minutes.
+    >Note: Depending on your machine's speed, your internet connection and the performance of the PowerShell Gallery, the initial build with downloading all the resources may take 5 to 15 minutes. Subsequent builds should take around 2 to 4 minutes.
 
 1. After the build process has finished, a number of artifacts have been created. The artifacts that we need for DSC are the
     - MOF files
@@ -117,9 +117,9 @@ Install-ChocolateyPackage -Name GitVersion.Portable
     - RSOP
     - RsopWithSource
   
-    Before having a closer look at the artifacts, let's have a look how nodes are defined for the environment named `Dev`. In VSCode, please navigate to the folder `source\AllNodes\Dev`.
+    Before having a closer look at the artifacts, let's have a look at how nodes are defined for the environment named `Dev`. In VSCode, please navigate to the folder `source\AllNodes\Dev`.
 
-    You should see two files here for the `DSCFile01.yml` and `DSCWeb01.yml`.
+    You should see two files here: `DSCFile01.yml` and `DSCWeb01.yml`.
 
 5. Please open the files `DSCFile01.yml` and `DSCWeb01.yml`. Both files are in the YAML format. [YAML](https://yaml.org/), like JSON, has been around since 2000 / 2001 and can be used to serialize data.
 
@@ -203,7 +203,7 @@ Install-ChocolateyPackage -Name GitVersion.Portable
 
     Examine the RSoP files now which are in the folder `output\RSOP` and `output\RsopWithSource`.
 
-1. Let's take the RSoP artifact for `DSCFile01`. If you compare the RSoP output of this node (`output\RSOP\DSCFile01.yml`) to the node's config file (`AllNodes\Dev\DSCFile01.yml`), you will notice that there are many more properties defined than in the original `DSCFile01.yml`. Where did these come from? They are defined the node's role and location YAML files.
+1. Let's take the RSoP artifact for `DSCFile01`. If you compare the RSoP output of this node (`output\RSOP\DSCFile01.yml`) to the node's config file (`AllNodes\Dev\DSCFile01.yml`), you will notice that there are many more properties defined than in the original `DSCFile01.yml`. Where did these come from? They are defined in the node's role and location YAML files.
 
     For understanding how `Datum` merges different layers, please refer to [Lookup Merging Behavior](https://github.com/gaelcolas/Datum#lookup-merging-behaviour).
 
