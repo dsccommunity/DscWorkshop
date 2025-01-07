@@ -74,7 +74,7 @@ At your customer, this is all customer-specific code and should be collected in 
 
     ### Splatting
 
-    Let's make a little detour and talk about splatting. Why is splatting so helpful? To learn more about splatting, have a look at Kevin Marquette's excellent article [Powershell: Everything you wanted to know about hashtables](https://powershellexplained.com/2016-11-06-powershell-hashtable-everything-you-wanted-to-know-about/#splatting-hashtables-at-cmdlets). DSC does not support splatting out-of-the-box. The cmdlet `Get-DscSplattedResource` adds thing long missing feature.
+    Let's make a little detour and talk about splatting. Why is splatting so helpful? To learn more about splatting, have a look at Kevin Marquette's excellent article [Powershell: Everything you wanted to know about hashtables](https://powershellexplained.com/2016-11-06-powershell-hashtable-everything-you-wanted-to-know-about/#splatting-hashtables-at-cmdlets). DSC does not support splatting out-of-the-box. The cmdlet `Get-DscSplattedResource` adds this long missing feature.
 
     If there is no splatting available, we need to assign each parameter-argument pair by ourselves. This can result in massive code blocks. For the configuration [WindowsServices](https://github.com/raandree/DscConfig.Demo/tree/main/source/DSCResources/WindowsServices) the code would look like this:
 
