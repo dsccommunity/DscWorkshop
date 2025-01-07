@@ -20,7 +20,7 @@ Add-LabDomainDefinition -Name contoso.com -AdminUser Install -AdminPassword Some
 Set-LabInstallationCredential -Username Install -Password Somepass1
 
 # Add the reference to our necessary ISO files
-Add-LabIsoImageDefinition -Name AzDevOps -Path $labSources\ISOs\azuredevops2022.0.1.iso #from https://docs.microsoft.com/en-us/azure/devops/server/download/azuredevopsserver?view=azure-devops
+Add-LabIsoImageDefinition -Name AzDevOps -Path $labSources\ISOs\azuredevops2022.2.iso #from https://docs.microsoft.com/en-us/azure/devops/server/download/azuredevopsserver?view=azure-devops
 Add-LabIsoImageDefinition -Name SQLServer2019 -Path $labsources\ISOs\SQLServer2019-x64-ENU.iso #from https://www.microsoft.com/en-us/evalcenter/evaluate-sql-server-2019. The EXE downloads the ISO.
 
 # Data Disks
