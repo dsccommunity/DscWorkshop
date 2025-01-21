@@ -1,6 +1,30 @@
-﻿if (-not (Get-Lab -ErrorAction SilentlyContinue).Name -eq 'DscWorkshop')
+﻿param (
+    [Parameter()]
+    [string]$LabName = 'DscWorkshop'
+)
+
+if ((Get-Lab -ErrorAction SilentlyContinue).Name -ne $LabName)
 {
-    Import-Lab -Name DscWorkshop -NoValidation -ErrorAction Stop
+    try
+    {
+        Write-host "Importing lab '$LabName'"
+        Import-Lab -Name $LabName -NoValidation -ErrorAction Stop
+    }
+    catch
+    {
+        Write-Host "Lab '$LabName' could not be imported. Trying to find a lab with a name starting with 'DscWorkshop*'"
+        $possibleLabs = Get-Lab -List | Where-Object { $_ -like 'DscWorkshop*' }
+        if ($possibleLabs.Count -gt 1)
+        {
+            Write-Error "There are multiple 'DscWorkshop' labs ($($possibleLabs -join ', ')). Please remove the ones you don't need."
+            exit
+        }
+        else
+        {
+            Write-Host "Importing lab '$possibleLabs'"
+            Import-Lab -Name $possibleLabs -NoValidation -ErrorAction Stop
+        }
+    }
 }
 
 $projectName = 'DscWorkshop'
@@ -24,15 +48,6 @@ $hypervHost = Get-LabVM -Role HyperV
 
 $devOpsRole = $devOpsServer.Roles | Where-Object Name -Like AzDevOps
 $devOpsCred = $devOpsServer.GetCredential($lab)
-$devOpsPort = $originalPort = 8080
-if ($devOpsRole.Properties.ContainsKey('Port'))
-{
-    $devOpsPort = $devOpsRole.Properties['Port']
-}
-if ($lab.DefaultVirtualizationEngine -eq 'Azure')
-{
-    $devOpsPort = (Get-LabAzureLoadBalancedPort -DestinationPort $devOpsPort -ComputerName $devOpsServer).Port
-}
 
 # Which will make use of Azure DevOps, clone the stuff, add the necessary build step, publish the test results and so on
 # You will see two remotes, Origin (Our code on GitHub) and Azure DevOps (Our code pushed to your lab)

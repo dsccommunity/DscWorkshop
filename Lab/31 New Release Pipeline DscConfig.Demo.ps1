@@ -1,8 +1,33 @@
-﻿if (-not (Get-Lab -ErrorAction SilentlyContinue).Name -eq 'DscWorkshop')
+﻿param (
+    [Parameter()]
+    [string]$LabName = 'DscWorkshop'
+)
+
+if ((Get-Lab -ErrorAction SilentlyContinue).Name -ne $LabName)
 {
-    Import-Lab -Name DscWorkshop -NoValidation -ErrorAction Stop
+    try
+    {
+        Write-host "Importing lab '$LabName'"
+        Import-Lab -Name $LabName -NoValidation -ErrorAction Stop
+    }
+    catch
+    {
+        Write-Host "Lab '$LabName' could not be imported. Trying to find a lab with a name starting with 'DscWorkshop*'"
+        $possibleLabs = Get-Lab -List | Where-Object { $_ -like 'DscWorkshop*' }
+        if ($possibleLabs.Count -gt 1)
+        {
+            Write-Error "There are multiple 'DscWorkshop' labs ($($possibleLabs -join ', ')). Please remove the ones you don't need."
+            exit
+        }
+        else
+        {
+            Write-Host "Importing lab '$possibleLabs'"
+            Import-Lab -Name $possibleLabs -NoValidation -ErrorAction Stop
+        }
+    }
 }
 
+$here = $PSScriptRoot
 $projectGitUrl = 'https://github.com/raandree/DscConfig.Demo'
 $projectName = $projectGitUrl.Substring($projectGitUrl.LastIndexOf('/') + 1)
 $collectionName = 'AutomatedLab'
@@ -15,34 +40,19 @@ $gitVersion = @{
 $lab = Get-Lab
 $devOpsServer = Get-LabVM -Role AzDevOps
 $devOpsWorker = Get-LabVM -Role HyperV
-$devOpsHostName = if ($lab.DefaultVirtualizationEngine -eq 'Azure')
-{
-    $devOpsServer.AzureConnectionInfo.DnsName
-}
-else
-{
-    $devOpsServer.FQDN
-}
+$devOpsHostName = $devOpsServer.FQDN
 $nugetServer = Get-LabVM -Role AzDevOps
 $nugetFeed = Get-LabTfsFeed -ComputerName $nugetServer -FeedName PowerShell
 
 $devOpsRole = $devOpsServer.Roles | Where-Object Name -EQ AzDevOps
 $devOpsCred = $devOpsServer.GetCredential($lab)
-$devOpsPort = $originalPort = 8080
-if ($devOpsRole.Properties.ContainsKey('Port'))
-{
-    $devOpsPort = $devOpsRole.Properties['Port']
-}
-if ($lab.DefaultVirtualizationEngine -eq 'Azure')
-{
-    $devOpsPort = (Get-LabAzureLoadBalancedPort -DestinationPort $devOpsPort -ComputerName $devOpsServer).Port
-}
+$devOpsPort = 8080
 
 # Which will make use of Azure DevOps, clone the stuff, add the necessary build step, publish the test results and so on
 # You will see two remotes, Origin (Our code on GitHub) and Azure DevOps (Our code pushed to your lab)
 Write-ScreenInfo 'Creating Azure DevOps project and cloning from GitHub...' -NoNewLine
 
-Copy-LabFileItem -Path $PSScriptRoot\LabData\gittools.gitversion-5.0.1.3.vsix -ComputerName $devOpsServer
+Copy-LabFileItem -Path $here\LabData\gittools.gitversion-5.0.1.3.vsix -ComputerName $devOpsServer
 Invoke-LabCommand -ActivityName "Uploading 'GitVersion' extension" -ComputerName $devOpsServer -ScriptBlock {
 
     $param = @{

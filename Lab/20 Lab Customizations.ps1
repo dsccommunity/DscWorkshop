@@ -1,6 +1,30 @@
-if (-not (Get-Lab -ErrorAction SilentlyContinue).Name -eq 'DscWorkshop')
+param (
+    [Parameter()]
+    [string]$LabName = 'DscWorkshop'
+)
+
+if ((Get-Lab -ErrorAction SilentlyContinue).Name -ne $LabName)
 {
-    Import-Lab -Name DscWorkshop -NoValidation -ErrorAction Stop
+    try
+    {
+        Write-host "Importing lab '$LabName'"
+        Import-Lab -Name $LabName -NoValidation -ErrorAction Stop
+    }
+    catch
+    {
+        Write-Host "Lab '$LabName' could not be imported. Trying to find a lab with a name starting with 'DscWorkshop*'"
+        $possibleLabs = Get-Lab -List | Where-Object { $_ -like 'DscWorkshop*' }
+        if ($possibleLabs.Count -gt 1)
+        {
+            Write-Error "There are multiple 'DscWorkshop' labs ($($possibleLabs -join ', ')). Please remove the ones you don't need."
+            exit
+        }
+        else
+        {
+            Write-Host "Importing lab '$possibleLabs'"
+            Import-Lab -Name $possibleLabs -NoValidation -ErrorAction Stop
+        }
+    }
 }
 
 $here = $PSScriptRoot
@@ -24,7 +48,9 @@ $requiredModules.Remove('PSDependOptions')
 $requiredModules.NTFSSecurity = 'latest'
 $requiredModules.PSDepend = 'latest'
 $requiredModules.PSDeploy = 'latest'
-$requiredModules.PowerShellGet = 'latest'
+$requiredModules.PowerShellGet = '2.2.5'
+$requiredModules.ProtectedData = 'latest'
+$requiredModules.'Sampler.DscPipeline' = '0.2.0-preview0015'
 
 $requiredChocolateyPackages = @{
     putty                 = '0.76'
@@ -126,6 +152,234 @@ Invoke-LabCommand -Activity 'Setup Web Site' -ComputerName (Get-LabVM -Role WebS
     New-Website -name 'PSConfSite' -PhysicalPath C:\PsConfSite -ApplicationPool 'PSConfSite'
 } -Variable (Get-Variable deployUserName, deployUserPassword)
 
+#in server 2019 there seems to be an issue with dynamic DNS registration, doing this manually
+foreach ($domain in (Get-Lab).Domains)
+{
+    $vms = Get-LabVM -All -IncludeLinux | Where-Object {
+        $_.DomainName -eq $domain.Name -and
+        $_.OperatingSystem -like '*2019*' -or
+        $_.OperatingSystem -like '*CentOS*'
+    }
+
+    $dc = Get-LabVM -Role ADDS | Where-Object DomainName -EQ $domain.Name | Select-Object -First 1
+
+    Invoke-LabCommand -ActivityName 'Registering DNS records' -ScriptBlock {
+        foreach ($vm in $vms)
+        {
+            if (-not (Get-DnsServerResourceRecord -Name $vm.Name -ZoneName $vm.DomainName -ErrorAction SilentlyContinue))
+            {
+                "Running 'Add-DnsServerResourceRecord -ZoneName $($vm.DomainName) -IPv4Address $($vm.IpV4Address) -Name $($vm.Name) -A'"
+                Add-DnsServerResourceRecord -ZoneName $vm.DomainName -IPv4Address $vm.IpV4Address -Name $vm.Name -A
+            }
+        }
+    } -ComputerName $dc -Variable (Get-Variable -Name vms) -PassThru
+}
+
+Remove-LabPSSession #this is required to make use of the new version of PowerShellGet
+
+Invoke-LabCommand -ActivityName 'Get tested nuget.exe and register Azure DevOps Artifact Feed' -ComputerName (Get-LabVM) -ScriptBlock {
+
+    [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
+    Install-PackageProvider -Name NuGet -Force
+    mkdir -Path C:\ProgramData\Microsoft\Windows\PowerShell\PowerShellGet -Force
+    Invoke-WebRequest -Uri 'https://nuget.org/nuget.exe' -OutFile C:\ProgramData\Microsoft\Windows\PowerShell\PowerShellGet\nuget.exe -ErrorAction Stop
+
+    Install-Module -Name PackageManagement -RequiredVersion 1.1.7.0 -Force -WarningAction SilentlyContinue
+    Install-Module -Name PowerShellGet -RequiredVersion 1.6.0 -Force -WarningAction SilentlyContinue
+
+    if (-not (Get-PSRepository -Name PowerShell -ErrorAction SilentlyContinue))
+    {
+        Register-PSRepository -Name PowerShell -SourceLocation $powerShellFeed.NugetV2Url -PublishLocation $powerShellFeed.NugetV2Url -Credential $powerShellFeed.NugetCredential -InstallationPolicy Trusted -ErrorAction Stop
+    }
+
+} -Variable (Get-Variable -Name powerShellFeed)
+
+#Removing session so the new version of PowerShellGet will be used.
+Remove-LabPSSession
+
+Invoke-LabCommand -ActivityName 'Downloading required modules from PSGallery' -ComputerName $devOpsServer -ScriptBlock {
+
+    Write-Host "Installing $($requiredModules.Count) modules on $(hostname.exe) for pushing them to the lab"
+    $repositoryName = 'PowerShell'
+
+    foreach ($requiredModule in $requiredModules.GetEnumerator())
+    {
+        $installModuleParams = @{
+            Name               = $requiredModule.Key
+            Repository         = 'PSGallery'
+            AllowClobber       = $true
+            SkipPublisherCheck = $true
+            Force              = $true
+            WarningAction      = 'SilentlyContinue'
+            ErrorAction        = 'Stop'
+        }
+        if ($requiredModule.Value -ne 'latest')
+        {
+            $installModuleParams.Add('RequiredVersion', $requiredModule.Value)
+        }
+        if ($requiredModule.Value -like '*-*' -or $requiredModule.Value -eq 'Latest')
+        {
+            #if pre-release version
+            $installModuleParams.Add('AllowPrerelease', $true)
+        }
+        Write-Host "Installing module '$($requiredModule.Key)' with version '$($requiredModule.Value)'"
+        Install-Module @installModuleParams
+    }
+
+    $installedModules = Get-InstalledModule
+    $loopCount = 3
+    Write-Host "Publishing modules to internal gallery $loopCount times. This is reuqired due to cross dependencies within the module list."
+    foreach ($loop in (1..$loopCount))
+    {
+        Write-Host "Publishing $($installedModules.Count) modules to the internal repository (loop $loop)"
+        foreach ($installedModule in $installedModules)
+        {
+            $findParams = @{
+                Name            = $installedModule.Name
+                RequiredVersion = $installedModule.Version
+                Repository      = $repositoryName
+                AllowPrerelease = $true
+                ErrorAction     = 'SilentlyContinue'
+            }
+
+            if (-not (Find-Module @findParams))
+            {
+                $publishModuleParams = @{
+                    Name            = $installedModule.Name
+                    RequiredVersion = $installedModule.Version
+                    Repository      = $repositoryName
+                    NuGetApiKey     = $nuGetApiKey
+                    AllowPrerelease = $true
+                    ErrorAction     = 'SilentlyContinue'
+                    WarningAction   = 'SilentlyContinue'
+                }
+
+                #Removing ErrorAction and WarningAction to see errors in the last publish loop.
+                if ($loop -eq $loopCount)
+                {
+                    $publishModuleParams.Remove('ErrorAction')
+                    $publishModuleParams.Remove('WarningAction')
+                }
+                Publish-Module @publishModuleParams
+
+                Write-Host "Published the module '$($installedModule.Name)' with version '$($installedModule.Version)' is already available repository '$repositoryName'"
+            }
+            else
+            {
+                Write-Host "The module '$($installedModule.Name)' with version '$($installedModule.Version)' is already available repository '$repositoryName'"
+            }
+        }
+    }
+
+    foreach ($installedModule in $installedModules)
+    {
+        $moduleVersion = if ($installedModule.Version -like '*-*')
+        {
+            ($installedModule.Version -split '-')[0]
+        }
+        else
+        {
+            $installedModule.Version
+        }
+        Remove-Item -Path "C:\Program Files\WindowsPowerShell\Modules\$($installedModule.Name)\$moduleVersion" -Recurse -Force -ErrorAction SilentlyContinue
+    }
+
+    Get-ChildItem -Path 'C:\Program Files\WindowsPowerShell\Modules' -Directory | Where-Object { $_.GetFileSystemInfos().Count -eq 0 } | Remove-Item
+
+} -Variable (Get-Variable -Name requiredModules, nuGetApiKey)
+
+Invoke-LabCommand -ActivityName 'Install Chocolatey to all lab VMs' -ScriptBlock {
+
+    if (([Net.ServicePointManager]::SecurityProtocol -band 'Tls12') -ne 'Tls12')
+    {
+        [Net.ServicePointManager]::SecurityProtocol += [Net.SecurityProtocolType]::Tls12
+    }
+
+    Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+
+    if (-not (Find-PackageProvider NuGet -ErrorAction SilentlyContinue))
+    {
+        Install-PackageProvider -Name NuGet
+    }
+    Import-PackageProvider -Name NuGet
+
+    if (-not (Get-PackageSource -Name $chocolateyFeed.name -ErrorAction SilentlyContinue))
+    {
+        Register-PackageSource -Name $chocolateyFeed.name -ProviderName NuGet -Location $chocolateyFeed.NugetV2Url -Trusted
+    }
+
+    choco source add -n=Software -s $chocolateyFeed.NugetV2Url
+
+} -ComputerName (Get-LabVM) -Variable (Get-Variable -Name chocolateyFeed) -ThrottleLimit 1 #to prevent error 429: Too Many Requests
+
+Remove-LabPSSession #this is required to make use of the new version of PowerShellGet
+
+Write-Host "Restarting all $((Get-LabVM).Count) machines to make the installation of Chocolaty effective."
+Write-Host 'Restarting Domain Controllers'
+Restart-LabVM -ComputerName (Get-LabVM -Role ADDS) -Wait
+Write-Host 'Restarting SQL Servers'
+Restart-LabVM -ComputerName (Get-LabVM -Role SQLServer) -Wait
+Write-Host 'Restarting all other machines'
+Restart-LabVM -ComputerName (Get-LabVM -Role WebServer, FileServer, DSCPullServer, AzDevOps, SQLServer, HyperV) -Wait
+
+Invoke-LabCommand -ActivityName 'Add Chocolatey internal source' -ScriptBlock {
+
+    if (([Net.ServicePointManager]::SecurityProtocol -band 'Tls12') -ne 'Tls12')
+    {
+        [Net.ServicePointManager]::SecurityProtocol += [Net.SecurityProtocolType]::Tls12
+    }
+
+    choco source add -n=Software -s $chocolateyFeed.NugetV2Url
+
+} -ComputerName (Get-LabVM) -Variable (Get-Variable -Name chocolateyFeed)
+
+Invoke-LabCommand -ActivityName 'Publishing required Chocolatey packages to internal repository' -ScriptBlock {
+
+    if (([Net.ServicePointManager]::SecurityProtocol -band 'Tls12') -ne 'Tls12')
+    {
+        [Net.ServicePointManager]::SecurityProtocol += [Net.SecurityProtocolType]::Tls12
+    }
+
+    Import-PackageProvider -Name NuGet
+    $publicFeedUri = 'https://chocolatey.org/api/v2/'
+
+    $tempFolder = mkdir C:\ChocoTemp -Force
+
+    if (-not (Get-PackageSource -Name $chocolateyFeed.name -ErrorAction SilentlyContinue))
+    {
+        Register-PackageSource -Name $chocolateyFeed.name -ProviderName NuGet -Location $chocolateyFeed.NugetV2Url -Trusted
+    }
+    if (-not (Get-PackageSource -Name Choco -ErrorAction SilentlyContinue))
+    {
+        Register-PackageSource -Name Choco -ProviderName NuGet -Location $publicFeedUri
+    }
+
+    foreach ($kvp in $requiredChocolateyPackages.GetEnumerator())
+    {
+        Write-Host "Saving package '$($kvp.Name)', " -NoNewline
+        if (-not ($p = Find-Package -Name $kvp.Name -Source Choco))
+        {
+            Write-Error "Package '$($kvp.Name)' could not be found at the source '$publicFeedUri'"
+            continue
+        }
+        $p | Save-Package -Path $tempFolder
+    }
+
+    Get-ChildItem -Path $tempFolder | ForEach-Object {
+
+        Write-Host "Publishing package '$($_.FullName)'"
+        choco push $_.FullName -s $chocolateyFeed.NugetV2Url --api-key $chocolateyFeed.NugetApiKey
+
+    }
+
+} -ComputerName $devOpsServer -Variable (Get-Variable -Name chocolateyFeed, requiredChocolateyPackages)
+
+Invoke-LabCommand -ActivityName 'Disable Git SSL Certificate Check' -ComputerName $devOpsServer, $buildWorkers -ScriptBlock {
+    [System.Environment]::SetEnvironmentVariable('GIT_SSL_NO_VERIFY', '1', 'Machine')
+}
+
+Remove-LabPSSession #this is required to make use of the new version of PowerShellGet
+
 # File server
 Invoke-LabCommand -Activity 'Creating folders and shares' -ComputerName (Get-LabVM -Role FileServer) -ScriptBlock {
     New-Item -ItemType Directory -Path C:\UserHome -Force
@@ -182,8 +436,7 @@ foreach ($softwarePackage in $softwarePackages.GetEnumerator())
 
 }
 
-
-Restart-LabVM -ComputerName $devOpsServer #somehow required to finish all parts of the VSCode installation
+Restart-LabVM -ComputerName $devOpsServer -Wait #somehow required to finish all parts of the VSCode installation
 
 Copy-LabFileItem -Path $labSources\SoftwarePackages\VSCodeExtensions -ComputerName $devOpsServer
 Invoke-LabCommand -ActivityName 'Install VSCode Extensions' -ComputerName $devOpsServer -ScriptBlock {
@@ -219,221 +472,6 @@ Invoke-LabCommand -ActivityName 'Create link on AzureDevOps desktop' -ComputerNa
     $shortcut.TargetPath = "https://$($pullServer.FQDN):$($originalPort)/PSDSCPullServer.svc/"
     $shortcut.Save()
 } -Variable (Get-Variable -Name devOpsServer, sqlServer, powerShellFeed, chocolateyFeed, pullServer, originalPort)
-
-#in server 2019 there seems to be an issue with dynamic DNS registration, doing this manually
-foreach ($domain in (Get-Lab).Domains)
-{
-    $vms = Get-LabVM -All -IncludeLinux | Where-Object {
-        $_.DomainName -eq $domain.Name -and
-        $_.OperatingSystem -like '*2019*' -or
-        $_.OperatingSystem -like '*CentOS*'
-    }
-
-    $dc = Get-LabVM -Role ADDS | Where-Object DomainName -EQ $domain.Name | Select-Object -First 1
-
-    Invoke-LabCommand -ActivityName 'Registering DNS records' -ScriptBlock {
-        foreach ($vm in $vms)
-        {
-            if (-not (Get-DnsServerResourceRecord -Name $vm.Name -ZoneName $vm.DomainName -ErrorAction SilentlyContinue))
-            {
-                "Running 'Add-DnsServerResourceRecord -ZoneName $($vm.DomainName) -IPv4Address $($vm.IpV4Address) -Name $($vm.Name) -A'"
-                Add-DnsServerResourceRecord -ZoneName $vm.DomainName -IPv4Address $vm.IpV4Address -Name $vm.Name -A
-            }
-        }
-    } -ComputerName $dc -Variable (Get-Variable -Name vms) -PassThru
-}
-
-Invoke-LabCommand -ActivityName 'Get tested nuget.exe and register Azure DevOps Artifact Feed' -ComputerName (Get-LabVM) -ScriptBlock {
-
-    [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
-    Install-PackageProvider -Name NuGet -Force
-    mkdir -Path C:\ProgramData\Microsoft\Windows\PowerShell\PowerShellGet -Force
-    Invoke-WebRequest -Uri 'https://nuget.org/nuget.exe' -OutFile C:\ProgramData\Microsoft\Windows\PowerShell\PowerShellGet\nuget.exe -ErrorAction Stop
-
-    Install-Module -Name PackageManagement -RequiredVersion 1.1.7.0 -Force -WarningAction SilentlyContinue
-    Install-Module -Name PowerShellGet -RequiredVersion 1.6.0 -Force -WarningAction SilentlyContinue
-
-    if (-not (Get-PSRepository -Name PowerShell -ErrorAction SilentlyContinue))
-    {
-        Register-PSRepository -Name PowerShell -SourceLocation $powerShellFeed.NugetV2Url -PublishLocation $powerShellFeed.NugetV2Url -Credential $powerShellFeed.NugetCredential -InstallationPolicy Trusted -ErrorAction Stop
-    }
-
-} -Variable (Get-Variable -Name powerShellFeed)
-
-Invoke-LabCommand -ActivityName 'Install Chocolatey to all lab VMs' -ScriptBlock {
-
-    if (([Net.ServicePointManager]::SecurityProtocol -band 'Tls12') -ne 'Tls12')
-    {
-        [Net.ServicePointManager]::SecurityProtocol += [Net.SecurityProtocolType]::Tls12
-    }
-
-    Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
-
-    if (-not (Find-PackageProvider NuGet -ErrorAction SilentlyContinue))
-    {
-        Install-PackageProvider -Name NuGet
-    }
-    Import-PackageProvider -Name NuGet
-
-    if (-not (Get-PackageSource -Name $chocolateyFeed.name -ErrorAction SilentlyContinue))
-    {
-        Register-PackageSource -Name $chocolateyFeed.name -ProviderName NuGet -Location $chocolateyFeed.NugetV2Url -Trusted
-    }
-
-    choco source add -n=Software -s $chocolateyFeed.NugetV2Url
-
-} -ComputerName (Get-LabVM) -Variable (Get-Variable -Name chocolateyFeed) -ThrottleLimit 1 #to prevent error 429: Too Many Requests
-
-Remove-LabPSSession #this is required to make use of the new version of PowerShellGet
-
-Write-Host "Restarting all $((Get-LabVM).Count) machines to make the installation of Chocolaty effective."
-Write-Host 'Restarting Domain Controllers'
-Restart-LabVM -ComputerName (Get-LabVM -Role ADDS) -Wait
-Write-Host 'Restarting SQL Servers'
-Restart-LabVM -ComputerName (Get-LabVM -Role SQLServer) -Wait
-Write-Host 'Restarting all other machines'
-Restart-LabVM -ComputerName (Get-LabVM -Role WebServer, FileServer, DSCPullServer, AzDevOps, SQLServer, HyperV) -Wait
-
-Invoke-LabCommand -ActivityName 'Add Chocolatey internal source' -ScriptBlock {
-
-    if (([Net.ServicePointManager]::SecurityProtocol -band 'Tls12') -ne 'Tls12')
-    {
-        [Net.ServicePointManager]::SecurityProtocol += [Net.SecurityProtocolType]::Tls12
-    }
-
-    choco source add -n=Software -s $chocolateyFeed.NugetV2Url
-
-} -ComputerName (Get-LabVM) -Variable (Get-Variable -Name chocolateyFeed)
-
-Invoke-LabCommand -ActivityName 'Downloading required modules from PSGallery' -ComputerName $devOpsServer -ScriptBlock {
-
-    Write-Host "Installing $($requiredModules.Count) modules on $(hostname.exe) for pushing them to the lab"
-
-    foreach ($requiredModule in $requiredModules.GetEnumerator())
-    {
-        $installModuleParams = @{
-            Name               = $requiredModule.Key
-            Repository         = 'PSGallery'
-            Force              = $true
-            AllowClobber       = $true
-            SkipPublisherCheck = $true
-            WarningAction      = 'SilentlyContinue'
-            ErrorAction        = 'Stop'
-        }
-        if ($requiredModule.Value -ne 'latest')
-        {
-            $installModuleParams.Add('RequiredVersion', $requiredModule.Value)
-        }
-        if ($requiredModule.Value -like '*-*' -or $requiredModule.Value -eq 'Latest')
-        {
-            #if pre-release version
-            $installModuleParams.Add('AllowPrerelease', $true)
-        }
-        Write-Host "Installing module '$($requiredModule.Key)' with version '$($requiredModule.Value)'"
-        Install-Module @installModuleParams
-    }
-} -Variable (Get-Variable -Name requiredModules)
-
-Invoke-LabCommand -ActivityName 'Publishing required modules to internal repository' -ComputerName $devOpsServer -ScriptBlock {
-
-    $loopCount = 3
-    Write-Host "Publishing modules to internal gallery $loopCount times. This is reuqired due to cross dependencies within the module list."
-    foreach ($loop in (1..$loopCount))
-    {
-        Write-Host "Publishing $($requiredModules.Count) modules to the internal repository (loop $loop)"
-        foreach ($requiredModule in $requiredModules.GetEnumerator())
-        {
-            $module = Get-Module $requiredModule.Key -ListAvailable | Sort-Object -Property Version -Descending | Select-Object -First 1
-            $version = $module.Version
-            if ($module.PrivateData.PSData.Prerelease)
-            {
-                $version = "$version-$($module.PrivateData.PSData.Prerelease)"
-            }
-            Write-Host "`t'$($module.Name) - $version'"
-            if (-not (Find-Module -Name $module.Name -Repository PowerShell -AllowPrerelease -ErrorAction SilentlyContinue))
-            {
-                $param = @{
-                    Name            = $module.Name
-                    RequiredVersion = $version
-                    Repository      = 'PowerShell'
-                    NuGetApiKey     = $nuGetApiKey
-                    AllowPrerelease = $true
-                    Force           = $true
-                    ErrorAction     = 'SilentlyContinue'
-                    WarningAction   = 'SilentlyContinue'
-                }
-                #Removing ErrorAction and WarningAction to see errors in the last publish loop.
-                if ($loop -eq $loopCount)
-                {
-                    $param.Remove('ErrorAction')
-                    $param.Remove('WarningAction')
-                }
-
-                Publish-Module @param
-            }
-        }
-    }
-
-    $modulesToUninstall = $requiredModules.GetEnumerator() | Where-Object Key -NotIn PowerShellGet, PackageManagement
-    Write-Host "Uninstalling $($requiredModules.Count) modules"
-    foreach ($module in $modulesToUninstall)
-    {
-        Write-Host "`t'$($module.Name)"
-        Uninstall-Module -Name $module.Key -ErrorAction SilentlyContinue
-    }
-    foreach ($module in $modulesToUninstall)
-    {
-        Write-Host "`t'$($module.Name)"
-        Uninstall-Module -Name $module.Key -ErrorAction SilentlyContinue
-    }
-} -Variable (Get-Variable -Name requiredModules, nuGetApiKey)
-
-Invoke-LabCommand -ActivityName 'Publishing required Chocolatey packages to internal repository' -ScriptBlock {
-
-    if (([Net.ServicePointManager]::SecurityProtocol -band 'Tls12') -ne 'Tls12')
-    {
-        [Net.ServicePointManager]::SecurityProtocol += [Net.SecurityProtocolType]::Tls12
-    }
-
-    Import-PackageProvider -Name NuGet
-    $publicFeedUri = 'https://chocolatey.org/api/v2/'
-
-    $tempFolder = mkdir C:\ChocoTemp -Force
-
-    if (-not (Get-PackageSource -Name $chocolateyFeed.name -ErrorAction SilentlyContinue))
-    {
-        Register-PackageSource -Name $chocolateyFeed.name -ProviderName NuGet -Location $chocolateyFeed.NugetV2Url -Trusted
-    }
-    if (-not (Get-PackageSource -Name Choco -ErrorAction SilentlyContinue))
-    {
-        Register-PackageSource -Name Choco -ProviderName NuGet -Location $publicFeedUri
-    }
-
-    foreach ($kvp in $requiredChocolateyPackages.GetEnumerator())
-    {
-        Write-Host "Saving package '$($kvp.Name)', " -NoNewline
-        if (-not ($p = Find-Package -Name $kvp.Name -Source Choco))
-        {
-            Write-Error "Package '$($kvp.Name)' could not be found at the source '$publicFeedUri'"
-            continue
-        }
-        $p | Save-Package -Path $tempFolder
-    }
-
-    Get-ChildItem -Path $tempFolder | ForEach-Object {
-
-        Write-Host "Publishing package '$($_.FullName)'"
-        choco push $_.FullName -s $chocolateyFeed.NugetV2Url --api-key $chocolateyFeed.NugetApiKey
-
-    }
-
-} -ComputerName $devOpsServer -Variable (Get-Variable -Name chocolateyFeed, requiredChocolateyPackages)
-
-Invoke-LabCommand -ActivityName 'Disable Git SSL Certificate Check' -ComputerName $devOpsServer, $buildWorkers -ScriptBlock {
-    [System.Environment]::SetEnvironmentVariable('GIT_SSL_NO_VERIFY', '1', 'Machine')
-}
-
-Remove-LabPSSession #this is required to make use of the new version of PowerShellGet
 
 Invoke-LabCommand -ActivityName 'Create Artifacts Share' -ComputerName $devOpsServer -ScriptBlock {
     $artifactsShareName = 'Artifacts'
