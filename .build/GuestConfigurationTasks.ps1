@@ -255,7 +255,7 @@ task publish_guestconfiguration_packages -if (
 
         $param = @{
             Name                  = "$($policyName)Remediation"
-            PolicyAssignmentId    = $assignment.PolicyAssignmentId
+            PolicyAssignmentId    = $assignment.Id
             Scope                 = $vm.Id
             ResourceDiscoveryMode = 'ReEvaluateCompliance'
         }
