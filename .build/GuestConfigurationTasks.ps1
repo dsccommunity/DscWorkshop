@@ -148,12 +148,13 @@ task publish_guestconfiguration_packages -if (
 
     if ($env:azureIdToken)
     {
-        # We are running with a managed identity
+        Write-Host "Using Azure Federated Token for authentication."
         $parameters.FederatedToken = $env:azureIdToken
         $parameters.ApplicationId = $env:azureClientId
     }
     else
     {
+        Write-Host "Using Azure Service Principal with Client Secret for authentication."
         $parameters.Credential = New-Object System.Management.Automation.PSCredential -ArgumentList $env:azureClientId, (ConvertTo-SecureString -String $env:azureClientSecret -AsPlainText -Force)
     }
 
@@ -164,6 +165,7 @@ task publish_guestconfiguration_packages -if (
 
     if (-not (Get-AzStorageAccount -ResourceGroupName $resourceGroupName -Name $storageAccountName -ErrorAction SilentlyContinue))
     {
+        Write-Host "Storage account '$storageAccountName' in resource group '$resourceGroupName' not found. Creating it."
         $param = @{
             ResourceGroupName = $resourceGroupName
             Name              = $storageAccountName
@@ -172,13 +174,29 @@ task publish_guestconfiguration_packages -if (
             Kind              = 'StorageV2'
         }
 
-        New-AzStorageAccount @param | Out-Null
+        $s = New-AzStorageAccount @param
+        Write-Host "Storage account '$($s.StorageAccountName)' created in resource group '$($s.ResourceGroupName)'."
+        Start-Sleep -Seconds 15
+
+        Write-Host "Setting AllowBlobPublicAccess to true on storage account '$($s.StorageAccountName)'."
+        $s | Set-AzStorageAccount -AllowBlobPublicAccess $true
+        Start-Sleep -Seconds 15 # Wait for the setting to be applied
+    }
+    else {
+        Write-Host "Storage account '$storageAccountName' in resource group '$resourceGroupName' does already exist."
+    }
+
+    $s = Get-AzStorageAccount -ResourceGroupName $resourceGroupName -Name $storageAccountName
+    if (-not $s.AllowBlobPublicAccess)
+    {
+        Write-Error "Storage account '$($s.StorageAccountName)' does not allow public access."
     }
 
     $storageAccountKeys = Get-AzStorageAccountKey -ResourceGroupName $resourceGroupName -Name $storageAccountName
     $storageContext = New-AzStorageContext -StorageAccountName $storageAccountName -StorageAccountKey $storageAccountKeys[0].Value
     if (-not (Get-AzStorageContainer -Context $storageContext -Name guestconfiguration -ErrorAction SilentlyContinue))
     {
+        Write-Host "Creating storage container '$guestConfigurationContainerName' in storage account '$($s.StorageAccountName)'."
         New-AzStorageContainer -Context $storageContext -Name guestconfiguration -Permission Blob | Out-Null
     }
 
@@ -186,9 +204,11 @@ task publish_guestconfiguration_packages -if (
 
     $managedIdentity = Get-AzUserAssignedIdentity -ResourceGroupName $resourceGroupName -Name GCLab1_Remediation
 
+    Write-Host "Creating Guest Configuration Policy for each package in '$GCPackagesOutputPath'."
     $gpPackages = Get-ChildItem -Path $OutputDirectory\$GCPackagesOutputPath -Filter '*.zip' -Recurse
     foreach ($gpPackage in $gpPackages)
     {
+        Write-Build DarkGray "`t Processing Guest Configuration Package '$($gpPackage.Name)'."
         $policyName = $gpPackage.BaseName.Split('_')[0]
 
         $param = @{
@@ -199,6 +219,7 @@ task publish_guestconfiguration_packages -if (
             Force     = $true
         }
         Set-AzStorageBlobContent @param
+        Write-Host "Uploaded '$($gpPackage.Name)' to storage account '$($s.StorageAccountName)' in container '$($guestConfigurationContainerName)'."
 
         $param = @{
             Context    = $storageContext
@@ -221,10 +242,12 @@ task publish_guestconfiguration_packages -if (
             Verbose       = $true
         }
 
+        Write-Host "Creating Guest Configuration Policy '$($policyName)' with content uri '$($contentUri)'."
         $policy = New-GuestConfigurationPolicy @params
 
         try
         {
+            Write-Host "Creating Guest Configuration Policy Definition '$($policyName)'."
             $policyDefinition = New-AzPolicyDefinition -Name $policyName -Policy $Policy.Path -ErrorAction Stop
         }
         catch
@@ -251,6 +274,7 @@ task publish_guestconfiguration_packages -if (
             IdentityType     = 'UserAssigned'
             IdentityId       = $managedIdentity.Id
         }
+        Write-Host "Creating Guest Configuration Policy Assignment '$($policyName)' for VM '$($vm.Name)'."
         $assignment = New-AzPolicyAssignment @param -WarningAction SilentlyContinue
 
         $param = @{
@@ -259,6 +283,7 @@ task publish_guestconfiguration_packages -if (
             Scope                 = $vm.Id
             ResourceDiscoveryMode = 'ReEvaluateCompliance'
         }
+        Write-Host "Creating Guest Configuration Policy Remediation Task '$($policyName)Remediation'."
         Start-AzPolicyRemediation @param
 
     }
