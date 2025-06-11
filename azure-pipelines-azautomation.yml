@@ -29,7 +29,7 @@ stages:
       - job: Compile_Dsc
         displayName: 'Compile DSC Configuration'
         pool:
-          vmImage: 'windows-2019'
+          vmImage: 'windows-latest'
         steps:
 
           - task: GitVersion@5
@@ -102,7 +102,7 @@ stages:
       - job: publish_modules
         displayName: Publish DSC resource modules
         pool:
-          vmImage: 'windows-2019'
+          vmImage: 'windows-latest'
         steps:
 
         - task: DownloadPipelineArtifact@2
@@ -158,7 +158,7 @@ stages:
         displayName: Dev Deployment
         environment: Dev
         pool:
-          vmImage: 'windows-2019'
+          vmImage: 'windows-latest'
         workspace:
           clean: all
         strategy:
@@ -209,7 +209,7 @@ stages:
         displayName: Test Deployment
         environment: Test
         pool:
-          vmImage: 'windows-2019'
+          vmImage: 'windows-latest'
         workspace:
           clean: all
         strategy:
@@ -259,7 +259,7 @@ stages:
         displayName: Prod Deployment
         environment: Prod
         pool:
-          vmImage: 'windows-2019'
+          vmImage: 'windows-latest'
         workspace:
           clean: all
         strategy:
