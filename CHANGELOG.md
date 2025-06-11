@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added support for PowerShell 7.
 - Added support for Azure Guest Configuration.
 - Updated 'NetworkIpConfiguration\Interfaces' configuration data.
+- Used `windows-latest` in `azure-pipelines-azautomation` Fixes [#187](https://github.com/dsccommunity/DscWorkshop/issues/187).
 
 ### Fixed
 
