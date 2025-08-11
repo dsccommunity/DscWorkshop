@@ -5,6 +5,5 @@ output/*
 
 output/RequiredModules/*
 
-!output/RequiredModules/Sampler.DscPipeline
 !output/RequiredModules/FileSystemDsc
 !output/RequiredModules/DscConfig.Demo
