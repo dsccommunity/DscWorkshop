@@ -34,14 +34,14 @@
     'DscResource.Test'           = '0.16.3'
     'DscResource.DocGenerator'   = '0.12.5'
     PSDesiredStateConfiguration  = '2.0.7'
-    GuestConfiguration           = '4.6.0'
+    GuestConfiguration           = '4.7.0'
 
-    'Az.Accounts'                = '4.0.0'
-    'Az.Storage'                 = '8.0.0'
-    'Az.ManagedServiceIdentity'  = '1.2.1'
-    'Az.Resources'               = '7.7.0'
-    'Az.PolicyInsights'          = '1.6.5'
-    'Az.Compute'                 = '9.0.0'
+    'Az.Accounts'                = '4.0.2'
+    'Az.Storage'                 = '8.2.0'
+    'Az.ManagedServiceIdentity'  = '1.3.0'
+    'Az.Resources'               = '7.9.0'
+    'Az.PolicyInsights'          = '1.7.1'
+    'Az.Compute'                 = '9.1.0'
 
     # Composites
     #'DscConfig.Demo'             = '0.8.3'

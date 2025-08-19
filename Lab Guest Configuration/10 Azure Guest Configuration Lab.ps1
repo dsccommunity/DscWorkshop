@@ -45,7 +45,7 @@ Set-LabInstallationCredential -Username Install -Password Somepass1
 
 $PSDefaultParameterValues = @{
     'Add-LabMachineDefinition:OperatingSystem' = 'Windows Server 2022 Datacenter (Desktop Experience)'
-    'Add-LabMachineDefinition:AzureRoleSize'   = 'Standard_D2ds_v4'
+    'Add-LabMachineDefinition:AzureRoleSize'   = 'Standard_D2ds_v6'
     'Add-LabMachineDefinition:DomainName'      = 'contoso.com'
 }
 
@@ -67,4 +67,4 @@ Install-Lab
 
 Checkpoint-LabVM -All -SnapshotName AfterInstall
 
-Show-LabDeploymentSummary -Detailed
+Show-LabDeploymentSummary
