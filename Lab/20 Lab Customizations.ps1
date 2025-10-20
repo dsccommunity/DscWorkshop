@@ -29,6 +29,13 @@ if ((Get-Lab -ErrorAction SilentlyContinue).Name -ne $LabName)
 
 $here = $PSScriptRoot
 
+Invoke-LabCommand -ActivityName 'Disable Windows Update' -ScriptBlock {
+    Set-ItemProperty -Path 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU' -Name NoAutoUpdate -Value 1 -Type DWord -Force
+    Set-ItemProperty -Path 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU' -Name AUOptions -Value 1 -Type DWord -Force
+    Stop-Service -Name wuauserv
+    Set-Service -Name wuauserv -StartupType Disabled
+} -ComputerName (Get-LabVM)
+
 Write-Host 'Stopping all VMs...'
 Stop-LabVM -All -Wait
 Write-Host 'Starting Domain Controller VMs...'
