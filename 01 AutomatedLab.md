@@ -15,7 +15,7 @@ The full lab contains everything featured in Labs 01 and 02, which are not part 
 
 - Generic
   - AutomatedLab PowerShell module (```Install-Module AutomatedLab -AllowClobber -Force```)  
-  See also our [Training Video](<https://youtu.be/lrPlRvFR5fA>)
+  See also [AutomatedLab Documentation](https://automatedlab.org/en/latest/) and our [Training Video](https://youtu.be/lrPlRvFR5fA) andour [Training Video](https://youtu.be/lrPlRvFR5fA)
   - Permissions to open an elevated shell
   - git.exe in your ```$env:PATH``` (<https://git-scm.com>)
 - On-premises
