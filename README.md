@@ -2,10 +2,9 @@
 
 Build | Status | Last Commit
 --- | --- | ---
-Develop | [![Build status dev](https://ci.appveyor.com/api/projects/status/9yynk81k3k05nasp/branch/develop?svg=true)](https://ci.appveyor.com/project/automatedlab/DscWorkshop) | [![GitHub last commit](https://img.shields.io/github/last-commit/AutomatedLab/DscWorkshop/dev.svg)](https://github.com/AutomatedLab/DscWorkshop/tree/dev/)
-Master | [![Build status](https://ci.appveyor.com/api/projects/status/9yynk81k3k05nasp/branch/master?svg=true)](https://ci.appveyor.com/project/automatedlab/DscWorkshop) | [![GitHub last commit](https://img.shields.io/github/last-commit/AutomatedLab/DscWorkshop/master.svg)](https://github.com/AutomatedLab/DscWorkshop/tree/master/)
+Main | [![Build status](https://ci.appveyor.com/api/projects/status/9yynk81k3k05nasp/branch/main?svg=true)](https://ci.appveyor.com/project/automatedlab/DscWorkshop) | [![GitHub last commit](https://img.shields.io/github/last-commit/raandree/DscWorkshop/main.svg)](https://github.com/raandree/DscWorkshop/tree/main/)
 
-[![GitHub issues](https://img.shields.io/github/issues/AutomatedLab/DscWorkshop.svg)](https://github.com/AutomatedLab/DscWorkshop/issues)
+[![GitHub issues](https://img.shields.io/github/issues/raandree/DscWorkshop.svg)](https://github.com/raandree/DscWorkshop/issues)
 
 ## Abstract
 
@@ -16,6 +15,7 @@ This project does not use DSC as an isolated technology. DSC is just one part in
 There is a fast-track learning path in [Exercises](./Exercises)
 
 ### Credits
+
 This project is inspired by [Gael Colas'](https://twitter.com/gaelcolas) [DscInfraSample](https://github.com/gaelcolas/DscInfraSample) and Gael's opinions have an impact on its evolution.
 
 The overall concept follows [The Release Pipeline Model](./Exercises//The%20Release%20Pipeline%20Model.pdf), a whitepaper written by [Michael Greene](https://twitter.com/migreene) and [Steven Murawski](https://twitter.com/StevenMurawski) that is a must-read and describing itself like this:
@@ -61,4 +61,15 @@ The lab script are in [Lab](./Lab).
 
 ## YAML Reference Documentation
 
-The [YAML reference documentation](https://github.com/raandree/DscConfig.Demo/tree/main/doc/README.adoc) is located in the `./doc` subfolder of the [DscConfig.Demo](https://github.com/raandree/DscConfig.Demo) repository.
+The [YAML reference documentation](https://github.com/raandree/DscConfig.Demo/tree/main/doc/README.adoc) is located in the `./doc` subfolder of the [DscConfig.Demo](https://github.com/raandree/DscConfig.Demo) repository. This comprehensive documentation provides detailed examples and schema information for all supported DSC configurations.
+
+### Memory Bank
+
+This project includes a comprehensive memory bank system located in the `memory-bank/` directory that provides:
+
+- **Project Context**: Understanding of the problem domain and solution approach
+- **System Architecture**: Detailed technical patterns and design decisions  
+- **Active Context**: Current development focus and recent changes
+- **Progress Tracking**: What's working, what's planned, and known issues
+
+The memory bank serves as the authoritative knowledge base for project understanding and continuity across development sessions.
