@@ -91,4 +91,4 @@ Install-LabWindowsFeature -ComputerName (Get-LabVM -Role DSCPullServer, FileServ
 Write-Host "1. - Creating Snapshot 'AfterInstall'" -ForegroundColor Magenta
 Checkpoint-LabVM -All -SnapshotName AfterInstall
 
-Show-LabDeploymentSummary -Detailed
+Show-LabDeploymentSummary

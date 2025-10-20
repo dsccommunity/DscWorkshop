@@ -21,7 +21,7 @@ Set-LabInstallationCredential -Username Install -Password Somepass1
 
 # Add the reference to our necessary ISO files
 Add-LabIsoImageDefinition -Name AzDevOps -Path $labSources\ISOs\azuredevops2022.2.iso #from https://docs.microsoft.com/en-us/azure/devops/server/download/azuredevopsserver?view=azure-devops
-Add-LabIsoImageDefinition -Name SQLServer2019 -Path $labsources\ISOs\SQLServer2019-x64-ENU.iso #from https://www.microsoft.com/en-us/evalcenter/evaluate-sql-server-2019. The EXE downloads the ISO.
+Add-LabIsoImageDefinition -Name SQLServer2022 -Path $labsources\ISOs\SQLServer2022-x64-ENU.iso #from https://www.microsoft.com/en-us/evalcenter/evaluate-sql-server-2019. The EXE downloads the ISO.
 
 # Data Disks
 Add-LabDiskDefinition -Name DSCDO01_D -DiskSizeInGb 120 -Label DataDisk1 -DriveLetter D
@@ -49,7 +49,7 @@ $netAdapter += New-LabNetworkAdapterDefinition -VirtualSwitch $labName -Ipv4Addr
 $netAdapter += New-LabNetworkAdapterDefinition -VirtualSwitch 'Default Switch' -UseDhcp
 
 # SQL and PKI
-Add-LabMachineDefinition -Name DSCCASQL01 -Memory 3GB -Roles CaRoot, SQLServer2019, Routing -NetworkAdapter $netAdapter
+Add-LabMachineDefinition -Name DSCCASQL01 -Memory 3GB -Roles CaRoot, SQLServer2022, Routing -NetworkAdapter $netAdapter
 
 # DSC Pull Server with SQL server backing, Azure DevOps Build Worker
 $roles = @(
@@ -100,4 +100,4 @@ Invoke-LabCommand -ActivityName 'Disable Windows Update Service and DisableRealt
 Write-Host "1. - Creating Snapshot 'AfterInstall'" -ForegroundColor Magenta
 Checkpoint-LabVM -All -SnapshotName AfterInstall
 
-Show-LabDeploymentSummary -Detailed
+Show-LabDeploymentSummary
