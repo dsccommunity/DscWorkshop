@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added support for Azure Guest Configuration.
 - Added support for federated credentials in Azure Pipelines.
 - Added documentation for the Filter Parameter in build.ps1.
+- Added GPO Migration feature.
 
 ### Changed
 
