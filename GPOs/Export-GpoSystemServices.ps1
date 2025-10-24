@@ -29,7 +29,7 @@
 
 .INPUTS
     XmlPath: String - Path to GPO XML file to process
-    OutputPath: String - Optional path for YAML output file  
+    OutputPath: String - Optional path for YAML output file
     Force: Switch - Overwrite existing output file
 
 .OUTPUTS
