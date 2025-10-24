@@ -29,6 +29,18 @@
     .\Compare-YamlFiles.ps1 -FilePath1 ".\File1.yml" -FilePath2 ".\File2.yml" -ShowConflicts
     Compares files and shows detailed conflict information.
 
+.INPUTS
+    String
+    File paths to two YAML files containing registry settings to be compared.
+
+    Switch
+    Optional flags to display duplicate entries and detailed conflict information.
+
+.OUTPUTS
+    Hashtable
+    Returns a comparison summary object containing statistics for total entries, duplicates,
+    conflicts, and detailed lists when ShowDuplicates or ShowConflicts is specified.
+
 .NOTES
     This script searches for registry entries in the format:
     - Key: HKEY_...
