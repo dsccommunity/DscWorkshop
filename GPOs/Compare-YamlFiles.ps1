@@ -247,7 +247,9 @@ try
 }
 catch
 {
-    Write-Error "Failed to compare YAML files: $_"
-    Write-Error $_.ScriptStackTrace
-    exit 1
+    Write-Error -Message "Failed to compare YAML files: $_" `
+        -Category InvalidOperation `
+        -ErrorId 'YamlComparisonFailed' `
+        -TargetObject @($FilePath1, $FilePath2) `
+        -Exception $_.Exception
 }
