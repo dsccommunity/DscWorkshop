@@ -17,6 +17,14 @@
 .PARAMETER Force
     Overwrite the output file if it already exists.
 
+.INPUTS
+    XmlPath: String - Path to GPO XML file to process
+    OutputPath: String - Optional path for YAML output file
+    Force: Switch - Overwrite existing output file
+
+.OUTPUTS
+    String path to created YAML file on success, nothing on failure
+
 .EXAMPLE
     .\Export-GpoFirewallProfiles.ps1 -XmlPath ".\MyGPO.xml"
 
