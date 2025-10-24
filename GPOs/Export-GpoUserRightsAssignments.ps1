@@ -189,8 +189,8 @@ try
         }
     }
 
-    # Write output file
-    $yaml.ToString() | Out-File -FilePath $OutputPath -Encoding UTF8 -ErrorAction Stop
+    # Write output file (UTF-8 without BOM)
+    [System.IO.File]::WriteAllText($OutputPath, $yaml.ToString(), [System.Text.UTF8Encoding]::new($false))
 
     Write-Output "`n✅ User Rights Assignments exported successfully!"
     Write-Output "   Rights exported: $count"
