@@ -114,9 +114,19 @@ try
 
     Write-Verbose "Found $($auditSettings.Count) audit settings"
 
+    # Generate source filename for header
+    $sourceFilename = if ($XmlPath)
+    {
+        Split-Path -Leaf $XmlPath
+    }
+    else
+    {
+        'Unknown source'
+    }
+
     $sb = [System.Text.StringBuilder]::new()
     [void]$sb.AppendLine('# Advanced Audit Policy Settings (q3:AuditSettings)')
-    [void]$sb.AppendLine('# Extracted from: Win11-24H2-MSFT-BaselineTest on Win11-24H2-MSFT-BaselineTest.xml')
+    [void]$sb.AppendLine("# Extracted from: $sourceFilename")
     [void]$sb.AppendLine('#')
     [void]$sb.AppendLine('# NOTE: Advanced Audit Policy settings are stored in the Security Event Log registry')
     [void]$sb.AppendLine('#       but are best managed through auditpol.exe or the AuditPolicyDsc resource.')
