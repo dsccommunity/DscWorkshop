@@ -37,7 +37,7 @@
     Requires: PowerShell 5.1 or higher
 #>
 
-[CmdletBinding()]
+[CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Medium')]
 param(
     [Parameter(Mandatory = $false, Position = 0)]
     [ValidateScript({
@@ -72,12 +72,6 @@ try
     {
         $xmlBaseName = [System.IO.Path]::GetFileNameWithoutExtension($XmlPath)
         $OutputPath = Join-Path $PSScriptRoot "$xmlBaseName-FirewallProfiles.yml"
-    }
-
-    # Check if output file exists
-    if ((Test-Path $OutputPath) -and -not $Force)
-    {
-        throw "Output file already exists: $OutputPath. Use -Force to overwrite."
     }
 
     Write-Verbose "Reading XML file: $XmlPath"
@@ -303,15 +297,50 @@ try
     [void]$sb.AppendLine('# All 3 firewall profiles from the Windows 11 24H2 Microsoft Baseline')
     [void]$sb.AppendLine('# are included in this configuration.')
 
+    # Prepare content and ensure it ends with a newline
     $content = $sb.ToString()
-    $content | Out-File -FilePath $OutputPath -Encoding utf8 -NoNewline
+    if (-not $content.EndsWith([Environment]::NewLine))
+    {
+        $content += [Environment]::NewLine
+    }
 
-    $profileCount = $profiles.Count
-    Write-Output ''
-    Write-Output '✅ Firewall profile settings exported successfully!'
-    Write-Output "   Profiles exported: $profileCount"
-    Write-Output "   Output: $OutputPath"
-    Write-Output ''
+    # Determine the action description for ShouldProcess
+    $target = $OutputPath
+    $action = if (Test-Path $OutputPath)
+    {
+        'Overwrite firewall profiles export file'
+    }
+    else
+    {
+        'Create firewall profiles export file'
+    }
+
+    # When -Force is specified, skip confirmation; otherwise use ShouldProcess
+    if ($Force -or $PSCmdlet.ShouldProcess($target, $action))
+    {
+        $outFileParams = @{
+            FilePath = $OutputPath
+            Encoding = 'utf8'
+        }
+
+        if ($Force)
+        {
+            $outFileParams['Force'] = $true
+        }
+
+        $content | Out-File @outFileParams
+
+        $profileCount = $profiles.Count
+        Write-Output ''
+        Write-Output '✅ Firewall profile settings exported successfully!'
+        Write-Output "   Profiles exported: $profileCount"
+        Write-Output "   Output: $OutputPath"
+        Write-Output ''
+    }
+    else
+    {
+        Write-Verbose 'Operation cancelled by user.'
+    }
 
     exit 0
 }
