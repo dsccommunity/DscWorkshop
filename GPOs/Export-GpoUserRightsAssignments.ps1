@@ -27,6 +27,16 @@
     .\Export-GpoUserRightsAssignments.ps1 -XmlPath ".\MyGPO.xml" -OutputPath ".\CustomOutput.yml" -Force
     Exports to a custom output file, overwriting if it exists.
 
+.INPUTS
+    None
+
+    This script does not accept pipeline input.
+
+.OUTPUTS
+    System.String
+
+    Success messages and summary information about exported rights.
+
 .NOTES
     User Rights Assignments are NOT stored in the registry. They are managed by the
     Local Security Authority (LSA) database. Use SecurityPolicyDsc module.
