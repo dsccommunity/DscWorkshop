@@ -37,7 +37,7 @@
     System.String - Path to the created YAML file containing registry-format security options settings in DSC-ready YAML format for use with the xRegistry resource.
 #>
 
-[CmdletBinding()]
+[CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Medium')]
 param(
     [Parameter(Mandatory = $true, Position = 0)]
     [ValidateScript({
@@ -85,13 +85,18 @@ try
 
     # Support both GPO format (Get-GPOReport) and RSOP format
     Write-Verbose 'Detecting XML format...'
-    $extensionDataCollection = if ($xml.GPO) {
+    $extensionDataCollection = if ($xml.GPO)
+    {
         Write-Verbose 'Detected GPO format (Get-GPOReport)'
         $xml.GPO.Computer.ExtensionData
-    } elseif ($xml.Rsop) {
+    }
+    elseif ($xml.Rsop)
+    {
         Write-Verbose 'Detected RSOP format'
         $xml.Rsop.ComputerResults.ExtensionData
-    } else {
+    }
+    else
+    {
         throw 'Unknown XML format. Expected GPO or Rsop root element.'
     }
 
