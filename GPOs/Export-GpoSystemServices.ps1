@@ -99,21 +99,35 @@ try
         throw 'Unknown XML format. Expected GPO or Rsop root element.'
     }
 
-    # Find Security extension
+    # Find Security extension(s)
     Write-Verbose 'Searching for Security extension data'
     # Handle both GPO format ($_.Name is string) and RSOP format ($_.Name.'#text')
-    $securityExtension = $extensionDataCollection |
-        Where-Object { ($_.Name -eq 'Security') -or ($_.Name.'#text' -eq 'Security') }
+    $securityExtensions = @(
+        $extensionDataCollection | Where-Object {
+            ($_.Name -eq 'Security') -or ($_.Name.'#text' -eq 'Security')
+        }
+    )
 
-    if (-not $securityExtension)
+    if ($securityExtensions.Count -eq 0)
     {
         Write-Error -Message 'No Security extension found in XML file' -Category InvalidData
         return 1
     }
 
-    # Get SystemServices elements (namespace-agnostic)
-    $services = $securityExtension.Extension.SelectNodes("*[local-name()='SystemServices']")
-    Write-Verbose "Found $($services.Count) SystemServices entries"
+    Write-Verbose "Found $($securityExtensions.Count) Security extension(s)"
+
+    # Get SystemServices elements (namespace-agnostic) from all Security extensions
+    $services = @()
+    foreach ($ext in $securityExtensions)
+    {
+        $nodes = $ext.Extension.SelectNodes("*[local-name()='SystemServices']")
+        if ($nodes)
+        {
+            $services += @($nodes)
+        }
+    }
+
+    Write-Verbose "Found $($services.Count) SystemServices entries across all Security extensions"
 
     if ($services.Count -eq 0)
     {
