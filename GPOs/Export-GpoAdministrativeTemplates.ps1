@@ -27,6 +27,14 @@
     Author: DSC Workshop GPO Migration Tool
     Version: 2.0
     Requires: PowerShell 5.1 or higher
+
+.INPUTS
+    XmlPath - Path to GPO XML file (Get-GPOReport or RSOP format).
+    OutputPath - Path for YAML output file.
+    Force - Switch to overwrite existing output file.
+
+.OUTPUTS
+    System.String - Path to the created YAML file, or nothing if no Administrative Template settings were found.
 #>
 
 [CmdletBinding()]
