@@ -28,12 +28,11 @@
     Exports to a custom output file, overwriting if it exists.
 
 .INPUTS
-    XmlPath: String - Path to GPO XML file to process
-    OutputPath: String - Optional path for YAML output file
-    Force: Switch - Overwrite existing output file
+    None
 
 .OUTPUTS
-    String path to created YAML configuration file describing exported System Services settings
+    String
+    Path to created YAML configuration file describing exported System Services settings
 
 .NOTES
     System Services are managed via Service Control Manager (SCM).
