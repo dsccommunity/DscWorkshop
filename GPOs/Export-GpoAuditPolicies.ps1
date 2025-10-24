@@ -40,6 +40,7 @@
     Note: The script writes audit policy content in registry format; using AuditPolicyDsc module is recommended for better audit policy management.
 #>
 
+[OutputType([System.String])]
 [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Medium')]
 param(
     [Parameter(Mandatory = $true, Position = 0)]

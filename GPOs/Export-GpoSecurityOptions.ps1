@@ -37,6 +37,7 @@
     System.String - Path to the created YAML file containing registry-format security options settings in DSC-ready YAML format for use with the xRegistry resource.
 #>
 
+[OutputType([System.String])]
 [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Medium')]
 param(
     [Parameter(Mandatory = $true, Position = 0)]

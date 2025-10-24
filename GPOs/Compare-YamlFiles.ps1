@@ -48,6 +48,7 @@
       ValueData: ...
 #>
 
+[OutputType([System.String])]
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $true, Position = 0)]

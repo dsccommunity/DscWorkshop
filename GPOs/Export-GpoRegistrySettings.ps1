@@ -33,6 +33,7 @@
     (Administrative Templates). These are direct registry writes vs. ADMX-based policies.
 #>
 
+[OutputType([System.String])]
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $true)]

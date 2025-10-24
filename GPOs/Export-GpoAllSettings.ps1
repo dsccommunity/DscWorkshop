@@ -45,6 +45,7 @@
     - Export-GpoSystemServices.ps1
 #>
 
+[OutputType([System.String])]
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $true)]

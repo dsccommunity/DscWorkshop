@@ -37,6 +37,7 @@
     Requires: PowerShell 5.1 or higher
 #>
 
+[OutputType([System.String])]
 [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Medium')]
 param(
     [Parameter(Mandatory = $true, Position = 0)]
