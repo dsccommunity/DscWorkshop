@@ -101,9 +101,19 @@ try
         throw 'No Windows Firewall settings found in XML file. Ensure the XML is a valid GPO RSOP export.'
     }
 
+    # Generate source filename for header
+    $sourceFilename = if ($XmlPath)
+    {
+        Split-Path -Leaf $XmlPath
+    }
+    else
+    {
+        'Unknown source'
+    }
+
     $sb = [System.Text.StringBuilder]::new()
     [void]$sb.AppendLine('# Windows Firewall Profile Settings')
-    [void]$sb.AppendLine('# Extracted from: Win11-24H2-MSFT-BaselineTest on Win11-24H2-MSFT-BaselineTest.xml')
+    [void]$sb.AppendLine("# Exported from: $sourceFilename")
     [void]$sb.AppendLine('#')
     [void]$sb.AppendLine('# This configuration uses the NetworkingDsc FirewallProfile resource')
     [void]$sb.AppendLine('# to manage Windows Firewall profile settings.')
@@ -317,19 +327,19 @@ try
         $content += [Environment]::NewLine
     }
 
-    # Determine the action description for ShouldProcess
-    $target = $OutputPath
-    $action = if (Test-Path $OutputPath)
+    # Implement Force pattern before ShouldProcess
+    if ($Force.IsPresent -and -not $Confirm)
     {
-        'Overwrite firewall profiles export file'
-    }
-    else
-    {
-        'Create firewall profiles export file'
+        $ConfirmPreference = 'None'
     }
 
-    # When -Force is specified, skip confirmation; otherwise use ShouldProcess
-    if ($Force -or $PSCmdlet.ShouldProcess($target, $action))
+    # Prepare ShouldProcess messages
+    $profileCount = $profiles.Count
+    $descriptionMessage = "Export $profileCount Windows Firewall profile settings to '$OutputPath'."
+    $confirmationMessage = "Export firewall profiles to '$OutputPath'?"
+    $captionMessage = 'Export Firewall Profile Settings'
+
+    if ($PSCmdlet.ShouldProcess($descriptionMessage, $confirmationMessage, $captionMessage))
     {
         $outFileParams = @{
             FilePath = $OutputPath
@@ -343,7 +353,6 @@ try
 
         $content | Out-File @outFileParams
 
-        $profileCount = $profiles.Count
         Write-Output ''
         Write-Output '✅ Firewall profile settings exported successfully!'
         Write-Output "   Profiles exported: $profileCount"
