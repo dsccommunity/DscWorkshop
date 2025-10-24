@@ -97,21 +97,37 @@ try
     # Get Security extension data (namespace-agnostic)
     Write-Verbose 'Extracting Security Options (SecurityOptions element)...'
     # Handle both GPO format ($_.Name is string) and RSOP format ($_.Name.'#text')
-    $securityExt = $extensionDataCollection | Where-Object {
-        ($_.Name -eq 'Security') -or ($_.Name.'#text' -eq 'Security')
-    }
+    $securityExts = @(
+        $extensionDataCollection | Where-Object {
+            ($_.Name -eq 'Security') -or ($_.Name.'#text' -eq 'Security')
+        }
+    )
 
-    if (-not $securityExt)
+    if ($securityExts.Count -eq 0)
     {
         throw 'No Security extension found in XML file. Ensure the XML is a valid GPO RSOP export.'
     }
 
+    Write-Verbose "Found $($securityExts.Count) Security extension(s)"
+
     # Use SelectNodes with local-name() to be namespace-agnostic
-    $securityOptions = $securityExt.Extension.SelectNodes("*[local-name()='SecurityOptions']/*[local-name()='Display']/..")
-    if (-not $securityOptions -or $securityOptions.Count -eq 0)
+    # Aggregate SecurityOptions from all Security extensions
+    $securityOptions = @()
+    foreach ($ext in $securityExts)
+    {
+        $nodes = $ext.Extension.SelectNodes("*[local-name()='SecurityOptions']/*[local-name()='Display']/..")
+        if ($nodes)
+        {
+            $securityOptions += @($nodes)
+        }
+    }
+
+    if ($securityOptions.Count -eq 0)
     {
         throw 'No Security Options found in XML file.'
     }
+
+    Write-Verbose "Found $($securityOptions.Count) Security Options across all Security extensions"
 
     $sb = [System.Text.StringBuilder]::new()
     [void]$sb.AppendLine('RegistryValues:')
