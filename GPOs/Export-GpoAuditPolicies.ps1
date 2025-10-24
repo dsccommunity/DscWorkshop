@@ -29,6 +29,15 @@
     Version: 2.0
     Requires: PowerShell 5.1 or higher
     Recommendation: Use AuditPolicyDsc module instead of direct registry manipulation
+
+.INPUTS
+    XmlPath - Path to GPO XML file (Get-GPOReport or RSOP format).
+    OutputPath - Path for YAML output file.
+    Force - Switch to overwrite existing output file.
+
+.OUTPUTS
+    System.String - Path to the created YAML file containing registry-format audit policy settings.
+    Note: The script writes audit policy content in registry format; using AuditPolicyDsc module is recommended for better audit policy management.
 #>
 
 [CmdletBinding()]
