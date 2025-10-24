@@ -77,19 +77,25 @@ try
 
     Write-Verbose 'Detecting XML format (GPO vs RSOP)...'
     # Support both GPO format (Get-GPOReport) and RSOP format
-    $rootElement = if ($xml.GPO) {
+    $rootElement = if ($xml.GPO)
+    {
         Write-Verbose 'Detected GPO format (Get-GPOReport)'
         $xml.GPO
-    } elseif ($xml.Rsop) {
+    }
+    elseif ($xml.Rsop)
+    {
         Write-Verbose 'Detected RSOP format'
         $xml.Rsop
-    } else {
+    }
+    else
+    {
         throw 'Unknown XML format. Expected GPO or Rsop root element.'
     }
 
     Write-Verbose 'Extracting Administrative Templates (Policy elements)...'
     # Use SelectNodes with local-name() to be namespace-agnostic
-    $q8Policies = $rootElement.SelectNodes("//*[local-name()='Policy' and @*[local-name()='Category']]")
+    # Note: Category is a child element, not an attribute
+    $q8Policies = $rootElement.SelectNodes("//*[local-name()='Policy' and *[local-name()='Category']]")
 
     if (-not $q8Policies)
     {
@@ -151,10 +157,13 @@ try
     }
 
     # Generate source filename for header
-    $sourceFilename = if ($XmlPath) {
+    $sourceFilename = if ($XmlPath)
+    {
         Split-Path -Leaf $XmlPath
-    } else {
-        "Unknown source"
+    }
+    else
+    {
+        'Unknown source'
     }
 
     $sb = [System.Text.StringBuilder]::new()
