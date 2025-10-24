@@ -101,20 +101,29 @@ try
         exit 1
     }
 
-    # Get RegistrySetting elements (namespace-agnostic)
+    # Get registry settings - support both formats
+    # Format 1: RegistrySetting elements (RSOP format)
+    # Format 2: Registry elements with Properties (GPO Backup format)
     $registrySettings = $registryExtension.Extension.SelectNodes("*[local-name()='RegistrySetting']")
+    $registryElements = $registryExtension.Extension.SelectNodes("//*[local-name()='Registry']")
+
+    $totalCount = $registrySettings.Count + $registryElements.Count
     Write-Verbose "Found $($registrySettings.Count) RegistrySetting entries"
+    Write-Verbose "Found $($registryElements.Count) Registry entries"
+    Write-Verbose "Total registry settings: $totalCount"
 
     # Build YAML
     $yaml = [System.Text.StringBuilder]::new()
     [void]$yaml.AppendLine('# Registry Settings extracted from GPO')
     [void]$yaml.AppendLine("# Source: $([System.IO.Path]::GetFileName($XmlPath))")
     [void]$yaml.AppendLine("# Exported: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')")
-    [void]$yaml.AppendLine("# Total settings: $($registrySettings.Count)")
+    [void]$yaml.AppendLine("# Total settings: $totalCount")
     [void]$yaml.AppendLine()
     [void]$yaml.AppendLine('RegistryValues:')
 
     $count = 0
+
+    # Process RegistrySetting elements (Format 1 - RSOP)
     foreach ($setting in $registrySettings)
     {
         $keyPath = $setting.KeyPath
@@ -208,6 +217,96 @@ try
                 [void]$yaml.AppendLine('    Ensure: Present')
                 [void]$yaml.AppendLine()
             }
+        }
+    }
+
+    # Process Registry elements (Format 2 - GPO Backup with Properties)
+    foreach ($regElement in $registryElements)
+    {
+        $properties = $regElement.Properties
+
+        if (-not $properties)
+        {
+            continue
+        }
+
+        # Extract properties
+        $hive = $properties.hive
+        $keyPath = $properties.key
+        $valueName = $properties.name
+        $valueType = $properties.type
+        $valueData = $properties.value
+        $action = $properties.action
+
+        # Skip if no key path
+        if (-not $keyPath)
+        {
+            continue
+        }
+
+        # Convert hive to standard format
+        if ($hive -eq 'HKEY_LOCAL_MACHINE')
+        {
+            $hive = 'HKLM'
+        }
+        elseif ($hive -eq 'HKEY_CURRENT_USER')
+        {
+            $hive = 'HKCU'
+        }
+
+        # Convert type to DSC format
+        $dscType = switch ($valueType)
+        {
+            'REG_DWORD' { 'Dword' }
+            'REG_SZ' { 'String' }
+            'REG_EXPAND_SZ' { 'ExpandString' }
+            'REG_BINARY' { 'Binary' }
+            'REG_MULTI_SZ' { 'MultiString' }
+            'REG_QWORD' { 'Qword' }
+            default { 'String' }
+        }
+
+        # Convert hex value to decimal for DWORD
+        if ($dscType -eq 'Dword' -and $valueData -match '^[0-9A-Fa-f]+$')
+        {
+            $valueData = [Convert]::ToInt32($valueData, 16)
+        }
+
+        # Handle different actions
+        if ($action -eq 'D')
+        {
+            # Delete action
+            $count++
+            $safeName = "RegistryValue_Delete_$($count.ToString('000'))"
+
+            [void]$yaml.AppendLine("  ${safeName}:")
+            [void]$yaml.AppendLine("    Key: '$hive\$keyPath'")
+            [void]$yaml.AppendLine("    ValueName: '$valueName'")
+            [void]$yaml.AppendLine('    Ensure: Absent')
+            [void]$yaml.AppendLine()
+        }
+        else
+        {
+            # Create or Update action
+            $count++
+            $safeName = "RegistryValue_$($count.ToString('000'))"
+
+            [void]$yaml.AppendLine("  ${safeName}:")
+            [void]$yaml.AppendLine("    Key: '$hive\$keyPath'")
+            [void]$yaml.AppendLine("    ValueName: '$valueName'")
+
+            if ($dscType -eq 'Dword' -or $dscType -eq 'Qword')
+            {
+                [void]$yaml.AppendLine("    ValueData: $valueData")
+            }
+            else
+            {
+                [void]$yaml.AppendLine("    ValueData: '$valueData'")
+            }
+
+            [void]$yaml.AppendLine("    ValueType: $dscType")
+            [void]$yaml.AppendLine('    Ensure: Present')
+            [void]$yaml.AppendLine()
         }
     }
 
