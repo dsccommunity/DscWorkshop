@@ -37,6 +37,7 @@
     System.String - Path to the created YAML file, or nothing if no Administrative Template settings were found.
 #>
 
+[OutputType([System.String])]
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $true, Position = 0)]
