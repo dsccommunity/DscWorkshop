@@ -208,7 +208,7 @@ try
         Write-Output "  - $($service.Name): $($service.StartupMode)"
     }
 
-    return
+    return $OutputPath
 }
 catch
 {
