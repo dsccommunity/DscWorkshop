@@ -88,13 +88,18 @@ try
 
     # Support both GPO format (Get-GPOReport) and RSOP format
     Write-Verbose 'Detecting XML format...'
-    $rootElement = if ($xml.GPO) {
+    $rootElement = if ($xml.GPO)
+    {
         Write-Verbose 'Detected GPO format (Get-GPOReport)'
         $xml.GPO
-    } elseif ($xml.Rsop) {
+    }
+    elseif ($xml.Rsop)
+    {
         Write-Verbose 'Detected RSOP format'
         $xml.Rsop
-    } else {
+    }
+    else
+    {
         throw 'Unknown XML format. Expected GPO or Rsop root element.'
     }
 
@@ -211,7 +216,7 @@ try
 
     # Write output with ShouldProcess support
     $content = $sb.ToString()
-    
+
     # Determine the action description for ShouldProcess
     $target = $OutputPath
     $action = if (Test-Path $OutputPath)
@@ -222,7 +227,7 @@ try
     {
         'Create audit policy export file'
     }
-    
+
     # When -Force is specified, skip confirmation; otherwise use ShouldProcess
     if ($Force -or $PSCmdlet.ShouldProcess($target, $action))
     {
