@@ -131,6 +131,7 @@ try
     [void]$yaml.AppendLine("# Total rights: $($userRights.Count)")
     [void]$yaml.AppendLine()
     [void]$yaml.AppendLine('UserRightsAssignments:')
+    [void]$yaml.AppendLine('  Policies:')
 
     $count = 0
     foreach ($right in $userRights)
@@ -145,11 +146,8 @@ try
 
         $count++
 
-        # Create safe YAML key from policy name
-        $safeName = $policyName -replace '^Se', '' -replace 'Privilege$', '' -replace 'Right$', ''
-
-        [void]$yaml.AppendLine("  ${safeName}:")
-        [void]$yaml.AppendLine("    Policy: $policyName")
+        # Add policy as array element
+        [void]$yaml.AppendLine("    - Policy: $policyName")
 
         # Extract members
         $members = @()
@@ -164,19 +162,17 @@ try
 
         if ($members.Count -gt 0)
         {
-            [void]$yaml.AppendLine('    Identity:')
+            [void]$yaml.AppendLine('      Identity:')
             foreach ($member in $members)
             {
-                [void]$yaml.AppendLine("      - '$member'")
+                [void]$yaml.AppendLine("        - '$member'")
             }
         }
         else
         {
             # Empty assignment
-            [void]$yaml.AppendLine('    Identity: []')
+            [void]$yaml.AppendLine('      Identity: []')
         }
-
-        [void]$yaml.AppendLine()
     }
 
     # Write output file
