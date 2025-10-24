@@ -75,21 +75,26 @@ try
     if ((Test-Path $OutputPath) -and -not $Force)
     {
         Write-Error -Message "Output file already exists: $OutputPath. Use -Force to overwrite." `
-                    -Category ResourceExists `
-                    -ErrorId 'OutputFileExists' `
-                    -TargetObject $OutputPath
+            -Category ResourceExists `
+            -ErrorId 'OutputFileExists' `
+            -TargetObject $OutputPath
         return
     }
 
     # Support both GPO format (Get-GPOReport) and RSOP format
     Write-Verbose 'Detecting XML format...'
-    $extensionDataCollection = if ($xml.GPO) {
+    $extensionDataCollection = if ($xml.GPO)
+    {
         Write-Verbose 'Detected GPO format (Get-GPOReport)'
         $xml.GPO.Computer.ExtensionData
-    } elseif ($xml.Rsop) {
+    }
+    elseif ($xml.Rsop)
+    {
         Write-Verbose 'Detected RSOP format'
         $xml.Rsop.ComputerResults.ExtensionData
-    } else {
+    }
+    else
+    {
         throw 'Unknown XML format. Expected GPO or Rsop root element.'
     }
 
@@ -102,9 +107,9 @@ try
     if (-not $registryExtension)
     {
         Write-Error -Message 'No Registry extension found in XML file' `
-                    -Category InvalidData `
-                    -ErrorId 'NoRegistryExtension' `
-                    -TargetObject $XmlPath
+            -Category InvalidData `
+            -ErrorId 'NoRegistryExtension' `
+            -TargetObject $XmlPath
         return
     }
 
@@ -127,6 +132,7 @@ try
     [void]$yaml.AppendLine("# Total settings: $totalCount")
     [void]$yaml.AppendLine()
     [void]$yaml.AppendLine('RegistryValues:')
+    [void]$yaml.AppendLine('  # Each entry is a registry key or value definition')
 
     $count = 0
 
@@ -161,10 +167,8 @@ try
         {
             # Key-only entry - ensure the key exists
             $count++
-            $safeName = "RegistryKey_$($count.ToString('000'))"
 
-            [void]$yaml.AppendLine("  ${safeName}:")
-            [void]$yaml.AppendLine("    Key: '$hive\$keyPath'")
+            [void]$yaml.AppendLine("  - Key: '$hive\$keyPath'")
             [void]$yaml.AppendLine('    Ensure: Present')
             [void]$yaml.AppendLine("    ValueName: ''")
             [void]$yaml.AppendLine()
@@ -192,10 +196,8 @@ try
             {
                 # This is a delete operation
                 $count++
-                $safeName = "RegistryValue_Delete_$($count.ToString('000'))"
 
-                [void]$yaml.AppendLine("  ${safeName}:")
-                [void]$yaml.AppendLine("    Key: '$hive\$keyPath'")
+                [void]$yaml.AppendLine("  - Key: '$hive\$keyPath'")
                 [void]$yaml.AppendLine("    ValueName: '$valueName'")
                 [void]$yaml.AppendLine('    Ensure: Absent')
                 [void]$yaml.AppendLine()
@@ -205,10 +207,8 @@ try
             if ($null -ne $valueData)
             {
                 $count++
-                $safeName = "RegistryValue_$($count.ToString('000'))"
 
-                [void]$yaml.AppendLine("  ${safeName}:")
-                [void]$yaml.AppendLine("    Key: '$hive\$keyPath'")
+                [void]$yaml.AppendLine("  - Key: '$hive\$keyPath'")
                 [void]$yaml.AppendLine("    ValueName: '$valueName'")
 
                 if ($valueType -eq 'Dword')
@@ -264,13 +264,34 @@ try
         # Convert type to DSC format
         $dscType = switch ($valueType)
         {
-            'REG_DWORD' { 'Dword' }
-            'REG_SZ' { 'String' }
-            'REG_EXPAND_SZ' { 'ExpandString' }
-            'REG_BINARY' { 'Binary' }
-            'REG_MULTI_SZ' { 'MultiString' }
-            'REG_QWORD' { 'Qword' }
-            default { 'String' }
+            'REG_DWORD'
+            {
+                'Dword'
+            }
+            'REG_SZ'
+            {
+                'String'
+            }
+            'REG_EXPAND_SZ'
+            {
+                'ExpandString'
+            }
+            'REG_BINARY'
+            {
+                'Binary'
+            }
+            'REG_MULTI_SZ'
+            {
+                'MultiString'
+            }
+            'REG_QWORD'
+            {
+                'Qword'
+            }
+            default
+            {
+                'String'
+            }
         }
 
         # Convert hex value to decimal for DWORD
@@ -284,10 +305,8 @@ try
         {
             # Delete action
             $count++
-            $safeName = "RegistryValue_Delete_$($count.ToString('000'))"
 
-            [void]$yaml.AppendLine("  ${safeName}:")
-            [void]$yaml.AppendLine("    Key: '$hive\$keyPath'")
+            [void]$yaml.AppendLine("  - Key: '$hive\$keyPath'")
             [void]$yaml.AppendLine("    ValueName: '$valueName'")
             [void]$yaml.AppendLine('    Ensure: Absent')
             [void]$yaml.AppendLine()
@@ -296,10 +315,8 @@ try
         {
             # Create or Update action
             $count++
-            $safeName = "RegistryValue_$($count.ToString('000'))"
 
-            [void]$yaml.AppendLine("  ${safeName}:")
-            [void]$yaml.AppendLine("    Key: '$hive\$keyPath'")
+            [void]$yaml.AppendLine("  - Key: '$hive\$keyPath'")
             [void]$yaml.AppendLine("    ValueName: '$valueName'")
 
             if ($dscType -eq 'Dword' -or $dscType -eq 'Qword')
@@ -327,10 +344,10 @@ try
 }
 catch
 {
-    Write-Error -Message "Failed to export registry settings from GPO XML" `
-                -Exception $_.Exception `
-                -Category InvalidOperation `
-                -ErrorId 'ExportGpoRegistrySettingsFailed' `
-                -TargetObject $XmlPath
+    Write-Error -Message 'Failed to export registry settings from GPO XML' `
+        -Exception $_.Exception `
+        -Category InvalidOperation `
+        -ErrorId 'ExportGpoRegistrySettingsFailed' `
+        -TargetObject $XmlPath
     return
 }

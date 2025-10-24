@@ -179,8 +179,7 @@ try
             }
         }
 
-        [void]$yaml.AppendLine("  ${serviceName}:")
-        [void]$yaml.AppendLine("    Name: $serviceName")
+        [void]$yaml.AppendLine("  - Name: $serviceName")
         [void]$yaml.AppendLine("    StartupType: $startType")
         [void]$yaml.AppendLine('    State: Ignore  # GPO only sets startup type, not running state')
 
