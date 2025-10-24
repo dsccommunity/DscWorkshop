@@ -27,6 +27,14 @@
     .\Export-GpoSystemServices.ps1 -XmlPath ".\MyGPO.xml" -OutputPath ".\CustomOutput.yml" -Force
     Exports to a custom output file, overwriting if it exists.
 
+.INPUTS
+    XmlPath: String - Path to GPO XML file to process
+    OutputPath: String - Optional path for YAML output file  
+    Force: Switch - Overwrite existing output file
+
+.OUTPUTS
+    String path to created YAML configuration file describing exported System Services settings
+
 .NOTES
     System Services are managed via Service Control Manager (SCM).
     Use PSDscResources Service resource or similar.
