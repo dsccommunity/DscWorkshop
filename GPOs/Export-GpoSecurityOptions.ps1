@@ -63,7 +63,7 @@ try
     if (-not $OutputPath)
     {
         $xmlBaseName = [System.IO.Path]::GetFileNameWithoutExtension($XmlPath)
-        $OutputPath = Join-Path $PSScriptRoot "$xmlBaseName-RegistrySettings.yml"
+        $OutputPath = Join-Path $PSScriptRoot "$xmlBaseName-SecurityOptions.yml"
     }
 
     # Check if output file exists
