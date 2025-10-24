@@ -40,7 +40,7 @@
     Note: The script writes audit policy content in registry format; using AuditPolicyDsc module is recommended for better audit policy management.
 #>
 
-[CmdletBinding()]
+[CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Medium')]
 param(
     [Parameter(Mandatory = $true, Position = 0)]
     [ValidateScript({
@@ -209,39 +209,59 @@ try
     [void]$sb.AppendLine('#    Windows manages audit policy through a special mechanism that updates')
     [void]$sb.AppendLine('#    the registry but also maintains internal audit settings.')
 
-    # Write output
+    # Write output with ShouldProcess support
     $content = $sb.ToString()
-    $content | Out-File -FilePath $OutputPath -Encoding utf8 -NoNewline
-
-    Write-Output ''
-    Write-Output '✅ Audit Policy settings exported successfully!'
-    Write-Output "   Settings exported: $count"
-    Write-Output "   Output: $OutputPath"
-    Write-Output ''
-    Write-Output 'Audit policies exported:'
-    $auditSettings | Where-Object { $_.SubcategoryGuid } | ForEach-Object {
-        $val = switch ([int]$_.SettingValue)
-        {
-            0
-            {
-                'No Audit'
-            }
-            1
-            {
-                'Success'
-            }
-            2
-            {
-                'Failure'
-            }
-            3
-            {
-                'Success+Failure'
-            }
-        }
-        Write-Output "  - $($_.SubcategoryName): $val"
+    
+    # Determine the action description for ShouldProcess
+    $target = $OutputPath
+    $action = if (Test-Path $OutputPath)
+    {
+        'Overwrite audit policy export file'
     }
-    Write-Output ''
+    else
+    {
+        'Create audit policy export file'
+    }
+    
+    # When -Force is specified, skip confirmation; otherwise use ShouldProcess
+    if ($Force -or $PSCmdlet.ShouldProcess($target, $action))
+    {
+        $content | Out-File -FilePath $OutputPath -Encoding utf8 -NoNewline
+
+        Write-Output ''
+        Write-Output '✅ Audit Policy settings exported successfully!'
+        Write-Output "   Settings exported: $count"
+        Write-Output "   Output: $OutputPath"
+        Write-Output ''
+        Write-Output 'Audit policies exported:'
+        $auditSettings | Where-Object { $_.SubcategoryGuid } | ForEach-Object {
+            $val = switch ([int]$_.SettingValue)
+            {
+                0
+                {
+                    'No Audit'
+                }
+                1
+                {
+                    'Success'
+                }
+                2
+                {
+                    'Failure'
+                }
+                3
+                {
+                    'Success+Failure'
+                }
+            }
+            Write-Output "  - $($_.SubcategoryName): $val"
+        }
+        Write-Output ''
+    }
+    else
+    {
+        Write-Verbose 'Operation cancelled by user.'
+    }
 
     exit 0
 }
