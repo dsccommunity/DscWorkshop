@@ -150,9 +150,16 @@ try
         'Specify the maximum log file size (KB)'                                                                                                    = @('Software\Policies\Microsoft\Windows\EventLog\Application', 'MaxSize', 'Dword', 32768, 0)
     }
 
+    # Generate source filename for header
+    $sourceFilename = if ($XmlPath) {
+        Split-Path -Leaf $XmlPath
+    } else {
+        "Unknown source"
+    }
+
     $sb = [System.Text.StringBuilder]::new()
-    [void]$sb.AppendLine('# Administrative Template Registry Settings (q8:RegistrySettings)')
-    [void]$sb.AppendLine('# Extracted from: Win11-24H2-MSFT-BaselineTest on Win11-24H2-MSFT-BaselineTest.xml')
+    [void]$sb.AppendLine('# Administrative Template Registry Settings (Policy elements)')
+    [void]$sb.AppendLine("# Exported from: $sourceFilename")
     [void]$sb.AppendLine('')
     [void]$sb.AppendLine('RegistryValues:')
     [void]$sb.AppendLine('  Values:')
