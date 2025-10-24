@@ -85,8 +85,31 @@ param(
     [switch]$ShowConflicts
 )
 
+<#
+.SYNOPSIS
+    Extracts registry entries from YAML content.
+
+.DESCRIPTION
+    Parses YAML content to extract registry entries with Key, ValueName, and ValueData,
+    returning a hashtable mapping full paths to values.
+
+.PARAMETER Content
+    The YAML content to parse.
+
+.INPUTS
+    None
+
+    This function does not accept pipeline input.
+
+.OUTPUTS
+    System.Collections.Hashtable
+
+    Returns a hashtable mapping registry paths to values.
+#>
 function Get-RegistryEntries
 {
+    [CmdletBinding()]
+    [OutputType([System.Collections.Hashtable])]
     param([string]$Content)
 
     $pattern = '(?ms)^\s*-?\s*Key:\s*(HKEY_[^\r\n]+)\r?\n\s+ValueName:\s*[''"]?([^\r\n''"]+)[''"]?\r?\n\s+ValueData:\s*[''"]?([^\r\n''"]+)[''"]?'
