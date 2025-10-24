@@ -74,12 +74,6 @@ try
         $OutputPath = Join-Path $PSScriptRoot "$xmlBaseName-SecurityOptions.yml"
     }
 
-    # Check if output file exists
-    if ((Test-Path $OutputPath) -and -not $Force)
-    {
-        throw "Output file already exists: $OutputPath. Use -Force to overwrite."
-    }
-
     Write-Verbose "Reading XML file: $XmlPath"
     [xml]$xml = Get-Content $XmlPath -Raw -ErrorAction Stop
 
@@ -198,15 +192,45 @@ try
 
     Write-Verbose "Found $count security option settings"
 
-    # Write output
+    # Write output with ShouldProcess support
     $content = $sb.ToString()
-    $content | Out-File -FilePath $OutputPath -Encoding utf8 -NoNewline
 
-    Write-Output ''
-    Write-Output '✅ Security Options exported successfully!'
-    Write-Output "   Settings exported: $count"
-    Write-Output "   Output: $OutputPath"
-    Write-Output ''
+    # Determine the action description for ShouldProcess
+    $target = $OutputPath
+    $action = if (Test-Path $OutputPath)
+    {
+        'Overwrite security options export file'
+    }
+    else
+    {
+        'Create security options export file'
+    }
+
+    # When -Force is specified, skip confirmation; otherwise use ShouldProcess
+    if ($Force -or $PSCmdlet.ShouldProcess($target, $action))
+    {
+        $outFileParams = @{
+            FilePath = $OutputPath
+            Encoding = 'utf8'
+        }
+
+        if ($Force)
+        {
+            $outFileParams['Force'] = $true
+        }
+
+        $content | Out-File @outFileParams
+
+        Write-Output ''
+        Write-Output '✅ Security Options exported successfully!'
+        Write-Output "   Settings exported: $count"
+        Write-Output "   Output: $OutputPath"
+        Write-Output ''
+    }
+    else
+    {
+        Write-Verbose 'Operation cancelled by user.'
+    }
 
     exit 0
 }
