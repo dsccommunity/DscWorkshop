@@ -293,7 +293,7 @@ try
         }
         else
         {
-            Write-Verbose "WARNING: No mapping found for policy: $($policy.Name)"
+            Write-Warning "No mapping found for policy: $($policy.Name)"
         }
     }
 
