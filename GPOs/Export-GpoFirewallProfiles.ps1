@@ -39,7 +39,7 @@
 
 [CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Medium')]
 param(
-    [Parameter(Mandatory = $false, Position = 0)]
+    [Parameter(Mandatory = $true, Position = 0)]
     [ValidateScript({
             if (-not (Test-Path $_))
             {
@@ -51,7 +51,7 @@ param(
             }
             return $true
         })]
-    [string]$XmlPath = "$PSScriptRoot\Win11-24H2-MSFT-BaselineTest on Win11-24H2-MSFT-BaselineTest.xml",
+    [string]$XmlPath,
 
     [Parameter(Mandatory = $false)]
     [string]$OutputPath,
