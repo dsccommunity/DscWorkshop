@@ -39,6 +39,7 @@
     Use PSDscResources Service resource or similar.
 #>
 
+[OutputType([System.String])]
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $true)]
