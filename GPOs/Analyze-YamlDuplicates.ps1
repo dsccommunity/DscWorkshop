@@ -21,6 +21,18 @@
     .\Analyze-YamlDuplicates.ps1 -YamlFilePath ".\MySettings.yml" -ShowDetails
     Analyzes and shows detailed information about duplicates.
 
+.INPUTS
+    String
+    Path to the YAML file to be analyzed for duplicate registry entries.
+
+    Switch
+    Optional flag to display detailed information about each duplicate found.
+
+.OUTPUTS
+    Hashtable
+    Returns a hashtable containing duplicate analysis results with keys for duplicate count,
+    total entries, and detailed duplicate information when ShowDetails is specified.
+
 .NOTES
     This script searches for patterns in the format:
     - Key: HKEY_...
