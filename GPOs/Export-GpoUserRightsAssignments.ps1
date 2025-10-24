@@ -73,51 +73,54 @@ try
     if ((Test-Path $OutputPath) -and -not $Force)
     {
         Write-Error -Message "Output file already exists: $OutputPath. Use -Force to overwrite." `
-                    -Category ResourceExists `
-                    -ErrorId 'OutputFileExists' `
-                    -TargetObject $OutputPath
+            -Category ResourceExists `
+            -ErrorId 'OutputFileExists' `
+            -TargetObject $OutputPath
         return
     }
 
     # Support both GPO format (Get-GPOReport) and RSOP format
     Write-Verbose 'Detecting XML format...'
-    $extensionDataCollection = if ($xml.GPO) {
+    $extensionDataCollection = if ($xml.GPO)
+    {
         Write-Verbose 'Detected GPO format (Get-GPOReport)'
         $xml.GPO.Computer.ExtensionData
-    } elseif ($xml.Rsop) {
+    }
+    elseif ($xml.Rsop)
+    {
         Write-Verbose 'Detected RSOP format'
         $xml.Rsop.ComputerResults.ExtensionData
-    } else {
+    }
+    else
+    {
         throw 'Unknown XML format. Expected GPO or Rsop root element.'
     }
 
-    # Find Security extension
+    # Find Security extension(s)
     Write-Verbose 'Searching for Security extension data'
     # Handle both GPO format ($_.Name is string) and RSOP format ($_.Name.'#text')
-    $securityExtension = $extensionDataCollection |
-        Where-Object { ($_.Name -eq 'Security') -or ($_.Name.'#text' -eq 'Security') }
+    $securityExtensions = @($extensionDataCollection |
+            Where-Object { ($_.Name -eq 'Security') -or ($_.Name.'#text' -eq 'Security') })
 
-    if (-not $securityExtension)
+    if ($securityExtensions.Count -eq 0)
     {
         Write-Error -Message 'No Security extension found in XML file' `
-                    -Category InvalidData `
-                    -ErrorId 'NoSecurityExtension' `
-                    -TargetObject $XmlPath
+            -Category InvalidData `
+            -ErrorId 'NoSecurityExtension' `
+            -TargetObject $XmlPath
         return
     }
 
-    # Get UserRightsAssignment elements (namespace-agnostic)
-    # Handle one or many Security extension nodes
-    $userRights = @()
-    $securityExtensionCount = @($securityExtension).Count
-    Write-Verbose "Found $securityExtensionCount Security extension(s)"
+    Write-Verbose "Found $($securityExtensions.Count) Security extension(s)"
 
-    foreach ($secExt in $securityExtension)
+    # Get UserRightsAssignment elements (namespace-agnostic) from all Security extensions
+    $userRights = @()
+    foreach ($ext in $securityExtensions)
     {
-        $nodes = $secExt.Extension.SelectNodes("*[local-name()='UserRightsAssignment']")
+        $nodes = $ext.Extension.SelectNodes("*[local-name()='UserRightsAssignment']")
         if ($nodes)
         {
-            $userRights += $nodes
+            $userRights += @($nodes)
         }
     }
 
@@ -193,10 +196,10 @@ try
 }
 catch
 {
-    Write-Error -Message "Failed to export user rights assignments from GPO XML" `
-                -Exception $_.Exception `
-                -Category InvalidOperation `
-                -ErrorId 'ExportGpoUserRightsAssignmentsFailed' `
-                -TargetObject $XmlPath
+    Write-Error -Message 'Failed to export user rights assignments from GPO XML' `
+        -Exception $_.Exception `
+        -Category InvalidOperation `
+        -ErrorId 'ExportGpoUserRightsAssignmentsFailed' `
+        -TargetObject $XmlPath
     return
 }
