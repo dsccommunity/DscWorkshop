@@ -279,47 +279,47 @@ try
     $endTime = Get-Date
     $duration = $endTime - $startTime
 
-    Write-Output '========================================='
-    Write-Output 'EXPORT SUMMARY'
-    Write-Output '========================================='
-    Write-Output "Completed: $($endTime.ToString('yyyy-MM-dd HH:mm:ss'))"
-    Write-Output "Duration: $($duration.ToString('mm\:ss'))"
-    Write-Output ''
-    Write-Output 'Results:'
-    Write-Output "  ✅ Successful: $successCount"
-    Write-Output "  ❌ Failed: $failureCount"
-    Write-Output "  �� Total: $($exportScripts.Count)"
-    Write-Output ''
+    Write-Information '=========================================' -InformationAction Continue
+    Write-Information 'EXPORT SUMMARY' -InformationAction Continue
+    Write-Information '=========================================' -InformationAction Continue
+    Write-Information "Completed: $($endTime.ToString('yyyy-MM-dd HH:mm:ss'))" -InformationAction Continue
+    Write-Information "Duration: $($duration.ToString('mm\:ss'))" -InformationAction Continue
+    Write-Information '' -InformationAction Continue
+    Write-Information 'Results:' -InformationAction Continue
+    Write-Information "  ✅ Successful: $successCount" -InformationAction Continue
+    Write-Information "  ❌ Failed: $failureCount" -InformationAction Continue
+    Write-Information "  📊 Total: $($exportScripts.Count)" -InformationAction Continue
+    Write-Information '' -InformationAction Continue
 
     if ($successCount -gt 0)
     {
-        Write-Output 'Generated Files:'
+        Write-Information 'Generated Files:' -InformationAction Continue
         foreach ($result in $results | Where-Object { $_.Status -eq 'Success' })
         {
             if ($result.OutputFile -and (Test-Path $result.OutputFile))
             {
                 $fileSize = (Get-Item $result.OutputFile).Length
                 $fileSizeKB = [Math]::Round($fileSize / 1KB, 1)
-                Write-Output "  📄 $([System.IO.Path]::GetFileName($result.OutputFile)) ($fileSizeKB KB)"
+                Write-Information "  📄 $([System.IO.Path]::GetFileName($result.OutputFile)) ($fileSizeKB KB)" -InformationAction Continue
             }
         }
-        Write-Output ''
+        Write-Information '' -InformationAction Continue
     }
 
     if ($failureCount -gt 0)
     {
-        Write-Output 'Failed Exports:'
+        Write-Information 'Failed Exports:' -InformationAction Continue
         foreach ($result in $results | Where-Object { $_.Status -eq 'Failed' })
         {
-            Write-Output "  ⚠️  $($result.Name)"
+            Write-Information "  ⚠️  $($result.Name)" -InformationAction Continue
         }
-        Write-Output ''
+        Write-Information '' -InformationAction Continue
         Write-Warning 'Some exports failed. Review the output above for details.'
         exit 1
     }
 
-    Write-Output '✅ All exports completed successfully!'
-    Write-Output '========================================='
+    Write-Information '✅ All exports completed successfully!' -InformationAction Continue
+    Write-Information '=========================================' -InformationAction Continue
     exit 0
 }
 catch
