@@ -111,7 +111,20 @@ try
     [void]$sb.AppendLine('FirewallProfiles:')
     [void]$sb.AppendLine('  Profiles:')
 
-    # Helper to get value from nested XML
+    <#
+    .SYNOPSIS
+        Extracts the text value from a firewall profile setting XML node.
+
+    .DESCRIPTION
+        Helper function that navigates into a firewall profile setting XML node and extracts
+        the text content from the nested Value element using namespace-agnostic XPath.
+        Returns $null if the node is null or does not contain a Value element.
+
+    .PARAMETER node
+        The XML node (System.Xml.XmlElement) representing a firewall profile setting element.
+        This is typically a node like EnableFirewall, DefaultInboundAction, etc., which contains
+        a nested Value element with the actual setting value.
+    #>
     function Get-FirewallValue
     {
         param($node)
