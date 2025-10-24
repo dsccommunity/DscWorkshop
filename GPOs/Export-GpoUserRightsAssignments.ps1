@@ -107,8 +107,21 @@ try
     }
 
     # Get UserRightsAssignment elements (namespace-agnostic)
-    $userRights = $securityExtension.Extension.SelectNodes("*[local-name()='UserRightsAssignment']")
-    Write-Verbose "Found $($userRights.Count) UserRightsAssignment entries"
+    # Handle one or many Security extension nodes
+    $userRights = @()
+    $securityExtensionCount = @($securityExtension).Count
+    Write-Verbose "Found $securityExtensionCount Security extension(s)"
+
+    foreach ($secExt in $securityExtension)
+    {
+        $nodes = $secExt.Extension.SelectNodes("*[local-name()='UserRightsAssignment']")
+        if ($nodes)
+        {
+            $userRights += $nodes
+        }
+    }
+
+    Write-Verbose "Found $($userRights.Count) UserRightsAssignment entries across all Security extensions"
 
     # Build YAML
     $yaml = [System.Text.StringBuilder]::new()
