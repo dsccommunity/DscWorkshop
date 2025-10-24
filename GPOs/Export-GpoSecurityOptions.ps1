@@ -232,11 +232,14 @@ try
         Write-Verbose 'Operation cancelled by user.'
     }
 
-    exit 0
+    return
 }
 catch
 {
-    Write-Error "Failed to export security options: $_"
-    Write-Error $_.ScriptStackTrace
-    exit 1
+    Write-Error -Message "Failed to export security options from GPO XML" `
+                -Exception $_.Exception `
+                -Category InvalidOperation `
+                -ErrorId 'ExportGpoSecurityOptionsFailed' `
+                -TargetObject $XmlPath
+    return
 }

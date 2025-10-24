@@ -79,8 +79,11 @@ try
     # Check if output file exists
     if ((Test-Path $OutputPath) -and -not $Force)
     {
-        Write-Error "Output file already exists: $OutputPath. Use -Force to overwrite."
-        exit 1
+        Write-Error -Message "Output file already exists: $OutputPath. Use -Force to overwrite." `
+                    -Category ResourceExists `
+                    -ErrorId 'OutputFileExists' `
+                    -TargetObject $OutputPath
+        return
     }
 
     # Support both GPO format (Get-GPOReport) and RSOP format
@@ -190,10 +193,14 @@ try
         Write-Output "  - $($service.Name): $($service.StartupMode)"
     }
 
-    exit 0
+    return
 }
 catch
 {
-    Write-Error "Error during export: $_"
-    exit 1
+    Write-Error -Message "Failed to export system services from GPO XML" `
+                -Exception $_.Exception `
+                -Category InvalidOperation `
+                -ErrorId 'ExportGpoSystemServicesFailed' `
+                -TargetObject $XmlPath
+    return
 }

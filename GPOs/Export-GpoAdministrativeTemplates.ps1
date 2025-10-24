@@ -307,11 +307,14 @@ try
     Write-Output "   Output: $OutputPath"
     Write-Output ''
 
-    exit 0
+    return
 }
 catch
 {
-    Write-Error "Failed to export administrative templates: $_"
-    Write-Error $_.ScriptStackTrace
-    exit 1
+    Write-Error -Message "Failed to export administrative templates from GPO XML" `
+                -Exception $_.Exception `
+                -Category InvalidOperation `
+                -ErrorId 'ExportGpoAdministrativeTemplatesFailed' `
+                -TargetObject $XmlPath
+    return
 }

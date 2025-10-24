@@ -154,8 +154,11 @@ try
 
     if ($missingScripts.Count -gt 0)
     {
-        Write-Error "Missing export scripts: $($missingScripts -join ', ')"
-        exit 1
+        Write-Error -Message "Missing export scripts: $($missingScripts -join ', ')" `
+                    -Category ObjectNotFound `
+                    -ErrorId 'MissingExportScripts' `
+                    -TargetObject $missingScripts
+        return
     }
 
     # Execute each export script
@@ -315,15 +318,23 @@ try
         }
         Write-Information '' -InformationAction Continue
         Write-Warning 'Some exports failed. Review the output above for details.'
-        exit 1
+        Write-Error -Message "One or more GPO export operations failed" `
+                    -Category InvalidResult `
+                    -ErrorId 'PartialExportFailure' `
+                    -TargetObject $results
+        return
     }
 
     Write-Information '✅ All exports completed successfully!' -InformationAction Continue
     Write-Information '=========================================' -InformationAction Continue
-    exit 0
+    return
 }
 catch
 {
-    Write-Error "Fatal error during orchestration: $_"
-    exit 1
+    Write-Error -Message "Fatal error during GPO export orchestration" `
+                -Exception $_.Exception `
+                -Category InvalidOperation `
+                -ErrorId 'ExportGpoAllSettingsFailed' `
+                -TargetObject $XmlPath
+    return
 }

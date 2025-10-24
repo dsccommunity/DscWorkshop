@@ -73,8 +73,11 @@ try
     # Check if output file exists
     if ((Test-Path $OutputPath) -and -not $Force)
     {
-        Write-Error "Output file already exists: $OutputPath. Use -Force to overwrite."
-        exit 1
+        Write-Error -Message "Output file already exists: $OutputPath. Use -Force to overwrite." `
+                    -Category ResourceExists `
+                    -ErrorId 'OutputFileExists' `
+                    -TargetObject $OutputPath
+        return
     }
 
     # Support both GPO format (Get-GPOReport) and RSOP format
@@ -97,8 +100,11 @@ try
 
     if (-not $registryExtension)
     {
-        Write-Error 'No Registry extension found in XML file'
-        exit 1
+        Write-Error -Message 'No Registry extension found in XML file' `
+                    -Category InvalidData `
+                    -ErrorId 'NoRegistryExtension' `
+                    -TargetObject $XmlPath
+        return
     }
 
     # Get registry settings - support both formats
@@ -314,12 +320,16 @@ try
     $yaml.ToString() | Out-File -FilePath $OutputPath -Encoding UTF8 -ErrorAction Stop
 
     Write-Output "`n✅ Registry Settings exported successfully!"
-    Write-Output "   Settings exported: $count"
+    Write-Output "   Settings exported: $totalCount"
     Write-Output "   Output: $OutputPath"
-    exit 0
+    return
 }
 catch
 {
-    Write-Error "Error during export: $_"
-    exit 1
+    Write-Error -Message "Failed to export registry settings from GPO XML" `
+                -Exception $_.Exception `
+                -Category InvalidOperation `
+                -ErrorId 'ExportGpoRegistrySettingsFailed' `
+                -TargetObject $XmlPath
+    return
 }

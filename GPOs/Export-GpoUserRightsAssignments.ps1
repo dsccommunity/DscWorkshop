@@ -72,8 +72,11 @@ try
     # Check if output file exists
     if ((Test-Path $OutputPath) -and -not $Force)
     {
-        Write-Error "Output file already exists: $OutputPath. Use -Force to overwrite."
-        exit 1
+        Write-Error -Message "Output file already exists: $OutputPath. Use -Force to overwrite." `
+                    -Category ResourceExists `
+                    -ErrorId 'OutputFileExists' `
+                    -TargetObject $OutputPath
+        return
     }
 
     # Support both GPO format (Get-GPOReport) and RSOP format
@@ -96,8 +99,11 @@ try
 
     if (-not $securityExtension)
     {
-        Write-Error 'No Security extension found in XML file'
-        exit 1
+        Write-Error -Message 'No Security extension found in XML file' `
+                    -Category InvalidData `
+                    -ErrorId 'NoSecurityExtension' `
+                    -TargetObject $XmlPath
+        return
     }
 
     # Get UserRightsAssignment elements (namespace-agnostic)
@@ -174,10 +180,14 @@ try
         Write-Output "  - $($right.Name)"
     }
 
-    exit 0
+    return
 }
 catch
 {
-    Write-Error "Error during export: $_"
-    exit 1
+    Write-Error -Message "Failed to export user rights assignments from GPO XML" `
+                -Exception $_.Exception `
+                -Category InvalidOperation `
+                -ErrorId 'ExportGpoUserRightsAssignmentsFailed' `
+                -TargetObject $XmlPath
+    return
 }

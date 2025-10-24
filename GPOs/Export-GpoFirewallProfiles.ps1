@@ -342,11 +342,14 @@ try
         Write-Verbose 'Operation cancelled by user.'
     }
 
-    exit 0
+    return
 }
 catch
 {
-    Write-Error "Failed to export firewall settings: $_"
-    Write-Error $_.ScriptStackTrace
-    exit 1
+    Write-Error -Message "Failed to export firewall profile settings from GPO XML" `
+                -Exception $_.Exception `
+                -Category InvalidOperation `
+                -ErrorId 'ExportGpoFirewallProfilesFailed' `
+                -TargetObject $XmlPath
+    return
 }
