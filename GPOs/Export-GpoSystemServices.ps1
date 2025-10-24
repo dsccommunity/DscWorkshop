@@ -103,8 +103,8 @@ try
 
     if (-not $securityExtension)
     {
-        Write-Error 'No Security extension found in XML file'
-        exit 1
+        Write-Error -Message 'No Security extension found in XML file' -Category InvalidData
+        return 1
     }
 
     # Get SystemServices elements (namespace-agnostic)
@@ -114,7 +114,7 @@ try
     if ($services.Count -eq 0)
     {
         Write-Warning 'No system services found in GPO'
-        exit 0
+        return
     }
 
     # Build YAML
