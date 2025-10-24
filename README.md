@@ -63,6 +63,17 @@ The lab script are in [Lab](./Lab).
 
 The [YAML reference documentation](https://github.com/raandree/DscConfig.Demo/tree/main/doc/README.adoc) is located in the `./doc` subfolder of the [DscConfig.Demo](https://github.com/raandree/DscConfig.Demo) repository. This comprehensive documentation provides detailed examples and schema information for all supported DSC configurations.
 
+### GPO to DSC Migration
+
+If you're migrating existing Group Policy Objects (GPOs) to DSC, check out the comprehensive [GPO to DSC Migration Toolkit](./GPOs/) that automates the export of GPO settings from XML exports to DSC-ready YAML format. The toolkit includes:
+
+- **8 extraction scripts** covering Security Options, Administrative Templates, Audit Policies, Firewall Profiles, Registry Settings, User Rights, and System Services
+- **2 analysis scripts** for quality assurance (duplicate detection and conflict analysis)
+- **98% coverage** - extracts 255 of 257 settings from Windows GPO exports
+- **Production-ready** with comprehensive error handling and PowerShell best practices
+
+See [GPOs/README.md](./GPOs/README.md) for complete documentation, workflows, and integration examples.
+
 ### Memory Bank
 
 This project includes a comprehensive memory bank system located in the `memory-bank/` directory that provides:

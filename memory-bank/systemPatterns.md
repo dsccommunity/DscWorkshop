@@ -162,3 +162,147 @@ YAML Config Files → Datum → DSC Compilation → MOF Files → Target Nodes
 - **Incremental Testing**: Test only affected configurations
 
 This architectural foundation enables DSC Workshop to scale from simple proof-of-concepts to complex enterprise deployments while maintaining consistency, security, and reliability.
+
+## GPO to DSC Migration Toolkit Architecture
+
+### Overview
+
+The GPO Migration Toolkit enables automated conversion of Group Policy Object (GPO) settings from XML exports to DSC-ready YAML format, providing a migration path from traditional GPO management to Infrastructure as Code.
+
+### Component Architecture
+
+```
+GPO XML Export
+      ↓
+Extract-GpoAllSettings.ps1 (Orchestrator)
+      ↓
+┌─────────────────────────────────────────────────┐
+│  Extraction Layer (7 Specialized Scripts)       │
+├─────────────────────────────────────────────────┤
+│  Extract-GpoSecurityOptions.ps1        (32)     │
+│  Extract-GpoAdministrativeTemplates.ps1 (54)    │
+│  Extract-GpoAuditPolicies.ps1          (23)     │
+│  Extract-GpoFirewallProfiles.ps1       (3)      │
+│  Extract-GpoRegistrySettings.ps1       (116)    │
+│  Extract-GpoUserRightsAssignments.ps1  (23)     │
+│  Extract-GpoSystemServices.ps1         (4)      │
+└─────────────────────────────────────────────────┘
+      ↓
+YAML Output Files (7 files per GPO)
+      ↓
+┌─────────────────────────────────────────────────┐
+│  Quality Assurance Layer (2 Scripts)            │
+├─────────────────────────────────────────────────┤
+│  Analyze-YamlDuplicates.ps1                     │
+│  Compare-YamlFiles.ps1                          │
+└─────────────────────────────────────────────────┘
+      ↓
+Validated YAML → DscWorkshop Datum Structure
+```
+
+### Key Design Patterns
+
+**1. Single Responsibility Pattern**
+- Each extraction script handles one GPO setting type
+- Clear separation: SecurityOptions vs RegistrySettings vs AuditPolicies
+- Modular design enables independent updates
+
+**2. Orchestration Pattern**
+- Master script (Extract-GpoAllSettings.ps1) coordinates all extractors
+- Sequential execution with progress tracking
+- Centralized error handling and reporting
+
+**3. Validation Pipeline Pattern**
+- Extraction → Validation → Integration workflow
+- Two-stage QA: duplicate detection + conflict analysis
+- Exit codes enable CI/CD integration
+
+### Technical Implementation
+
+**XML Parsing Strategy**
+- XPath with local-name() for namespace-agnostic queries
+- Extension type routing (q3, q4, q6, q8 namespaces)
+- Regex patterns for complex value extraction
+
+**YAML Generation**
+- System.Text.StringBuilder for efficient string building
+- Consistent indentation and formatting
+- Inline comments preserve policy metadata (category, state)
+
+**Mapping Approach**
+- **Direct Mapping**: SecurityOptions, AuditPolicies (1:1 XML→DSC)
+- **Manual Mapping**: Administrative Templates (policy name → registry path)
+- **Structural Mapping**: FirewallProfiles (multiple XML nodes → single resource)
+
+### DSC Resource Integration
+
+**Composite Resources Created**
+```yaml
+UserRightsAssignments  → SecurityPolicyDsc.UserRightsAssignment
+AuditPolicies          → AuditPolicyDsc.AuditPolicySubcategory
+FirewallProfiles       → NetworkingDsc.FirewallProfile
+```
+
+**Rationale**: Composite resources provide:
+- Cleaner YAML syntax (array of policies vs individual resources)
+- Better grouping (all audit policies in one place)
+- Simplified management (add/remove without restructuring)
+
+### Quality Assurance Architecture
+
+**Duplicate Detection**
+- Parses YAML with regex: Key + ValueName combinations
+- Tracks occurrences in hashtable
+- Reports duplicates that indicate extraction bugs
+
+**Conflict Analysis**
+- Compares two YAML files for overlapping settings
+- Distinguishes: Duplicate (same value) vs Conflict (different value)
+- Critical for multi-GPO merging scenarios
+
+### Integration with DscWorkshop
+
+**Datum Layer Mapping**
+```
+GPO Type              → Datum Layer
+────────────────────────────────────
+Security Baseline     → Baselines/
+Role-specific GPO     → Roles/{RoleName}/
+Location-specific GPO → Locations/{Location}/
+Environment overrides → Environments/{Env}/
+```
+
+**Workflow Integration**
+1. Export GPO to XML (`Get-GPOReport`)
+2. Extract to YAML (`Extract-GpoAllSettings.ps1`)
+3. Validate output (`Analyze-YamlDuplicates.ps1`)
+4. Copy to Datum structure
+5. Build DSC artifacts (`.\build.ps1`)
+
+### Coverage and Limitations
+
+**Extracted (255/257 = 98%)**
+- Security Options: 32
+- Administrative Templates: 54
+- Audit Policies: 23
+- Firewall Profiles: 3
+- Registry Settings: 116
+- User Rights: 23
+- System Services: 4
+
+**Not Extracted (2 settings)**
+- Windows Firewall GlobalSettings (rarely customized)
+- Name Resolution Policy Table (complex DirectAccess feature)
+
+**Design Decision**: Focus on high-value, commonly-used settings. Edge cases require manual handling, which is acceptable for 2% of settings.
+
+### Extension Strategy
+
+To add new setting types:
+1. Identify XML extension namespace (q1-q8)
+2. Create extraction script following established pattern
+3. Add to orchestrator's script array
+4. Create composite resource if grouping benefits UX
+5. Update README.md with new capability
+
+This modular architecture enables incremental enhancements without affecting existing functionality.

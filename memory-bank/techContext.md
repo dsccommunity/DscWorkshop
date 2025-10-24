@@ -75,9 +75,11 @@
 **Core DSC Resources**
 - `PSDscResources`: Basic Windows DSC resources
 - `ComputerManagementDsc`: Computer and domain management
-- `SecurityPolicyDsc`: Security policy configuration
-- `NetworkingDsc`: Network configuration resources
+- `SecurityPolicyDsc`: Security policy configuration (includes UserRightsAssignment)
+- `NetworkingDsc`: Network configuration resources (includes FirewallProfile)
 - `WebAdministrationDsc`: IIS and web server management
+- `xPSDesiredStateConfiguration`: Extended DSC resources (includes xRegistry)
+- `AuditPolicyDsc`: Advanced audit policy configuration (added for GPO migration)
 
 **Build Dependencies**
 - `ModuleBuilder`: Module building and metadata management
@@ -163,5 +165,115 @@ output/
 - **Pull Server Integration**: DSC Pull Server configuration management
 - **Azure Automation DSC**: Cloud-based DSC service integration
 - **Guest Configuration**: Azure Policy Guest Configuration support
+
+## GPO Migration Toolkit
+
+### Purpose and Scope
+
+The GPO Migration Toolkit provides automated conversion of Group Policy Object (GPO) settings from XML exports to DSC-ready YAML format, enabling migration from traditional GPO management to Infrastructure as Code.
+
+### Toolkit Components
+
+**Extraction Scripts (8 total)**
+- `Extract-GpoAllSettings.ps1`: Orchestrator that runs all extraction scripts
+- `Extract-GpoSecurityOptions.ps1`: Security Options (32 settings)
+- `Extract-GpoAdministrativeTemplates.ps1`: Administrative Templates (54 settings)
+- `Extract-GpoAuditPolicies.ps1`: Audit Policies (23 settings)
+- `Extract-GpoFirewallProfiles.ps1`: Windows Firewall Profiles (3 profiles)
+- `Extract-GpoRegistrySettings.ps1`: Direct registry operations (116 settings)
+- `Extract-GpoUserRightsAssignments.ps1`: User Rights Assignments (23 rights)
+- `Extract-GpoSystemServices.ps1`: System Services (4 services)
+
+**Quality Assurance Scripts (2 total)**
+- `Analyze-YamlDuplicates.ps1`: Detects duplicate registry entries within a single YAML file
+- `Compare-YamlFiles.ps1`: Compares two YAML files for duplicates and conflicts
+
+### Technical Requirements
+
+**PowerShell Modules Required**
+- `xPSDesiredStateConfiguration` 9.2.1+: For xRegistry resource
+- `SecurityPolicyDsc` 2.10.0.0+: For UserRightsAssignment resource
+- `AuditPolicyDsc` 1.4.0.0+: For AuditPolicySubcategory resource
+- `NetworkingDsc` 9.0.0+: For FirewallProfile resource
+- `PSDscResources` (latest): For Service resource
+
+**Input Requirements**
+- GPO XML export generated via `Get-GPOReport -ReportType Xml`
+- Windows PowerShell 5.1+ or PowerShell 7+
+
+**Output Format**
+- YAML files compatible with Datum hierarchical configuration
+- One YAML file per setting type (7 files per GPO)
+- Structured for direct integration into DscWorkshop Baselines/Roles/Locations
+
+### Usage Pattern
+
+**Basic Workflow**
+```powershell
+# 1. Export GPO to XML
+Get-GPOReport -Name "MyGPO" -ReportType Xml -Path ".\MyGPO.xml"
+
+# 2. Extract all settings
+.\Extract-GpoAllSettings.ps1 -XmlPath ".\MyGPO.xml" -Force
+
+# 3. Validate output
+.\Analyze-YamlDuplicates.ps1 -YamlFilePath ".\MyGPO-SecurityOptions.yml"
+
+# 4. Copy to Datum structure
+Copy-Item .\MyGPO-*.yml -Destination ..\source\Baselines\MyBaseline\
+```
+
+**Advanced Scenarios**
+- Multi-GPO comparison using `Compare-YamlFiles.ps1`
+- Custom output directory with `-OutputDirectory` parameter
+- Individual script execution for specific setting types
+- Verbose logging with `-Verbose` parameter
+
+### Coverage and Limitations
+
+**Extraction Coverage: 98% (255/257 settings)**
+- Extracts all common GPO settings used in enterprise environments
+- Supports 7 different GPO extension types (q3, q4, q6, q8 namespaces)
+- Handles complex scenarios: deletions, key-only operations, multiple values
+
+**Not Extracted (2 settings)**
+- Windows Firewall GlobalSettings (rarely customized)
+- Name Resolution Policy Table/NRPT (complex DirectAccess-specific)
+
+**Design Philosophy**
+- Focus on high-value, commonly-used settings (98% coverage)
+- Edge cases can be handled manually (acceptable for 2% of settings)
+- Extensible architecture allows adding new extractors as needed
+
+### Integration with DscWorkshop
+
+**Datum Layer Mapping**
+- Security Baseline GPOs → `source/Baselines/`
+- Role-specific GPOs → `source/Roles/{RoleName}/`
+- Location-specific GPOs → `source/Locations/{Location}/`
+- Environment overrides → `source/Environments/{Env}/`
+
+**Composite Resources**
+Three custom composite resources created for cleaner YAML syntax:
+- `UserRightsAssignments`: Groups multiple UserRightsAssignment resources
+- `AuditPolicies`: Groups multiple AuditPolicySubcategory resources
+- `FirewallProfiles`: Groups firewall profile configurations
+
+These resources are located in `output\RequiredModules\DscConfig.Demo\{version}\DSCResources\`
+
+### Extensibility
+
+**Adding New Setting Types**
+1. Identify XML extension namespace in GPO export (q1-q8)
+2. Create new extraction script following established patterns
+3. Add script to orchestrator's script array
+4. Create composite resource if grouping improves user experience
+5. Update documentation (README.md, systemPatterns.md)
+
+**Current Architecture Supports**
+- Independent script development (single responsibility)
+- Consistent parameter interfaces across all scripts
+- Centralized error handling and reporting
+- Modular testing and validation
 
 This technical foundation provides a robust, scalable platform for enterprise DSC implementation with comprehensive tooling and automation support.
