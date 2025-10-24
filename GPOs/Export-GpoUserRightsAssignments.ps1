@@ -32,6 +32,7 @@
     Local Security Authority (LSA) database. Use SecurityPolicyDsc module.
 #>
 
+[OutputType([System.String])]
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $true)]
