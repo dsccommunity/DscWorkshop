@@ -30,6 +30,14 @@ BuildWorkflow:
     - CompressModulesWithChecksum
     - Compress_Artifact_Collections
     - TestBuildAcceptance
+
+  packguestconfiguration:
+    - PowerShell5Compatibility
+    - LoadDatumConfigData
+    - NewMofChecksums
+    - CompressModulesWithChecksum
+    - Compress_Artifact_Collections
+    - TestBuildAcceptance
     - build_guestconfiguration_packages_from_MOF
     - publish_guestconfiguration_packages
 
