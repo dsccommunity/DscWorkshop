@@ -96,9 +96,14 @@ Pester:
 ModuleBuildTasks:
   Sampler:
     - '*.build.Sampler.ib.tasks'
-  Sampler.DscPipeline:
+  Sampler.GitHubTasks:
     - '*.ib.tasks'
-
+  Sampler.AzureDevOpsTasks:
+    - 'Task.*'
+  DscResource.DocGenerator:
+    - 'Task.*'
+  DscResource.Test:
+    - 'Task.*'
 
 # Invoke-Build Header to be used to 'decorate' the terminal output of the tasks.
 TaskHeader: |
