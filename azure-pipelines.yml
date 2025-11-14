@@ -175,10 +175,24 @@ stages:
               publishLocation: 'pipeline'
               parallel: true
 
+          - powershell: |
+              $folder = '$(buildFolderName)/GCPackages'
+              Write-Host "Test to see if folder '$folder' exists"
+              if (Test-Path -Path $folder)
+              {
+                Write-Output "##vso[task.setvariable variable=GCPackagesExists]Yes"
+              }
+              else
+              {
+                Write-Output "##vso[task.setvariable variable=GCPackagesExists]No"
+              }
+            displayName: 'Test for GCPackages Folder'
+
           - task: PublishPipelineArtifact@1
-            displayName: 'Publish GC Packages'
+            displayName: Publish GC Packages
             inputs:
-              targetPath: '$(buildFolderName)/GCPackages'
-              artifact: 'GCPackages'
-              publishLocation: 'pipeline'
+              targetPath: $(buildFolderName)/GCPackages
+              artifact: GCPackages
+              publishLocation: pipeline
               parallel: true
+            condition: eq(variables['GCPackagesExists'], 'Yes')
