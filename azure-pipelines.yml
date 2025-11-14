@@ -13,6 +13,7 @@ trigger:
 
 variables:
   buildFolderName: output
+  buildArtifactName: output
   testResultFolderName: testResults
   defaultBranch: main
   Agent.Source.Git.ShallowFetchDepth: 0
