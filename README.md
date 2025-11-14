@@ -18,7 +18,7 @@ There is a fast-track learning path in [Exercises](./Exercises)
 
 This project is inspired by [Gael Colas'](https://twitter.com/gaelcolas) [DscInfraSample](https://github.com/gaelcolas/DscInfraSample) and Gael's opinions have an impact on its evolution.
 
-The overall concept follows [The Release Pipeline Model](./Exercises//The%20Release%20Pipeline%20Model.pdf), a whitepaper written by [Michael Greene](https://twitter.com/migreene) and [Steven Murawski](https://twitter.com/StevenMurawski) that is a must-read and describing itself like this:
+The overall concept follows [The Release Pipeline Model](./Exercises/TheReleasePipelineModel.pdf), a whitepaper written by [Michael Greene](https://twitter.com/migreene) and [Steven Murawski](https://twitter.com/StevenMurawski) that is a must-read and describing itself like this:
 
 > There are benefits to be gained when patterns and practices from developer techniques are applied to operations. Notably, a fully automated solution where infrastructure is managed as code and all changes are automatically validated before reaching production. This is a process shift that is recognized among industry innovators. For organizations already leveraging these processes, it should be clear how to leverage Microsoft platforms. For organizations that are new to the topic, it should be clear how to bring this process to your environment and what it means to your organizational culture. This document explains the components of a Release Pipeline for configuration as code, the value to operations, and solutions that are used when designing a new Release Pipeline architecture.
 
