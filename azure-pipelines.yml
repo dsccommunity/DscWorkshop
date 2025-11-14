@@ -13,7 +13,6 @@ trigger:
 
 variables:
   buildFolderName: output
-  buildArtifactName: output
   testResultFolderName: testResults
   defaultBranch: main
   Agent.Source.Git.ShallowFetchDepth: 0
@@ -219,7 +218,7 @@ stages:
             displayName: 'Download Build Artifact'
             inputs:
               buildType: 'current'
-              artifactName: $(buildArtifactName)
+              artifactName: 'output7'
               targetPath: '$(Build.SourcesDirectory)/$(buildFolderName)'
           - task: PowerShell@2
             name: publishRelease
