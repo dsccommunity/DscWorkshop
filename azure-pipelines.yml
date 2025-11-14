@@ -198,7 +198,7 @@ stages:
             condition: eq(variables['GCPackagesExists'], 'Yes')
 
   - stage: Deploy
-    dependsOn: Test
+    dependsOn: Build
     # Only execute deploy stage if we're on master and previous stage succeeded
     condition: |
       and(
