@@ -9,6 +9,7 @@ BuildWorkflow:
   '.': # "." is the default Invoke-Build workflow. It is called when no -Tasks is specified to the build.ps1
     - build
     - pack
+    - test
 
   build:
     - Clean
@@ -26,6 +27,7 @@ BuildWorkflow:
   pack:
     - PowerShell5Compatibility
     - LoadDatumConfigData
+    - ConvertMofFilesToUnicode
     - NewMofChecksums
     - CompressModulesWithChecksum
     - Compress_Artifact_Collections
@@ -51,43 +53,58 @@ BuildWorkflow:
     - Publish_Release_To_GitHub
     - Create_ChangeLog_GitHub_PR
 
-####################################################
-#       PESTER  Configuration                      #
-####################################################
+  hqrmtest:
+    - Invoke_HQRM_Tests_Stop_On_Fail
 
+  test:
+    - Pester_Tests_Stop_On_Fail
+    - Convert_Pester_Coverage
+    - Pester_If_Code_Coverage_Under_Threshold
+
+####################################################
+#          Pester Configuration (Sampler)          #
+####################################################
 Pester:
-  OutputFormat: NUnitXML
-  # Excludes one or more paths from being used to calculate code coverage.
+  Configuration:
+    Run:
+      Path:
+        - tests/QA
+    Output:
+      Verbosity: Detailed
+      StackTraceVerbosity: Full
+      CIFormat: Auto
+    CodeCoverage:
+      CoveragePercentTarget: 0
+      OutputPath: JaCoCo_coverage.xml
+      OutputEncoding: ascii
+      UseBreakpoints: false
+    TestResult:
+      OutputFormat: NUnitXML
+      OutputEncoding: ascii
   ExcludeFromCodeCoverage:
 
-  # If no scripts are defined the default is to use all the tests under the project's
-  # tests folder or source folder (if present). Test script paths can be defined to
-  # only run tests in certain folders, or run specific test files, or can be use to
-  # specify the order tests are run.
+####################################################
+#      Pester Configuration (DscResource.Test)     #
+####################################################
+DscTest:
+  Pester:
+    Configuration:
+      Filter:
+        ExcludeTag:
+          - BuiltModule Tests - Validate Localization
+      Output:
+        Verbosity: Detailed
+        CIFormat: Auto
+      TestResult:
+        OutputFormat: NUnitXML
+        OutputEncoding: ascii
+        OutputPath: ./output/testResults/NUnitXml_HQRM_Tests.xml
   Script:
-  # - tests/QA/module.tests.ps1
-  # - tests/QA
-  # - tests/Unit
-  # - tests/Integration
-  ExcludeTag:
-  #  - helpQuality
-  #  - FunctionalQuality
-  #  - TestQuality
-  Tag:
-  CodeCoverageThreshold: 0 # Set to 0 to bypass
-  #CodeCoverageOutputFile: JaCoCo_.xml
-  #CodeCoverageOutputFileEncoding: ascii
-  # Use this if code coverage should be merged from several pipeline test jobs.
-  # Any existing keys above should be replaced.
-  # CodeCoverageOutputFile - the file that is created for each pipeline test job.
-  # CodeCoverageFilePattern - the pattern used to search all pipeline test job artifacts
-  # after the file specified in CodeCoverageOutputFile.
-  # CodeCoverageMergedOutputFile - the file that is created by the merge build task and
-  # is the file that should be uploaded to code coverage services.
-  #CodeCoverageOutputFile: JaCoCo_Merge.xml
-  #CodeCoverageMergedOutputFile: JaCoCo_coverage.xml
-  #CodeCoverageFilePattern: JaCoCo_Merge.xml
-
+    ExcludeSourceFile:
+      - output
+    ExcludeModuleFile:
+      - DscWorkshop.psm1
+    MainGitBranch: main
 
 # Import ModuleBuilder tasks from a specific PowerShell module using the build
 # task's alias. Wildcard * can be used to specify all tasks that has a similar
