@@ -96,6 +96,8 @@ Pester:
 ModuleBuildTasks:
   Sampler:
     - '*.build.Sampler.ib.tasks'
+  Sampler.DscPipeline:
+    - '*.ib.tasks'
   Sampler.GitHubTasks:
     - '*.ib.tasks'
   Sampler.AzureDevOpsTasks:
