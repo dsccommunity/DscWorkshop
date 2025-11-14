@@ -175,7 +175,7 @@ stages:
               publishLocation: 'pipeline'
               parallel: true
 
-          - powershell: |
+          - pwsh: |
               $folder = '$(buildFolderName)/GCPackages'
               Write-Host "Test to see if folder '$folder' exists"
               if (Test-Path -Path $folder)
