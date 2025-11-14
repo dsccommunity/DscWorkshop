@@ -46,6 +46,11 @@ BuildWorkflow:
     - CompileDatumRsop
     - TestDscResources
 
+  publish:
+    - publish_module_to_gallery
+    - Publish_Release_To_GitHub
+    - Create_ChangeLog_GitHub_PR
+
 ####################################################
 #       PESTER  Configuration                      #
 ####################################################
@@ -120,3 +125,40 @@ Sampler.DscPipeline:
 SetPSModulePath:
   RemovePersonal: true
   RemoveProgramFiles: true
+
+####################################################
+#               GitHub Configuration               #
+####################################################
+GitHubConfig:
+  GitHubFilesToAdd:
+    - 'CHANGELOG.md'
+  GitHubConfigUserName: dscbot
+  GitHubConfigUserEmail: dsccommunity@outlook.com
+  UpdateChangelogOnPrerelease: false
+
+####################################################
+#             DscResource.DocGenerator             #
+####################################################
+DscResource.DocGenerator:
+  Generate_Conceptual_Help:
+    BuiltModuleSubdirectory: Module
+
+####################################################
+#                Git Configuration                 #
+####################################################
+GitConfig:
+  UserName: dscbot
+  UserEmail: dsccommunity@outlook.com
+
+####################################################
+#            Pull Request Configuration            #
+####################################################
+PullRequestConfig:
+  BranchName: updateChangelogAfterv{0}
+  Title: Updating Changelog since release of v{0} +semver:skip
+  Description: Updating Changelog since release of v{0} +semver:skip
+  Instance: dscdo01:8080
+  Collection: AutomatedLab
+  Project: DscConfig.Demo
+  RepositoryID: DscConfig.Demo
+  Debug: false
