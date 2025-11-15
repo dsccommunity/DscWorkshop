@@ -13,6 +13,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Updated all modules in the [RequiredModules.psd1](./RequiredModules.psd1).
 
+### Fixed
+
+- Fixed encoding issue by adding the task `ConvertMofFilesToUnicode`
+  which changes the encoding of MOF files to UTF-16 LE BOM ([#200](https://github.com/dsccommunity/DscWorkshop/issues/200)).
+
 ## [0.2.0] - 2025-11-14
 
 ### Added
