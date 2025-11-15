@@ -27,6 +27,7 @@ BuildWorkflow:
   pack:
     - PowerShell5Compatibility
     - LoadDatumConfigData
+    - ConvertMofFilesToUnicode
     - NewMofChecksums
     - CompressModulesWithChecksum
     - Compress_Artifact_Collections
