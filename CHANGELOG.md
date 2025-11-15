@@ -5,6 +5,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Updated all modules in the [RequiredModules.psd1](./RequiredModules.psd1).
+
 ## [0.2.0] - 2025-11-14
 
 ### Added
