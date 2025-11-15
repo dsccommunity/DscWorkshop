@@ -210,8 +210,8 @@ stages:
             displayName: 'Download Pipeline Artifact'
             inputs:
               buildType: 'current'
-              artifactName: $(buildArtifactName)
-              targetPath: '$(Build.SourcesDirectory)/$(buildArtifactName)'
+              artifactName: 'output7'
+              targetPath: '$(Build.SourcesDirectory)/$(buildFolderName)'
 
           - task: PowerShell@2
             name: test
@@ -252,6 +252,7 @@ stages:
               buildType: 'current'
               artifactName: 'output7'
               targetPath: '$(Build.SourcesDirectory)/$(buildFolderName)'
+
           - task: PowerShell@2
             name: publishRelease
             displayName: 'Publish Release'
