@@ -231,7 +231,7 @@ stages:
 
   - stage: Deploy
     dependsOn: Test
-    # Only execute deploy stage if we're on master and previous stage succeeded
+    # Only execute deploy stage if we're on main branch or on a tag, and previous stage succeeded
     condition: |
       and(
         succeeded(),
