@@ -5,6 +5,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Added HQRM tests and updated Pester test configuration.
+
 ### Changed
 
 - Updated all modules in the [RequiredModules.psd1](./RequiredModules.psd1).

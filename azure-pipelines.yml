@@ -197,8 +197,40 @@ stages:
               parallel: true
             condition: eq(variables['GCPackagesExists'], 'Yes')
 
-  - stage: Deploy
+  - stage: Test
     dependsOn: Build
+    jobs:
+      - job: Test_HQRM
+        displayName: 'HQRM'
+        pool:
+          vmImage: 'windows-latest'
+        timeoutInMinutes: 60
+        steps:
+          - task: DownloadPipelineArtifact@2
+            displayName: 'Download Pipeline Artifact'
+            inputs:
+              buildType: 'current'
+              artifactName: 'output7'
+              targetPath: '$(Build.SourcesDirectory)/$(buildFolderName)'
+
+          - task: PowerShell@2
+            name: test
+            displayName: 'Run HQRM Test'
+            inputs:
+              filePath: './build.ps1'
+              arguments: '-Tasks hqrmtest'
+              pwsh: true
+
+          - task: PublishTestResults@2
+            displayName: 'Publish Test Results'
+            inputs:
+              testResultsFormat: 'NUnit'
+              testResultsFiles: '$(buildFolderName)/$(testResultFolderName)/NUnit*.xml'
+              testRunTitle: 'HQRM'
+            condition: succeededOrFailed()
+
+  - stage: Deploy
+    dependsOn: Test
     # Only execute deploy stage if we're on main branch or on a tag, and previous stage succeeded
     condition: |
       and(
@@ -220,6 +252,7 @@ stages:
               buildType: 'current'
               artifactName: 'output7'
               targetPath: '$(Build.SourcesDirectory)/$(buildFolderName)'
+
           - task: PowerShell@2
             name: publishRelease
             displayName: 'Publish Release'
