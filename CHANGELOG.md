@@ -12,6 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Updated all modules in the [RequiredModules.psd1](./RequiredModules.psd1).
+- Updated DscBuildHelpers to 0.3.0.
+- Updated Datum to 0.41.0.
+- Updated Sampler.DscPipeline to 0.3.0.
 
 ### Fixed
 
