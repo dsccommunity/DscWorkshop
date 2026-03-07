@@ -1,11 +1,4 @@
 **/testResults.xml
 
-!output/
-
-output/*
-!output/RequiredModules
-
-output/RequiredModules/*
-
-!output/RequiredModules/FileSystemDsc
-!output/RequiredModules/DscConfig.Demo
+output
+.vscode/build-logs/
