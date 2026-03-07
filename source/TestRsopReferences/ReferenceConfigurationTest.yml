@@ -35,7 +35,7 @@ DscLcmMaintenanceWindows:
     Timespan: 24:00:00
   DependsOn: '[DscLcmController]DscLcmController'
 Configurations:
-- FileSystemObjects
+- FilesAndFolders
 - WindowsServices
 - RegistryValues
 - WebApplicationPools
@@ -91,9 +91,9 @@ WebApplicationPools:
     IdentityType: ApplicationPoolIdentity
     State: Started
   DependsOn:
-  - '[FileSystemObjects]FileSystemObjects'
+  - '[FilesAndFolders]FilesAndFolders'
   - '[WindowsFeatures]WindowsFeatures'
-FileSystemObjects:
+FilesAndFolders:
   Items:
   - DestinationPath: C:\Test\Test-Environment
     Type: Directory

@@ -37,9 +37,9 @@ lookup_options:
   WindowsFeatures\Names:
     merge_basetype_array: Unique
 
-  FileSystemObjects:
+  FilesAndFolders:
     merge_hash: deep
-  FileSystemObjects\Items:
+  FilesAndFolders\Items:
     merge_hash_array: UniqueKeyValTuples
     merge_options:
       tuple_keys:

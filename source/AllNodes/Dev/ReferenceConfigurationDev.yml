@@ -27,7 +27,7 @@ DscTagging:
   Layers:
     - '[x={ Get-DatumSourceFile -Path $File } =]'
 
-FileSystemObjects:
+FilesAndFolders:
   Items:
     - DestinationPath: Z:\DoesNotWork
       Type: Directory

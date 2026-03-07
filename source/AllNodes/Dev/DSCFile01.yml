@@ -28,7 +28,7 @@ DscTagging:
   NodeVersion: '[x={ $datum.Baselines.DscLcm.DscTagging.Version } =]'
   NodeRole: '[x={ $Node.Role } =]'
 
-FileSystemObjects:
+FilesAndFolders:
   Items:
     - DestinationPath: Z:\DoesNotWork
       Type: Directory

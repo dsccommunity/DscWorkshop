@@ -1,7 +1,7 @@
 Configurations:
-  - FileSystemObjects
+  - FilesAndFolders
 
-FileSystemObjects:
+FilesAndFolders:
   Items:
     - DestinationPath: '[x= "C:\Test\$($File.BaseName)" =]'
       Type: Directory

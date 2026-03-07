@@ -1,11 +1,11 @@
 Configurations:
   - WindowsServices
   - RegistryValues
-  - FileSystemObjects
+  - FilesAndFolders
   - WebApplicationPools
   - WebApplications
 
-FileSystemObjects:
+FilesAndFolders:
   Items:
     - DestinationPath: C:\Inetpub\TestApp1
       Type: Directory
@@ -14,11 +14,11 @@ FileSystemObjects:
     - DestinationPath: C:\Inetpub\TestApp1\default.html
       Type: File
       Contents: This is TestApp1
-      DependsOn: '[FileSystemObject]FileSystemObject_C__Inetpub_TestApp1'
+      DependsOn: '[File]file_C__Inetpub_TestApp1'
     - DestinationPath: C:\Inetpub\TestApp2\default.html
       Type: File
       Contents: This is TestApp2
-      DependsOn: '[FileSystemObject]FileSystemObject_C__Inetpub_TestApp2'
+      DependsOn: '[File]file_C__Inetpub_TestApp2'
 
 WebApplicationPools:
   Items:
@@ -32,7 +32,7 @@ WebApplicationPools:
       State: Started
       DependsOn: '[WebAppPool]TestAppPool1'
   DependsOn:
-    - '[FileSystemObjects]FileSystemObjects'
+    - '[FilesAndFolders]FilesAndFolders'
     - '[WindowsFeatures]WindowsFeatures'
 
 WebApplications:
