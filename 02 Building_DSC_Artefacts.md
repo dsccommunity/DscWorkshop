@@ -62,6 +62,25 @@ You will mainly be interested in the following folders:
 - MetaMOF
 - MOF
 
+### PowerShell 7 Compatibility
+
+When building on PowerShell 7, `Get-DscResource` scans the Windows
+PowerShell module path (`C:\Windows\system32\WindowsPowerShell\v1.0\Modules`)
+and encounters Desktop-only modules such as `Microsoft.PowerShell.Management`.
+PS 7 automatically creates a WinPSCompatSession remoting session to load
+them, producing dozens of warnings during DSC compilation.
+
+Simply removing the Windows system path from `PSModulePath` is not viable
+because built-in DSC resources (`WindowsFeature`, `Service`, `Registry`,
+etc.) reside only in `PSDesiredStateConfiguration 1.1` at that location.
+
+The `NoWinPSCompatibility` build task in
+[.build/SuppressWinPSCompatWarning.ps1](.build/SuppressWinPSCompatWarning.ps1)
+solves this by setting `Import-Module -SkipEditionCheck` globally before
+DSC resource discovery. This tells PS 7 to load the modules directly
+in-process instead of creating a compatibility remoting session, which
+eliminates the warnings while keeping all DSC resources available.
+
 ### Going further
 
 Now that you've built the provided infrastructure, you can try to understand how it works. :)

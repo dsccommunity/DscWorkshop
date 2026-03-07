@@ -20,6 +20,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Fixed encoding issue by adding the task `ConvertMofFilesToUnicode`
   which changes the encoding of MOF files to UTF-16 LE BOM ([#200](https://github.com/dsccommunity/DscWorkshop/issues/200)).
+- Fixed 94 WinPSCompatSession warnings when building on PowerShell 7.
+  Added `NoWinPSCompatibility` build task that sets
+  `Import-Module -SkipEditionCheck` globally, preventing PS 7 from
+  creating a remoting session for Desktop-only modules scanned by
+  `Get-DscResource`.
 
 ## [0.2.0] - 2025-11-14
 

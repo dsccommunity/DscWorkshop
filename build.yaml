@@ -20,6 +20,7 @@ BuildWorkflow:
     - CompileDatumRsop
     - TestReferenceRsop
     - Set_PSModulePath
+    - NoWinPSCompatibility
     - TestDscResources
     - CompileRootConfiguration
     - CompileRootMetaMof
