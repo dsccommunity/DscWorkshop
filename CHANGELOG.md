@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Migrated from `DscConfig.Demo` to `CommonTasks` composite resource module.
+  Updated `build.yaml`, `RequiredModules.psd1`, all Datum configuration data,
+  and `DependsOn` references to match the resource names used by `CommonTasks`
+  (e.g. `FilesAndFolders` replaces `FileSystemObjects`).
 - Updated all modules in the [RequiredModules.psd1](./RequiredModules.psd1).
 - Updated DscBuildHelpers to 0.3.0.
 - Updated Datum to 0.41.0.
