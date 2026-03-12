@@ -48,7 +48,11 @@ If you need DSC in an isolated or non-cloud ready environment, all the required 
 - Routing Services so all VMs can access the internet
 
 The lab script are in [Lab](./Lab).
+## DevOps Principles and Patterns
 
+This project is a comprehensive implementation of industry-standard DevOps and "* as Code" principles for Windows infrastructure management. For a detailed mapping to frameworks like [DORA](https://dora.dev), [GitOps](https://opengitops.dev), [Infrastructure as Code](https://infrastructure-as-code.com) (Kief Morris), and [The Release Pipeline Model](./Exercises/TheReleasePipelineModel.pdf) (Greene & Murawski), see:
+
+**[03 DevOps Principles and Patterns](./03%20DevOps%20Principles%20and%20Patterns.md)**
 ## Technical Details
 
 - Configuration management that allows multiple layers of data (psd1 files and hash tables can’t be the solution)
