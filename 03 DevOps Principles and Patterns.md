@@ -132,9 +132,9 @@ DscWorkshop supports multiple CI/CD platforms out of the box:
 | Pipeline File | Target |
 |---|---|
 | [`azure-pipelines.yml`](./azure-pipelines.yml) | Standard Azure DevOps |
-| [`azure-pipelines On-Prem.yml`](./azure-pipelines%20On-Prem.yml) | On-premises Azure DevOps Server |
+| [`azure-pipelines On-Prem.yml`](<./azure-pipelines On-Prem.yml>) | On-premises Azure DevOps Server |
 | [`azure-pipelines-azautomation.yml`](./azure-pipelines-azautomation.yml) | Azure Automation DSC |
-| [`azure-pipelines Guest Configuration.yml`](./azure-pipelines%20Guest%20Configuration.yml) | Azure Policy Guest Configuration |
+| [`azure-pipelines Guest Configuration.yml`](<./azure-pipelines Guest Configuration.yml>) | Azure Policy Guest Configuration |
 
 The release pipeline implements **staging rings** — artifacts progress through Dev → Test → Production with automated gates at each stage. This directly follows [The Release Pipeline Model](./Exercises/TheReleasePipelineModel.pdf).
 
@@ -157,7 +157,7 @@ Complete lab environments are defined as code using [AutomatedLab](https://autom
 - Certificate Authority
 - Routing infrastructure
 
-The entire environment deploys from scripts in the [`Lab/`](./Lab) directory. See [01 AutomatedLab.md](./01%20AutomatedLab.md) for details.
+The entire environment deploys from scripts in the [`Lab/`](./Lab) directory. See [01 AutomatedLab.md](<./01 AutomatedLab.md>) for details.
 
 ### 10. Security as Code
 
