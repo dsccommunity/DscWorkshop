@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Added HQRM tests and updated Pester test configuration.
+- Added DevOps Principles and Patterns documentation (`03 DevOps Principles and Patterns.md`)
+  mapping the project to industry-standard frameworks (DORA, GitOps, Twelve-Factor App,
+  Infrastructure as Code patterns, Release Pipeline Model).
 
 ### Changed
 
