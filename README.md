@@ -80,11 +80,11 @@ See [GPOs/README.md](./GPOs/README.md) for complete documentation, workflows, an
 
 ### Memory Bank
 
-This project includes a comprehensive memory bank system located in the `memory-bank/` directory that provides:
+This project includes a comprehensive memory bank system located in the `.memory-bank/` directory that provides:
 
 - **Project Context**: Understanding of the problem domain and solution approach
 - **System Architecture**: Detailed technical patterns and design decisions  
 - **Active Context**: Current development focus and recent changes
 - **Progress Tracking**: What's working, what's planned, and known issues
 
-The memory bank serves as the authoritative knowledge base for project understanding and continuity across development sessions.
+The memory bank serves as the authoritative knowledge base for project understanding and continuity across development sessions. Repo-scoped Copilot guidance lives in [`.github/copilot-instructions.md`](./.github/copilot-instructions.md).

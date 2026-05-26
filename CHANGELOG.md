@@ -11,9 +11,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added DevOps Principles and Patterns documentation (`03 DevOps Principles and Patterns.md`)
   mapping the project to industry-standard frameworks (DORA, GitOps, Twelve-Factor App,
   Infrastructure as Code patterns, Release Pipeline Model).
+- Added repo-scoped Copilot guidance at `.github/copilot-instructions.md`
+  documenting build/test entry points, editing conventions, Memory Bank discipline,
+  CHANGELOG rules, and conventional-commit / `ai/` branch policy.
 
 ### Changed
 
+- Renamed `memory-bank/` to `.memory-bank/` to align with the workspace pre/post-flight
+  hooks and the [CopilotAtelier](https://github.com/raandree/CopilotAtelier) conventions.
+  Memory Bank files were audited and rewritten against current repo state; added
+  `promptHistory.md`. Updated `README.md` reference accordingly.
 - Migrated from `DscConfig.Demo` to `CommonTasks` composite resource module.
   Updated `build.yaml`, `RequiredModules.psd1`, all Datum configuration data,
   and `DependsOn` references to match the resource names used by `CommonTasks`
